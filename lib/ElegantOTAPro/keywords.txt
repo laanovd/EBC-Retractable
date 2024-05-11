@@ -1,0 +1,16 @@
+ElegantOTA	            KEYWORD1
+begin		            KEYWORD2
+loop                    KEYWORD2
+setAuth                 KEYWORD2
+clearAuth               KEYWORD2
+setAutoReboot           KEYWORD2
+onStart                 KEYWORD2
+onEnd                   KEYWORD2
+onProgress	            KEYWORD2
+setTitle                KEYWORD2
+setID                   KEYWORD2
+setFWVersion            KEYWORD2
+setFirmwareMode         KEYWORD2
+checkFirmwareMode       KEYWORD2
+setFilesystemMode       KEYWORD2
+checkFilesystemMode     KEYWORD2

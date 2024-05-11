@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>    
+<title>...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon"  href="data:,">
+    <style>
+    html {
+      font-family: Arial; 
+      text-align: center;
+    }
+    body {
+      max-width: 400px;
+      margin: 0px auto;
+    }
+  </style>  
+  </head>
+  <body>
+    <h2><span style="font-size:22px;color:#090909;">RIM DRIVE <span style="color:#3498db;">TECHNOLOGY</span></h2>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p><span style="font-size:16px;color:#090909;">Program: <span id="program_name">-</span></span></p>
+    <p><span style="font-size:16px;color:#090909;">Chip-id: <span id="chip_id">-</span></span></p>
+    <p><span style="font-size:16px;color:#090909;">WiFi SSID: <span id="wifi_ssid">-</span></span></p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p><a href="/update"><button>Upload Program</button></a></p>
+    <p>&nbsp;</p>
+    <p><a href="/webserial"><button>Program interface</button></a></p>
+  </body>
+  <script>
+    var Socket;
+      function init() {
+        Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
+        Socket.onmessage = function(event) {
+          processCommand(event);
+        };
+      }
+
+      function processCommand(event) {
+        var obj = JSON.parse(event.data);
+        document.getElementById('program_name').innerHTML = obj.program_name;
+        document.getElementById('chip_id').innerHTML = obj.chip_id;
+        document.getElementById('wifi_ssid').innerHTML = obj.wifi_ssid;
+      }
+
+      window.onload = function(event) {
+        init();
+      }  
+  </script>  
+</html>

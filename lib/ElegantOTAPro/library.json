@@ -1,0 +1,21 @@
+{
+  "name": "ElegantOTAPro",
+  "keywords": "ElegantOTAPro, OTA, Update, ESP8266, ESP32, Over, the, air",
+  "description": "OTA update library for wireless microcontrollers",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/ayushsharma82/ElegantOTAPro.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Ayush Sharma",
+      "email": "support@softt.io",
+      "maintainer": true
+    }
+  ],
+  "version": "3.1.0",
+  "frameworks": "arduino",
+  "platforms": ["espressif", "raspberrypi"]
+}
