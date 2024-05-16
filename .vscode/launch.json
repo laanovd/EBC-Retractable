@@ -12,9 +12,9 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "c:/Ontwikkeling/PlatformIO/EBC-ESP32-Base/.pio/build/esp32dev/firmware.elf",
+            "executable": "/Users/tomasvanderlaan/workdir/ebc/EBC-Retractable/.pio/build/esp32dev/firmware.elf",
             "projectEnvName": "esp32dev",
-            "toolchainBinDir": "C:/Users/laano/.platformio/packages/toolchain-xtensa-esp32@8.4.0+2021r2-patch5/bin",
+            "toolchainBinDir": "/Users/tomasvanderlaan/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
                 "type": "PlatformIO",
@@ -25,18 +25,18 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "c:/Ontwikkeling/PlatformIO/EBC-ESP32-Base/.pio/build/esp32dev/firmware.elf",
+            "executable": "/Users/tomasvanderlaan/workdir/ebc/EBC-Retractable/.pio/build/esp32dev/firmware.elf",
             "projectEnvName": "esp32dev",
-            "toolchainBinDir": "C:/Users/laano/.platformio/packages/toolchain-xtensa-esp32@8.4.0+2021r2-patch5/bin",
+            "toolchainBinDir": "/Users/tomasvanderlaan/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "c:/Ontwikkeling/PlatformIO/EBC-ESP32-Base/.pio/build/esp32dev/firmware.elf",
+            "executable": "/Users/tomasvanderlaan/workdir/ebc/EBC-Retractable/.pio/build/esp32dev/firmware.elf",
             "projectEnvName": "esp32dev",
-            "toolchainBinDir": "C:/Users/laano/.platformio/packages/toolchain-xtensa-esp32@8.4.0+2021r2-patch5/bin",
+            "toolchainBinDir": "/Users/tomasvanderlaan/.platformio/packages/toolchain-xtensa-esp32/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
         }
