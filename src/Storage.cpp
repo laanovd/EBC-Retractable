@@ -225,7 +225,7 @@ int STORAGE_get_float(const char *key, float &value) {
     return ESP_ERR_NOT_FOUND;  // Not found
   }
 
-  value = _dta_stor[key].as<int>();
+  value = _dta_stor[key].as<float>();
   return ESP_OK;  // Ok
 }
 
