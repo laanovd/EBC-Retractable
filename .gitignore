@@ -1,5 +1,6 @@
 # Folders
 .pio/**
+.vscode/**
 
 # Prerequisites
 *.d
@@ -33,6 +34,3 @@
 *.exe
 *.out
 *.app
-.vscode/c_cpp_properties.json
-.vscode/extensions.json
-.vscode/launch.json
