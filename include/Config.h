@@ -69,4 +69,27 @@ typedef void (*CANReceiveHandler) (uint32_t id, uint8_t *buffer, uint8_t size, b
 #define CAN_RX 4  // CAN Receive = GPIO04
 #define CAN_TX 5  // CAN Transmit = GPIO05
 
+#define BUTTON_UP_PIN 23
+#define BUTTON_UP_LED_PIN 14
+#define BUTTON_DOWN_PIN 25
+#define BUTTON_DOWN_LED_PIN 26
+
+#define IN_1_PIN 36
+#define IN_2_PIN 39
+#define IN_3_PIN 34
+#define IN_4_PIN 35
+
+#define DMC_ENABLE_PIN 16
+#define RETRACT_ENABLE_PIN 17
+#define MOTOR_UP_PIN 18
+#define MOTOR_DOWN_PIN 19
+
+#define WHEEL_PIN 32
+#define ENABLE_ANALOG_OUT_PIN 27
+
+/*******************************************************************
+ * Hardware Implementation definitions
+ *******************************************************************/
+#define DEBOUNCE_TIME 100
+
 #endif  // CONFIG_HEADER_ID
