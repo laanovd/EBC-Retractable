@@ -75,7 +75,6 @@ typedef void (*CANReceiveHandler) (uint32_t id, uint8_t *buffer, uint8_t size, b
 #define DMC_ENABLE_PIN 16
 #define RETRACT_ENABLE_PIN 17
 
-#define WHEEL_PIN 32
 #define ENABLE_ANALOG_OUT_PIN 27
 
 /*******************************************************************

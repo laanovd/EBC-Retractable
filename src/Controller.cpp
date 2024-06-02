@@ -14,6 +14,7 @@
 #include "Storage.h"
 #include "GPIO.cpp"
 #include "DMC.cpp"
+#include "Azimuth.cpp"
 
 /********************************************************************
  * Type definitions
@@ -111,6 +112,7 @@ static void fnStateRetracting()
     LED_DOWN_set_interval(-1);
     DMC_disable();
     timer_millis = millis();
+    // TODO: disable analog out and wait x seconds
 }
 static bool fnRetractingToNoPosition()
 {
@@ -138,6 +140,7 @@ static void fnStateExtended()
     STORAGE_set_int(JSON_RETRACTED_COUNT, controller_data[JSON_RETRACTED_COUNT]);
 
     DMC_enable();
+    AZIMUTH_enable();
 }
 static bool fnExtendedToRetracting()
 {

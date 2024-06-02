@@ -9,6 +9,7 @@
 #include "CLI.h"
 #include "GPIO.cpp"
 #include "DMC.cpp"
+#include "Azimuth.cpp"
 
 /********************************************************************
  *  Initialize the command line handlers
@@ -19,6 +20,7 @@ static void MAIN_handlers(void) {}
  *  Setup tasks
  *******************************************************************/
 #define LED_UPDATE_FREQUENCY 5
+#define AZIMUTH_UPDATE_FREQUENCY 5
 
 void MAIN_setup_tasks() {}
 
@@ -33,6 +35,16 @@ void LED_main_task(void* parameter)
     BUTTON_update();
 
     DMC_update();
+    
+    vTaskDelay(1000 / LED_UPDATE_FREQUENCY);
+  }
+}
+
+void AZIMUTH_main_task(void* parameter)
+{
+  (void)parameter;
+  while(true){
+    AZIMUTH_update();
     
     vTaskDelay(1000 / LED_UPDATE_FREQUENCY);
   }

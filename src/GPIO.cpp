@@ -302,6 +302,48 @@ bool RETRACTABLE_is_extended()
 }
 
 /*******************************************************************
+    Steering wheel
+ *******************************************************************/
+#define WHEEL_PIN 32
+float WHEEL_get_position()
+{
+    return analogRead(WHEEL_PIN) / 4095;
+}
+
+/*******************************************************************
+    Azimuth
+ *******************************************************************/
+#define AZIMUTH_PIN 0
+void AZIMUTH_setup()
+{
+    pinMode(AZIMUTH_PIN, OUTPUT);
+}
+
+void AZIMUTH_set_position(float position)
+{
+    analogWrite(AZIMUTH_PIN, int(position * 4095));
+}
+
+/*******************************************************************
+    Analog enable/disable
+ *******************************************************************/
+#define ENABLE_ANALOG_OUT_PIN 27
+void ANALOG_OUT_setup()
+{
+    pinMode(ENABLE_ANALOG_OUT_PIN, OUTPUT);
+}
+
+void ANALOG_OUT_enable()
+{
+    digitalWrite(ENABLE_ANALOG_OUT_PIN, HIGH);
+}
+
+void ANALOG_OUT_disable()
+{
+    digitalWrite(ENABLE_ANALOG_OUT_PIN, HIGH);
+}
+
+/*******************************************************************
     Main GPIO setup
  *******************************************************************/
 void GPIO_setup()
@@ -310,4 +352,5 @@ void GPIO_setup()
     LED_setup();
     DMC_setup();
     SENSOR_setup();
+    AZIMUTH_setup();
 }
