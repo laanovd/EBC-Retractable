@@ -35,7 +35,7 @@
 
 #define WHEEL_PIN 32
 
-#define AZIMUTH_PIN
+#define AZIMUTH_PIN 0
 
 #define ENABLE_ANALOG_OUT_PIN 27
 
