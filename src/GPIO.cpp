@@ -1,11 +1,10 @@
+#include "GPIO.h"
+
 #include <Arduino.h>
 
 /*******************************************************************
     Buttons setup
  *******************************************************************/
-#define BUTTON_UP_PIN 23
-#define BUTTON_DOWN_PIN 25
-#define BUTTON_EMERGNECY_PIN 2
 void BUTTONS_setup()
 {
     pinMode(BUTTON_UP_PIN, INPUT_PULLUP);
@@ -32,7 +31,6 @@ void BUTTON_update()
 // Single button presses will be activated on release
 // Combined button press will be activated if both buttons are down
 // After button activation, short timeout will be activated
-#define BUTTON_TIMEOUT 100
 
 bool BUTTON_UP_previous_state = false;
 bool BUTTON_DOWN_previous_state = false;
@@ -86,8 +84,6 @@ bool BUTTON_EMERGENCY_is_pressed()
 /*******************************************************************
     Buttons setup
  *******************************************************************/
-#define MOTOR_UP_PIN 18
-#define MOTOR_DOWN_PIN 19
 void BUTTONS_setup()
 {
     pinMode(MOTOR_UP_PIN, INPUT_PULLUP);
@@ -105,11 +101,7 @@ bool is_motor_extended()
 /*******************************************************************
     LED setup
  *******************************************************************/
-#define LED_UP_PIN 14
-#define LED_DOWN_PIN 26
-#define LED_HEARTBEAT_PIN 2
-#define LED_ERROR_PIN 27
-void LED_setup(void)
+static void LED_setup(void)
 {
     pinMode(LED_UP_PIN, OUTPUT);
     pinMode(LED_DOWN_PIN, OUTPUT);
@@ -120,8 +112,7 @@ void LED_setup(void)
 /*******************************************************************
     LED heartbeat setup
  *******************************************************************/
-#define HEARTBEAT_FREQUENCY 1000
-int LED_HEARTBEAT_state = LOW;
+static int LED_HEARTBEAT_state = LOW;
 
 void LED_HEARTBEAT_set_high()
 {
@@ -136,9 +127,9 @@ void LED_HEARTBEAT_set_low()
 void LED_HEARTBEAT_update()
 {
     int current = millis();
-    if (current % (2 * HEARTBEAT_FREQUENCY) > HEARTBEAT_FREQUENCY && LED_HEARTBEAT_state == HIGH)
+    if (current % BLINK_INTERVAL_HEARTBEAT > BLINK_INTERVAL_HEARTBEAT / 2 && LED_HEARTBEAT_state == HIGH)
         LED_HEARTBEAT_set_low();
-    if (current % (2 * HEARTBEAT_FREQUENCY) <= HEARTBEAT_FREQUENCY && LED_HEARTBEAT_state == LOW)
+    if (current % BLINK_INTERVAL_HEARTBEAT <= BLINK_INTERVAL_HEARTBEAT / 2 && LED_HEARTBEAT_state == LOW)
         LED_HEARTBEAT_set_high();
 }
 
@@ -157,9 +148,9 @@ void LED_ERROR_set_low()
 /*******************************************************************
     LED up controls
  *******************************************************************/
-int LED_UP_interval = -1;
-int LED_UP_state = LOW;
-int LED_UP_millis = -1;
+static int LED_UP_interval = -1;
+static int LED_UP_state = LOW;
+static int LED_UP_millis = -1;
 
 void LED_UP_set_high()
 {
@@ -210,15 +201,16 @@ void LED_UP_update()
 /*******************************************************************
     LED down controls
  *******************************************************************/
-int LED_DOWN_interval = -1;
-int LED_DOWN_state = LOW;
-int LED_DOWN_millis = -1;
+static int LED_DOWN_interval = -1;
+static int LED_DOWN_state = LOW;
+static int LED_DOWN_millis = -1;
 
 void LED_DOWN_set_high()
 {
     LED_DOWN_state = HIGH;
     digitalWrite(LED_DOWN_PIN, HIGH);
 }
+
 void LED_DOWN_set_low()
 {
     LED_DOWN_state = HIGH;
@@ -263,9 +255,7 @@ void LED_DOWN_update()
 /*******************************************************************
     DMC Enable setup
  *******************************************************************/
-#define DMC_ENABLE_PIN 16
-// TODO: Check if enable is high or low
-void DMC_setup()
+static void DMC_setup()
 {
     pinMode(DMC_ENABLE_PIN, OUTPUT);
 }
@@ -285,7 +275,7 @@ void DMC_set_low()
 #define MOTOR_UP_SENSOR_PIN 18
 #define MOTOR_DOWN_SENSOR_PIN 19
 
-void SENSOR_setup()
+static void SENSOR_setup()
 {
     pinMode(MOTOR_UP_SENSOR_PIN, INPUT_PULLDOWN);
     pinMode(MOTOR_DOWN_SENSOR_PIN, INPUT_PULLDOWN);
@@ -304,7 +294,6 @@ bool RETRACTABLE_is_extended()
 /*******************************************************************
     Steering wheel
  *******************************************************************/
-#define WHEEL_PIN 32
 float WHEEL_get_position()
 {
     return analogRead(WHEEL_PIN) / 4095;
@@ -313,8 +302,7 @@ float WHEEL_get_position()
 /*******************************************************************
     Azimuth
  *******************************************************************/
-#define AZIMUTH_PIN 0
-void AZIMUTH_setup()
+static void AZIMUTH_setup()
 {
     pinMode(AZIMUTH_PIN, OUTPUT);
 }
@@ -327,8 +315,7 @@ void AZIMUTH_set_position(float position)
 /*******************************************************************
     Analog enable/disable
  *******************************************************************/
-#define ENABLE_ANALOG_OUT_PIN 27
-void ANALOG_OUT_setup()
+static void ANALOG_OUT_setup()
 {
     pinMode(ENABLE_ANALOG_OUT_PIN, OUTPUT);
 }
