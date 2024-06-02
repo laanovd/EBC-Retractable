@@ -95,12 +95,18 @@ static void fnStateRetracted()
 }
 static bool fnRetractedToExtending()
 {
-    // TODO: check if azimuth is in the middle position
-    return BUTTON_DOWN_is_pressed();
+    if (BUTTON_DOWN_is_pressed())
+        // TODO: check if azimuth is in the middle position
+        return true;
+
+    return false;
 }
 static bool fnRetractedToEmergencyStop()
 {
-    return BUTTON_EMERGENCY_is_pressed();
+    if (BUTTON_EMERGENCY_is_pressed())
+        return true;
+
+    return false;
 }
 
 /********************************************************************
@@ -114,18 +120,33 @@ static void fnStateRetracting()
     timer_millis = millis();
     // TODO: disable analog out and wait x seconds
 }
+
 static bool fnRetractingToNoPosition()
 {
-    return BUTTON_DOWN_is_pressed() ||
-           BUTTON_UP_is_pressed() ||
-           millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000;
+    if (BUTTON_UP_is_pressed())
+        return true;
+    if (BUTTON_DOWN_is_pressed())
+        return true;
+    if (millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000)
+        return true;
+
+    return false;
 }
-static bool fnRetractingToRetracted() {
-    return RETRACTABLE_is_retracted();
+
+static bool fnRetractingToRetracted()
+{
+    if (RETRACTABLE_is_retracted())
+        return true;
+
+    return false;
 }
+
 static bool fnRetractingToEmergencyStop()
 {
-    return BUTTON_EMERGENCY_is_pressed();
+    if (BUTTON_EMERGENCY_is_pressed())
+        return true;
+
+    return false;
 }
 
 /********************************************************************
@@ -142,19 +163,30 @@ static void fnStateExtended()
     DMC_enable();
     AZIMUTH_enable();
 }
+
 static bool fnExtendedToRetracting()
 {
-    // TODO: check if azimuth is in the middle position
-    return BUTTON_UP_is_pressed();
+    if (BUTTON_UP_is_pressed())
+        // TODO: check if azimuth is in the middle position
+        return true;
+
+    return false;
 }
+
 static bool fnExtendedToCalibrating()
 {
-    return BUTTON_COMBINED_is_pressed();
+    if (BUTTON_COMBINED_is_pressed())
+        return true;
+
+    return false;
 }
 
 static bool fnExtendedToEmergencyStop()
 {
-    return BUTTON_EMERGENCY_is_pressed();
+    if (BUTTON_EMERGENCY_is_pressed())
+        return true;
+
+    return false;
 }
 
 /********************************************************************
@@ -166,18 +198,33 @@ static void fnStateExtending()
     LED_UP_set_interval(-1);
     timer_millis = millis();
 }
+
 static bool fnExtendingToNoPosition()
 {
-    return BUTTON_DOWN_is_pressed() ||
-           BUTTON_UP_is_pressed() ||
-           millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000;
+    if (BUTTON_UP_is_pressed())
+        return true;
+    if (BUTTON_DOWN_is_pressed())
+        return true;
+    if (millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000)
+        return true;
+
+    return false;
 }
-static bool fnExtendingToExtended() {
-    return RETRACTABLE_is_extended();
+
+static bool fnExtendingToExtended()
+{
+    if (RETRACTABLE_is_extended())
+        return true;
+
+    return false;
 }
+
 static bool fnExtendingToEmergencyStop()
 {
-    return BUTTON_EMERGENCY_is_pressed();
+    if (BUTTON_EMERGENCY_is_pressed())
+        return true;
+
+    return false;
 }
 
 /********************************************************************
@@ -191,13 +238,23 @@ static void fnStateCalibrating()
     // TODO: control azimuth via cli
     // TODO: command "factory reset"
 }
+
 static bool fnCalibratingToNoPosition()
 {
-    return BUTTON_UP_state || BUTTON_DOWN_state;
+    if (BUTTON_UP_is_pressed())
+        return true;
+    if (BUTTON_DOWN_is_pressed())
+        return true;
+
+    return false;
 }
+
 static bool fnCalibratingToEmergencyStop()
 {
-    return BUTTON_EMERGENCY_is_pressed();
+    if (BUTTON_EMERGENCY_is_pressed())
+        return true;
+
+    return false;
 }
 
 /********************************************************************
@@ -211,13 +268,32 @@ static void fnStateNoPosition()
     // TODO: give error
     LED_ERROR_set_high();
 }
-static bool fnNoPositionToExtended() {}
+static bool fnNoPositionToExtended()
+{
+    if (RETRACTABLE_is_extended())
+        return true;
+
+    return false;
+}
+
 static bool fnNoPositionToExtending() {}
-static bool fnNoPositionToRetracted() {}
+
+static bool fnNoPositionToRetracted()
+{
+    if (RETRACTABLE_is_retracted())
+        return true;
+
+    return false;
+}
+
 static bool fnNoPositionToRetracting() {}
+
 static bool fnNoPositionToEmergencyStop()
 {
-    return BUTTON_EMERGENCY_is_pressed();
+    if (BUTTON_EMERGENCY_is_pressed())
+        return true;
+
+    return false;
 }
 
 /********************************************************************
@@ -233,7 +309,10 @@ static void fnStateEmergencyStop()
 }
 static bool fnEmergencyStopToCalibrating()
 {
-    return BUTTON_COMBINED_is_pressed();
+    if (BUTTON_EMERGENCY_is_pressed())
+        return true;
+
+    return false;
 }
 
 /********************************************************************
