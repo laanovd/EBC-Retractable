@@ -61,7 +61,7 @@ static void CONTROLLER_setup_variables(void)
 {
     CONTROLLER_init_int(JSON_RETRACTED_COUNT, 0);
     CONTROLLER_init_int(JSON_EXTENDED_COUNT, 0);
-    CONTROLLER_init_int(JSON_MOVE_TIMEOUT, 15);
+    CONTROLLER_init_int(JSON_MOVE_TIMEOUT, JSON_MOVE_TIMEOUT_DEFAULT);
 }
 
 /********************************************************************
