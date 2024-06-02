@@ -24,6 +24,7 @@ enum VEDOUTStateIds
     CONTROLLER_init,
     CONTROLLER_retracted,
     CONTROLLER_retracting,
+    CONTROLLER_retracting_aligning,
     CONTROLLER_extended,
     CONTROLLER_extending,
     CONTROLLER_no_position,
@@ -48,7 +49,8 @@ int timer_millis = 0;
 static JsonDocument controller_data;
 #define JSON_RETRACTED_COUNT "retracted"
 #define JSON_EXTENDED_COUNT "extended"
-#define JSON_MOVE_TIMEOUT "move-timeout"
+#define JSON_MOVE_TIMEOUT "move_timeout"
+#define JSON_DELAY_TO_MIDDLE "delay_to_middle"
 
 static void CONTROLLER_init_int(const char *key, int default_value)
 {
@@ -96,12 +98,47 @@ static void fnStateRetracted()
 static bool fnRetractedToExtending()
 {
     if (BUTTON_DOWN_is_pressed())
-        // TODO: check if azimuth is in the middle position
         return true;
 
     return false;
 }
 static bool fnRetractedToEmergencyStop()
+{
+    if (BUTTON_EMERGENCY_is_pressed())
+        return true;
+
+    return false;
+}
+
+/********************************************************************
+ * Controller Retracting Aligning State
+ ********************************************************************/
+static void fnStateRetractingAligning()
+{
+    LED_UP_set_interval(moving_blink_interval);
+    LED_DOWN_set_interval(-1);
+    timer_millis = millis();
+}
+
+static bool fnRetractingAligningToNoPosition()
+{
+    if (BUTTON_UP_is_pressed())
+        return true;
+    if (BUTTON_DOWN_is_pressed())
+        return true;
+
+    return false;
+}
+
+static bool fnRetractingAligningToRetracting()
+{
+    if (millis() - timer_millis >= controller_data[JSON_DELAY_TO_MIDDLE] * 1000)
+        return true;
+
+    return false;
+}
+
+static bool fnRetractingToEmergencyStop()
 {
     if (BUTTON_EMERGENCY_is_pressed())
         return true;
@@ -117,7 +154,6 @@ static void fnStateRetracting()
     LED_UP_set_interval(moving_blink_interval);
     LED_DOWN_set_interval(-1);
     timer_millis = millis();
-    // TODO: disable analog out and wait x seconds
 }
 
 static bool fnRetractingToNoPosition()
@@ -282,7 +318,13 @@ static bool fnNoPositionToExtended()
     return false;
 }
 
-static bool fnNoPositionToExtending() {}
+static bool fnNoPositionToExtending()
+{
+    if (BUTTON_DOWN_is_pressed())
+        return true;
+
+    return false;
+}
 
 static bool fnNoPositionToRetracted()
 {
@@ -292,7 +334,12 @@ static bool fnNoPositionToRetracted()
     return false;
 }
 
-static bool fnNoPositionToRetracting() {}
+static bool fnNoPositionToRetracting() {
+    if (BUTTON_UP_is_pressed())
+        return true;
+
+    return false;
+}
 
 static bool fnNoPositionToEmergencyStop()
 {
@@ -351,6 +398,11 @@ void CONTROLLER_setup_statemachine()
     stateMachine.AddTransition(CONTROLLER_retracting, CONTROLLER_emergency_stop, fnToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_retracting, fnStateExtending);
 
+    stateMachine.AddTransition(CONTROLLER_retracting_aligning, CONTROLLER_retracted, fnRetractingAligningToRetracting);
+    stateMachine.AddTransition(CONTROLLER_retracting_aligning, CONTROLLER_no_position, fnRetractingAligningToNoPosition);
+    stateMachine.AddTransition(CONTROLLER_retracting_aligning, CONTROLLER_emergency_stop, fnToEmergencyStop);
+    stateMachine.SetOnEntering(CONTROLLER_retracting_aligning, fnStateRetractingAligning);
+
     stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_extending, fnRetractedToExtending);
     stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_emergency_stop, fnToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_retracted, fnStateRetracted);
@@ -360,7 +412,7 @@ void CONTROLLER_setup_statemachine()
     stateMachine.AddTransition(CONTROLLER_extending, CONTROLLER_emergency_stop, fnToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_extending, fnStateExtending);
 
-    stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_retracting, fnExtendedToRetracting);
+    stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_retracting_aligning, fnExtendedToRetracting);
     stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_calibrating, fnExtendedToCalibrating);
     stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_emergency_stop, fnToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_extended, fnStateExtended);
@@ -372,7 +424,7 @@ void CONTROLLER_setup_statemachine()
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extended, fnNoPositionToExtended);
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extending, fnNoPositionToExtending);
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_retracted, fnNoPositionToRetracted);
-    stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_retracting, fnNoPositionToRetracting);
+    stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_retracting_aligning, fnNoPositionToRetracting);
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_emergency_stop, fnToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_no_position, fnStateNoPosition);
 
