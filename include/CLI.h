@@ -51,4 +51,10 @@ extern void system_restart(void);
  ********************************************************************/
 extern void CLI_setup(void);
 
+/*********************************************************************
+ *  Set calibration mode
+ ********************************************************************/
+extern void set_calibrating(bool value);
+extern bool is_calibrating();
+
 #endif // CLI_HEADER

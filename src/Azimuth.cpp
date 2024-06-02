@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+
+#include "CLI.h"
 #include "Storage.h"
 #include "GPIO.cpp"
 

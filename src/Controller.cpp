@@ -13,6 +13,7 @@
 #include <esp_err.h>
 
 #include "Storage.h"
+#include "CLI.h"
 #include "GPIO.cpp"
 #include "DMC.cpp"
 #include "Azimuth.cpp"
@@ -37,7 +38,6 @@ enum VEDOUTStateIds
 /********************************************************************
  * Global variables
  ********************************************************************/
-
 
 int timer_millis = 0;
 
@@ -250,25 +250,30 @@ static bool fnPrecalibratingToCalibrating()
     return false;
 }
 
-
 /********************************************************************
  * Controller Calibration State
  ********************************************************************/
 static void fnStateCalibrating()
 {
+    set_calibrating(true);
     LED_DOWN_set_interval(BLINK_INTERVAL_CALIBRATING);
     LED_UP_set_interval(BLINK_INTERVAL_CALIBRATING);
     LED_ERROR_set_low();
-    // TODO: control azimuth via cli
-    // TODO: command "factory reset"
 }
 
 static bool fnCalibratingToNoPosition()
 {
     if (get_button_up_state())
+    {
+        set_calibrating(false);
+
         return true;
+    }
     if (get_button_down_state())
+    {
+        set_calibrating(false);
         return true;
+    }
 
     return false;
 }
@@ -306,7 +311,8 @@ static bool fnNoPositionToRetracted()
     return false;
 }
 
-static bool fnNoPositionToRetracting() {
+static bool fnNoPositionToRetracting()
+{
     if (get_button_up_state())
         return true;
 
