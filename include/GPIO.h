@@ -31,6 +31,9 @@
 #define MOTOR_UP_PIN 18
 #define MOTOR_DOWN_PIN 19
 
+#define MOTOR_UP_SENSOR_PIN 18
+#define MOTOR_DOWN_SENSOR_PIN 19
+
 #define DMC_ENABLE_PIN 16
 
 #define WHEEL_PIN 32

@@ -15,8 +15,11 @@ void BUTTONS_setup()
 /*******************************************************************
     Buttons loop
  *******************************************************************/
-bool BUTTON_UP_state = false;
-bool BUTTON_DOWN_state = false;
+static bool BUTTON_UP_state = false;
+static bool BUTTON_DOWN_state = false;
+
+bool get_button_up_state() { return BUTTON_UP_state; }
+bool get_button_down_state() { return BUTTON_DOWN_state; }
 
 // * Edit this for active high/low
 void BUTTON_update()
@@ -32,10 +35,10 @@ void BUTTON_update()
 // Combined button press will be activated if both buttons are down
 // After button activation, short timeout will be activated
 
-bool BUTTON_UP_previous_state = false;
-bool BUTTON_DOWN_previous_state = false;
+static bool BUTTON_UP_previous_state = false;
+static bool BUTTON_DOWN_previous_state = false;
 
-int BUTTON_previous_millis = 0;
+static int BUTTON_previous_millis = 0;
 
 bool BUTTON_UP_is_pressed()
 {
@@ -272,9 +275,6 @@ void DMC_set_low()
 /*******************************************************************
     Retractable sensor setup
  *******************************************************************/
-#define MOTOR_UP_SENSOR_PIN 18
-#define MOTOR_DOWN_SENSOR_PIN 19
-
 static void SENSOR_setup()
 {
     pinMode(MOTOR_UP_SENSOR_PIN, INPUT_PULLDOWN);

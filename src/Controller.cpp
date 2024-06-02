@@ -25,10 +25,11 @@ enum VEDOUTStateIds
     CONTROLLER_init,
     CONTROLLER_retracted,
     CONTROLLER_retracting,
-    CONTROLLER_retracting_aligning,
+    CONTROLLER_preretracting,
     CONTROLLER_extended,
     CONTROLLER_extending,
     CONTROLLER_no_position,
+    CONTROLLER_precalibrating,
     CONTROLLER_calibrating,
     CONTROLLER_emergency_stop
 };
@@ -66,7 +67,7 @@ static void CONTROLLER_setup_variables(void)
 /********************************************************************
  * Global data
  ********************************************************************/
-static StateMachine stateMachine(8, 20);
+static StateMachine stateMachine(10, 25);
 
 /********************************************************************
  * Controller Initializiation State
@@ -107,7 +108,7 @@ static void fnStateRetractingAligning()
     timer_millis = millis();
 }
 
-static bool fnRetractingAligningToNoPosition()
+static bool fnPreretractingToNoPosition()
 {
     if (BUTTON_UP_is_pressed())
         return true;
@@ -117,7 +118,7 @@ static bool fnRetractingAligningToNoPosition()
     return false;
 }
 
-static bool fnRetractingAligningToRetracting()
+static bool fnPreretractingToRetracting()
 {
     if (millis() - timer_millis >= controller_data[JSON_DELAY_TO_MIDDLE] * 1000)
         return true;
@@ -180,7 +181,7 @@ static bool fnExtendedToRetracting()
     return false;
 }
 
-static bool fnExtendedToCalibrating()
+static bool fnExtendedToPrecalibrating()
 {
     if (BUTTON_COMBINED_is_pressed())
     {
@@ -204,9 +205,9 @@ static void fnStateExtending()
 
 static bool fnExtendingToNoPosition()
 {
-    if (BUTTON_UP_is_pressed())
+    if (get_button_up_state())
         return true;
-    if (BUTTON_DOWN_is_pressed())
+    if (get_button_up_state())
         return true;
     if (millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000)
         return true;
@@ -223,6 +224,34 @@ static bool fnExtendingToExtended()
 }
 
 /********************************************************************
+ * Controller Pre-Calibration State
+ ********************************************************************/
+static int double_press_timer;
+static void fnStatePrecalibrating()
+{
+    double_press_timer = millis();
+}
+
+static bool fnPrecalibratingToExtended()
+{
+    if (!get_button_up_state())
+        return true;
+    if (!get_button_down_state())
+        return true;
+
+    return false;
+}
+
+static bool fnPrecalibratingToCalibrating()
+{
+    if (millis() - double_press_timer >= DOUBLE_PRESS_HOLD_TIME)
+        return true;
+
+    return false;
+}
+
+
+/********************************************************************
  * Controller Calibration State
  ********************************************************************/
 static void fnStateCalibrating()
@@ -236,9 +265,9 @@ static void fnStateCalibrating()
 
 static bool fnCalibratingToNoPosition()
 {
-    if (BUTTON_UP_is_pressed())
+    if (get_button_up_state())
         return true;
-    if (BUTTON_DOWN_is_pressed())
+    if (get_button_down_state())
         return true;
 
     return false;
@@ -263,7 +292,7 @@ static bool fnNoPositionToExtended()
 
 static bool fnNoPositionToExtending()
 {
-    if (BUTTON_DOWN_is_pressed())
+    if (get_button_down_state())
         return true;
 
     return false;
@@ -278,7 +307,7 @@ static bool fnNoPositionToRetracted()
 }
 
 static bool fnNoPositionToRetracting() {
-    if (BUTTON_UP_is_pressed())
+    if (get_button_up_state())
         return true;
 
     return false;
@@ -328,10 +357,10 @@ void CONTROLLER_setup_statemachine()
     stateMachine.AddTransition(CONTROLLER_retracting, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_retracting, fnStateExtending);
 
-    stateMachine.AddTransition(CONTROLLER_retracting_aligning, CONTROLLER_retracted, fnRetractingAligningToRetracting);
-    stateMachine.AddTransition(CONTROLLER_retracting_aligning, CONTROLLER_no_position, fnRetractingAligningToNoPosition);
-    stateMachine.AddTransition(CONTROLLER_retracting_aligning, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
-    stateMachine.SetOnEntering(CONTROLLER_retracting_aligning, fnStateRetractingAligning);
+    stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_retracted, fnPreretractingToRetracting);
+    stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_no_position, fnPreretractingToNoPosition);
+    stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
+    stateMachine.SetOnEntering(CONTROLLER_preretracting, fnStateRetractingAligning);
 
     stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_extending, fnRetractedToExtending);
     stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
@@ -342,8 +371,8 @@ void CONTROLLER_setup_statemachine()
     stateMachine.AddTransition(CONTROLLER_extending, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_extending, fnStateExtending);
 
-    stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_retracting_aligning, fnExtendedToRetracting);
-    stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_calibrating, fnExtendedToCalibrating);
+    stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_preretracting, fnExtendedToRetracting);
+    stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_precalibrating, fnExtendedToPrecalibrating);
     stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_extended, fnStateExtended);
 
@@ -351,10 +380,14 @@ void CONTROLLER_setup_statemachine()
     stateMachine.AddTransition(CONTROLLER_calibrating, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_calibrating, fnStateCalibrating);
 
+    stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_extended, fnPrecalibratingToExtended);
+    stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_calibrating, fnPrecalibratingToCalibrating);
+    stateMachine.SetOnEntering(CONTROLLER_precalibrating, fnStateCalibrating);
+
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extended, fnNoPositionToExtended);
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extending, fnNoPositionToExtending);
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_retracted, fnNoPositionToRetracted);
-    stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_retracting_aligning, fnNoPositionToRetracting);
+    stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_preretracting, fnNoPositionToRetracting);
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_no_position, fnStateNoPosition);
 

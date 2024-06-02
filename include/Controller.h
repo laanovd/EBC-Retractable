@@ -17,5 +17,7 @@
 #define JSON_DELAY_TO_MIDDLE "delay_to_middle"
 #define JSON_DELAY_TO_MIDDLE_DEFAULT 5
 
+#define DOUBLE_PRESS_HOLD_TIME 5000
+
 
 #endif
