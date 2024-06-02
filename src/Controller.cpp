@@ -10,6 +10,8 @@
 #include <StateMachineLib.h>
 #include <endian.h>
 #include <esp_err.h>
+
+#include "Storage.h"
 #include "GPIO.cpp"
 
 /********************************************************************
@@ -28,6 +30,10 @@ enum VEDOUTStateIds
 };
 
 /********************************************************************
+ * Global data
+ ********************************************************************/
+
+/********************************************************************
  * Global constants
  ********************************************************************/
 const int emergency_blink_interval = 250;
@@ -35,6 +41,32 @@ const int no_position_blink_interval = 500;
 const int calibrating_blink_interval = 500;
 const int moving_blink_interval = 500;
 const int init_blink_interval = 500;
+
+/********************************************************************
+ * Setup variables
+ ********************************************************************/
+static JsonDocument controller_data;
+#define JSON_RETRACTED_COUNT "retracted"
+#define JSON_EXTENDED_COUNT "extended"
+#define JSON_MOVE_TIMEOUT "move-timeout"
+
+static void CONTROLLER_init_int(const char *key, int default_value)
+{
+    int integer;
+    if (STORAGE_get_int(key, integer))
+    {
+        integer = default_value;
+        STORAGE_set_int(key, integer);
+    }
+    controller_data[key] = integer;
+}
+
+static void CONTROLLER_setup_variables(void)
+{
+    CONTROLLER_init_int(JSON_RETRACTED_COUNT, 0);
+    CONTROLLER_init_int(JSON_EXTENDED_COUNT, 0);
+    CONTROLLER_init_int(JSON_MOVE_TIMEOUT, 15);
+}
 
 /********************************************************************
  * Global data
@@ -57,7 +89,9 @@ static void fnStateRetracted()
 {
     LED_DOWN_set_interval(-1);
     LED_UP_set_interval(0);
-    // TODO: increment number of times up
+
+    controller_data[JSON_EXTENDED_COUNT] = controller_data[JSON_EXTENDED_COUNT] + 1;
+    STORAGE_set_int(JSON_EXTENDED_COUNT, controller_data[JSON_EXTENDED_COUNT]);
 }
 static bool fnRetractedToExtending()
 {
@@ -91,8 +125,11 @@ static void fnStateExtended()
 {
     LED_DOWN_set_interval(0);
     LED_UP_set_interval(-1);
+
+    controller_data[JSON_RETRACTED_COUNT] = controller_data[JSON_RETRACTED_COUNT] + 1;
+    STORAGE_set_int(JSON_RETRACTED_COUNT, controller_data[JSON_RETRACTED_COUNT]);
+
     // TODO: Free DMC
-    // TODO: increment number of times down
     // TODO: scale wheel position to voltage and send to azimuth
 }
 static bool fnExtendedToRetracting()
@@ -177,7 +214,7 @@ static void fnStateEmergencyStop()
     // TODO: give error
     LED_ERROR_set_high();
 }
-static bool fnEmergencyStopToCalibrating(){}
+static bool fnEmergencyStopToCalibrating() {}
 
 /********************************************************************
  * Setup Controller State Machine
