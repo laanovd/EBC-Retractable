@@ -4,6 +4,7 @@
  *    Data handling for Battery Management System (ved)
  *
  ********************************************************************/
+#include "Controller.h"
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -35,11 +36,7 @@ enum VEDOUTStateIds
 /********************************************************************
  * Global variables
  ********************************************************************/
-const int emergency_blink_interval = 250;
-const int no_position_blink_interval = 500;
-const int calibrating_blink_interval = 500;
-const int moving_blink_interval = 500;
-const int init_blink_interval = 500;
+
 
 int timer_millis = 0;
 
@@ -47,10 +44,6 @@ int timer_millis = 0;
  * Setup variables
  ********************************************************************/
 static JsonDocument controller_data;
-#define JSON_RETRACTED_COUNT "retracted"
-#define JSON_EXTENDED_COUNT "extended"
-#define JSON_MOVE_TIMEOUT "move_timeout"
-#define JSON_DELAY_TO_MIDDLE "delay_to_middle"
 
 static void CONTROLLER_init_int(const char *key, int default_value)
 {
@@ -109,7 +102,7 @@ static bool fnRetractedToExtending()
  ********************************************************************/
 static void fnStateRetractingAligning()
 {
-    LED_UP_set_interval(moving_blink_interval);
+    LED_UP_set_interval(BLINK_INTERVAL_MOVING);
     LED_DOWN_set_interval(-1);
     timer_millis = millis();
 }
@@ -137,8 +130,6 @@ static bool fnRetractingAligningToRetracting()
  ********************************************************************/
 static void fnStateRetracting()
 {
-    LED_UP_set_interval(moving_blink_interval);
-    LED_DOWN_set_interval(-1);
     timer_millis = millis();
 }
 
@@ -206,7 +197,7 @@ static bool fnExtendedToCalibrating()
  ********************************************************************/
 static void fnStateExtending()
 {
-    LED_DOWN_set_interval(moving_blink_interval);
+    LED_DOWN_set_interval(BLINK_INTERVAL_MOVING);
     LED_UP_set_interval(-1);
     timer_millis = millis();
 }
@@ -236,8 +227,8 @@ static bool fnExtendingToExtended()
  ********************************************************************/
 static void fnStateCalibrating()
 {
-    LED_DOWN_set_interval(calibrating_blink_interval);
-    LED_UP_set_interval(calibrating_blink_interval);
+    LED_DOWN_set_interval(BLINK_INTERVAL_CALIBRATING);
+    LED_UP_set_interval(BLINK_INTERVAL_CALIBRATING);
     LED_ERROR_set_low();
     // TODO: control azimuth via cli
     // TODO: command "factory reset"
@@ -258,8 +249,8 @@ static bool fnCalibratingToNoPosition()
  ********************************************************************/
 static void fnStateNoPosition()
 {
-    LED_UP_set_interval(no_position_blink_interval);
-    LED_DOWN_set_interval(no_position_blink_interval);
+    LED_UP_set_interval(BLINK_INTERVAL_NO_POSITION);
+    LED_DOWN_set_interval(BLINK_INTERVAL_NO_POSITION);
     LED_ERROR_set_high();
 }
 static bool fnNoPositionToExtended()
@@ -298,8 +289,8 @@ static bool fnNoPositionToRetracting() {
  ********************************************************************/
 static void fnStateEmergencyStop()
 {
-    LED_UP_set_interval(emergency_blink_interval);
-    LED_DOWN_set_interval(emergency_blink_interval);
+    LED_UP_set_interval(BLINK_INTERVAL_EMERGENCY);
+    LED_DOWN_set_interval(BLINK_INTERVAL_EMERGENCY);
     LED_ERROR_set_high();
 }
 
