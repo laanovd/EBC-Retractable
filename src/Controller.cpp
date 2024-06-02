@@ -96,10 +96,11 @@ static void fnStateRetracted()
 static bool fnRetractedToExtending()
 {
     // TODO: check if azimuth is in the middle position
+    return BUTTON_DOWN_is_pressed();
 }
 static bool fnRetractedToEmergencyStop()
 {
-    return EMERGENCY_BUTTON_is_pressed();
+    return BUTTON_EMERGENCY_is_pressed();
 }
 
 /********************************************************************
@@ -111,11 +112,13 @@ static void fnStateRetracting()
     LED_DOWN_set_interval(-1);
     // TODO: lock DMC
 }
-static bool fnRetractingToNoPosition() {}
+static bool fnRetractingToNoPosition() {
+    return BUTTON_DOWN_is_pressed() || BUTTON_UP_is_pressed();
+}
 static bool fnRetractingToRetracted() {}
 static bool fnRetractingToEmergencyStop()
 {
-    return EMERGENCY_BUTTON_is_pressed();
+    return BUTTON_EMERGENCY_is_pressed();
 }
 
 /********************************************************************
@@ -135,13 +138,16 @@ static void fnStateExtended()
 static bool fnExtendedToRetracting()
 {
     // TODO: check if azimuth is in the middle position
+    return BUTTON_UP_is_pressed();
 }
 static bool fnExtendedToCalibrating()
 {
+    return BUTTON_COMBINED_is_pressed();
 }
+
 static bool fnExtendedToEmergencyStop()
 {
-    return EMERGENCY_BUTTON_is_pressed();
+    return BUTTON_EMERGENCY_is_pressed();
 }
 
 /********************************************************************
@@ -156,11 +162,12 @@ static bool fnExtendingToNoPosition()
 {
     // TODO: stop if up button pressed
     // TODO: check expiration timer
+    return BUTTON_DOWN_is_pressed() || BUTTON_UP_is_pressed();
 }
 static bool fnExtendingToExtended() {}
 static bool fnExtendingToEmergencyStop()
 {
-    return EMERGENCY_BUTTON_is_pressed();
+    return BUTTON_EMERGENCY_is_pressed();
 }
 
 /********************************************************************
@@ -176,11 +183,11 @@ static void fnStateCalibrating()
 }
 static bool fnCalibratingToNoPosition()
 {
-    // TODO: stop on any button press
+    return BUTTON_DOWN_is_pressed() || BUTTON_UP_is_pressed();
 }
 static bool fnCalibratingToEmergencyStop()
 {
-    return EMERGENCY_BUTTON_is_pressed();
+    return BUTTON_EMERGENCY_is_pressed();
 }
 
 /********************************************************************
@@ -200,7 +207,7 @@ static bool fnNoPositionToRetracted() {}
 static bool fnNoPositionToRetracting() {}
 static bool fnNoPositionToEmergencyStop()
 {
-    return EMERGENCY_BUTTON_is_pressed();
+    return BUTTON_EMERGENCY_is_pressed();
 }
 
 /********************************************************************
@@ -214,7 +221,9 @@ static void fnStateEmergencyStop()
     // TODO: give error
     LED_ERROR_set_high();
 }
-static bool fnEmergencyStopToCalibrating() {}
+static bool fnEmergencyStopToCalibrating() {
+    return BUTTON_COMBINED_is_pressed();
+}
 
 /********************************************************************
  * Setup Controller State Machine

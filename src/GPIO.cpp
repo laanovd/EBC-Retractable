@@ -18,25 +18,59 @@ void BUTTONS_setup()
 /*******************************************************************
     Up button logic
  *******************************************************************/
+// Single button presses will be activated on release
+// Combined button press will be activated if both buttons are down
+// After button activation, short timeout will be activated
+#define BUTTON_TIMEOUT 100
+#define BUTTON_COMPARE_VALUE LOW // Value to compare for active high/low
 
-void BUTTONS_update()
+int BUTTON_UP_previous_state = LOW;
+int BUTTON_DOWN_previous_state = LOW;
+
+int BUTTON_previous_millis = 0;
+
+bool BUTTON_UP_is_pressed()
 {
+    int current_state = digitalRead(BUTTON_UP_PIN);
+    bool is_released = BUTTON_UP_previous_state == !BUTTON_COMPARE_VALUE && current_state == BUTTON_COMPARE_VALUE;
+    BUTTON_UP_previous_state = current_state;
+    if (millis() - BUTTON_previous_millis < BUTTON_TIMEOUT)
+        return false;
+    {
+        BUTTON_previous_millis = millis();
+        return true;
+    }
+    return false;
 }
 
-bool UP_BUTTON_is_pressed()
+bool BUTTON_DOWN_is_pressed()
 {
+    int current_state = digitalRead(BUTTON_DOWN_PIN);
+    bool is_released = BUTTON_DOWN_previous_state == !BUTTON_COMPARE_VALUE && current_state == BUTTON_COMPARE_VALUE;
+    BUTTON_UP_previous_state = current_state;
+    if (millis() - BUTTON_previous_millis < BUTTON_TIMEOUT)
+        return false;
+    if (is_released)
+    {
+        BUTTON_previous_millis = millis();
+        return true;
+    }
+    return false;
 }
 
-bool DOWN_BUTTON_is_pressed()
+bool BUTTON_COMBINED_is_pressed()
 {
+    int is_pressed = digitalRead(BUTTON_UP_PIN) && digitalRead(BUTTON_DOWN_PIN);
+    if(is_pressed) {
+        BUTTON_previous_millis = millis();
+        return true;
+    }
+    return false;
 }
 
-bool DOUBLE_BUTTON_is_pressed()
+bool BUTTON_EMERGENCY_is_pressed()
 {
-}
-
-bool EMERGENCY_BUTTON_is_pressed()
-{
+    return digitalRead(BUTTON_EMERGNECY_PIN);
 }
 
 /*******************************************************************
@@ -65,7 +99,8 @@ bool is_motor_extended()
 #define LED_DOWN_PIN 26
 #define LED_HEARTBEAT_PIN 2
 #define LED_ERROR_PIN 27
-void LED_setup(void) {
+void LED_setup(void)
+{
     pinMode(LED_UP_PIN, OUTPUT);
     pinMode(LED_DOWN_PIN, OUTPUT);
     pinMode(LED_HEARTBEAT_PIN, OUTPUT);
@@ -88,12 +123,13 @@ void LED_HEARTBEAT_set_low()
     LED_HEARTBEAT_state = LOW;
     digitalWrite(LED_HEARTBEAT_PIN, LOW);
 }
-void LED_HEARTBEAT_update() 
+void LED_HEARTBEAT_update()
 {
     int current = millis();
-    if(current % (2*HEARTBEAT_FREQUENCY) > HEARTBEAT_FREQUENCY && LED_HEARTBEAT_state == HIGH) LED_HEARTBEAT_set_low();
-    if(current % (2*HEARTBEAT_FREQUENCY) <= HEARTBEAT_FREQUENCY && LED_HEARTBEAT_state == LOW) LED_HEARTBEAT_set_high();
-    
+    if (current % (2 * HEARTBEAT_FREQUENCY) > HEARTBEAT_FREQUENCY && LED_HEARTBEAT_state == HIGH)
+        LED_HEARTBEAT_set_low();
+    if (current % (2 * HEARTBEAT_FREQUENCY) <= HEARTBEAT_FREQUENCY && LED_HEARTBEAT_state == LOW)
+        LED_HEARTBEAT_set_high();
 }
 
 /*******************************************************************
