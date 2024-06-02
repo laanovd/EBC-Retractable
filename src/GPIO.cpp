@@ -13,7 +13,18 @@ void BUTTONS_setup()
     pinMode(BUTTON_EMERGNECY_PIN, INPUT_PULLUP);
 }
 
-#define BUTTON_DELAY_MS 250
+/*******************************************************************
+    Buttons loop
+ *******************************************************************/
+bool BUTTON_UP_state = false;
+bool BUTTON_DOWN_state = false;
+
+// * Edit this for active high/low
+void BUTTON_update()
+{
+    BUTTON_UP_state = digitalRead(BUTTON_UP_PIN);
+    BUTTON_DOWN_state = digitalRead(BUTTON_DOWN_PIN);
+}
 
 /*******************************************************************
     Up button logic
@@ -22,20 +33,19 @@ void BUTTONS_setup()
 // Combined button press will be activated if both buttons are down
 // After button activation, short timeout will be activated
 #define BUTTON_TIMEOUT 100
-#define BUTTON_COMPARE_VALUE LOW // Value to compare for active high/low
 
-int BUTTON_UP_previous_state = LOW;
-int BUTTON_DOWN_previous_state = LOW;
+bool BUTTON_UP_previous_state = false;
+bool BUTTON_DOWN_previous_state = false;
 
 int BUTTON_previous_millis = 0;
 
 bool BUTTON_UP_is_pressed()
 {
-    int current_state = digitalRead(BUTTON_UP_PIN);
-    bool is_released = BUTTON_UP_previous_state == !BUTTON_COMPARE_VALUE && current_state == BUTTON_COMPARE_VALUE;
-    BUTTON_UP_previous_state = current_state;
+    bool is_released = BUTTON_UP_previous_state && !BUTTON_UP_state;
+    BUTTON_UP_previous_state = BUTTON_UP_state;
     if (millis() - BUTTON_previous_millis < BUTTON_TIMEOUT)
         return false;
+    if (is_released)
     {
         BUTTON_previous_millis = millis();
         return true;
@@ -45,9 +55,8 @@ bool BUTTON_UP_is_pressed()
 
 bool BUTTON_DOWN_is_pressed()
 {
-    int current_state = digitalRead(BUTTON_DOWN_PIN);
-    bool is_released = BUTTON_DOWN_previous_state == !BUTTON_COMPARE_VALUE && current_state == BUTTON_COMPARE_VALUE;
-    BUTTON_UP_previous_state = current_state;
+    bool is_released = BUTTON_DOWN_previous_state && !BUTTON_DOWN_state;
+    BUTTON_UP_previous_state = BUTTON_DOWN_state;
     if (millis() - BUTTON_previous_millis < BUTTON_TIMEOUT)
         return false;
     if (is_released)
@@ -60,8 +69,9 @@ bool BUTTON_DOWN_is_pressed()
 
 bool BUTTON_COMBINED_is_pressed()
 {
-    int is_pressed = digitalRead(BUTTON_UP_PIN) && digitalRead(BUTTON_DOWN_PIN);
-    if(is_pressed) {
+    int is_pressed = BUTTON_UP_state && BUTTON_DOWN_state;
+    if (is_pressed)
+    {
         BUTTON_previous_millis = millis();
         return true;
     }

@@ -30,6 +30,8 @@ void LED_main_task(void* parameter)
     LED_DOWN_update();
     LED_HEARTBEAT_update();
 
+    BUTTON_update();
+
     DMC_update();
     
     vTaskDelay(1000 / LED_UPDATE_FREQUENCY);
