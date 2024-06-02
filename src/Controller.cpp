@@ -30,17 +30,15 @@ enum VEDOUTStateIds
 };
 
 /********************************************************************
- * Global data
- ********************************************************************/
-
-/********************************************************************
- * Global constants
+ * Global variables
  ********************************************************************/
 const int emergency_blink_interval = 250;
 const int no_position_blink_interval = 500;
 const int calibrating_blink_interval = 500;
 const int moving_blink_interval = 500;
 const int init_blink_interval = 500;
+
+int timer_millis = 0;
 
 /********************************************************************
  * Setup variables
@@ -111,9 +109,13 @@ static void fnStateRetracting()
     LED_UP_set_interval(moving_blink_interval);
     LED_DOWN_set_interval(-1);
     DMC_disable();
+    timer_millis = millis();
 }
-static bool fnRetractingToNoPosition() {
-    return BUTTON_DOWN_is_pressed() || BUTTON_UP_is_pressed();
+static bool fnRetractingToNoPosition()
+{
+    return BUTTON_DOWN_is_pressed() ||
+           BUTTON_UP_is_pressed() ||
+           millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000;
 }
 static bool fnRetractingToRetracted() {}
 static bool fnRetractingToEmergencyStop()
@@ -157,11 +159,13 @@ static void fnStateExtending()
 {
     LED_DOWN_set_interval(moving_blink_interval);
     LED_UP_set_interval(-1);
+    timer_millis = millis();
 }
 static bool fnExtendingToNoPosition()
 {
-    // TODO: check expiration timer
-    return BUTTON_DOWN_is_pressed() || BUTTON_UP_is_pressed();
+    return BUTTON_DOWN_is_pressed() ||
+           BUTTON_UP_is_pressed() ||
+           millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000;
 }
 static bool fnExtendingToExtended() {}
 static bool fnExtendingToEmergencyStop()
@@ -220,7 +224,8 @@ static void fnStateEmergencyStop()
     // TODO: give error
     LED_ERROR_set_high();
 }
-static bool fnEmergencyStopToCalibrating() {
+static bool fnEmergencyStopToCalibrating()
+{
     return BUTTON_COMBINED_is_pressed();
 }
 
