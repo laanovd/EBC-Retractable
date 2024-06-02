@@ -116,7 +116,6 @@ static void fnStateRetracting()
 {
     LED_UP_set_interval(moving_blink_interval);
     LED_DOWN_set_interval(-1);
-    DMC_disable();
     timer_millis = millis();
     // TODO: disable analog out and wait x seconds
 }
@@ -167,8 +166,10 @@ static void fnStateExtended()
 static bool fnExtendedToRetracting()
 {
     if (BUTTON_UP_is_pressed())
-        // TODO: check if azimuth is in the middle position
+    {
+        DMC_disable();
         return true;
+    }
 
     return false;
 }
@@ -176,7 +177,10 @@ static bool fnExtendedToRetracting()
 static bool fnExtendedToCalibrating()
 {
     if (BUTTON_COMBINED_is_pressed())
+    {
+        DMC_disable();
         return true;
+    }
 
     return false;
 }
@@ -184,7 +188,10 @@ static bool fnExtendedToCalibrating()
 static bool fnExtendedToEmergencyStop()
 {
     if (BUTTON_EMERGENCY_is_pressed())
+    {
+        DMC_disable();
         return true;
+    }
 
     return false;
 }
@@ -264,7 +271,6 @@ static void fnStateNoPosition()
 {
     LED_UP_set_interval(no_position_blink_interval);
     LED_DOWN_set_interval(no_position_blink_interval);
-    DMC_disable();
     // TODO: give error
     LED_ERROR_set_high();
 }
@@ -307,7 +313,6 @@ static void fnStateEmergencyStop()
 {
     LED_UP_set_interval(emergency_blink_interval);
     LED_DOWN_set_interval(emergency_blink_interval);
-    DMC_disable();
     // TODO: give error
     LED_ERROR_set_high();
 }
