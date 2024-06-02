@@ -13,6 +13,7 @@
 
 #include "Storage.h"
 #include "GPIO.cpp"
+#include "DMC.cpp"
 
 /********************************************************************
  * Type definitions
@@ -135,7 +136,6 @@ static void fnStateExtended()
     STORAGE_set_int(JSON_RETRACTED_COUNT, controller_data[JSON_RETRACTED_COUNT]);
 
     DMC_enable();
-    // TODO: scale wheel position to voltage and send to azimuth
 }
 static bool fnExtendedToRetracting()
 {

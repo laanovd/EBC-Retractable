@@ -260,11 +260,11 @@ void DMC_setup()
     pinMode(DMC_ENABLE_PIN, OUTPUT);
 }
 
-void DMC_enable()
+void DMC_set_high()
 {
     digitalWrite(DMC_ENABLE_PIN, HIGH);
 }
-void DMC_disable()
+void DMC_set_low()
 {
     digitalWrite(DMC_ENABLE_PIN, LOW);
 }

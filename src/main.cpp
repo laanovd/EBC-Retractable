@@ -8,6 +8,7 @@
 #include "Storage.h"
 #include "CLI.h"
 #include "GPIO.cpp"
+#include "DMC.cpp"
 
 /********************************************************************
  *  Initialize the command line handlers
@@ -28,6 +29,9 @@ void LED_main_task(void* parameter)
     LED_UP_update();
     LED_DOWN_update();
     LED_HEARTBEAT_update();
+
+    DMC_update();
+    
     vTaskDelay(1000 / LED_UPDATE_FREQUENCY);
   }
 }
