@@ -110,7 +110,7 @@ static void fnStateRetracting()
 {
     LED_UP_set_interval(moving_blink_interval);
     LED_DOWN_set_interval(-1);
-    // TODO: lock DMC
+    DMC_disable();
 }
 static bool fnRetractingToNoPosition() {
     return BUTTON_DOWN_is_pressed() || BUTTON_UP_is_pressed();
@@ -132,7 +132,7 @@ static void fnStateExtended()
     controller_data[JSON_RETRACTED_COUNT] = controller_data[JSON_RETRACTED_COUNT] + 1;
     STORAGE_set_int(JSON_RETRACTED_COUNT, controller_data[JSON_RETRACTED_COUNT]);
 
-    // TODO: Free DMC
+    DMC_enable();
     // TODO: scale wheel position to voltage and send to azimuth
 }
 static bool fnExtendedToRetracting()
@@ -160,7 +160,6 @@ static void fnStateExtending()
 }
 static bool fnExtendingToNoPosition()
 {
-    // TODO: stop if up button pressed
     // TODO: check expiration timer
     return BUTTON_DOWN_is_pressed() || BUTTON_UP_is_pressed();
 }
@@ -197,7 +196,7 @@ static void fnStateNoPosition()
 {
     LED_UP_set_interval(no_position_blink_interval);
     LED_DOWN_set_interval(no_position_blink_interval);
-    // TODO: lock DMC
+    DMC_disable();
     // TODO: give error
     LED_ERROR_set_high();
 }
@@ -217,7 +216,7 @@ static void fnStateEmergencyStop()
 {
     LED_UP_set_interval(emergency_blink_interval);
     LED_DOWN_set_interval(emergency_blink_interval);
-    // TODO: lock DMC
+    DMC_disable();
     // TODO: give error
     LED_ERROR_set_high();
 }

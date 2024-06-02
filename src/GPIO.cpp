@@ -255,16 +255,16 @@ void LED_DOWN_update()
  *******************************************************************/
 #define DMC_ENABLE_PIN 16
 // TODO: Check if enable is high or low
-void DMC_ENABLE_setup()
+void DMC_setup()
 {
     pinMode(DMC_ENABLE_PIN, OUTPUT);
 }
 
-void enable_DMC()
+void DMC_enable()
 {
     digitalWrite(DMC_ENABLE_PIN, HIGH);
 }
-void disable_DMC()
+void DMC_disable()
 {
     digitalWrite(DMC_ENABLE_PIN, LOW);
 }
@@ -276,5 +276,5 @@ void GPIO_setup()
 {
     BUTTONS_setup();
     LED_setup();
-    DMC_ENABLE_setup();
+    DMC_setup();
 }
