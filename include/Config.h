@@ -56,9 +56,7 @@ typedef void (*CANReceiveHandler) (uint32_t id, uint8_t *buffer, uint8_t size, b
 #define ESP_TX0 1   // ...
 #define ESP_RX0 3   // ...
 
-// Hardware Aansluitingen Interface
-#define HeartBeat_LedPin 2  // Hearbeat led
-#define Error_LedPin 27     // Power/error led
+// Hardware Connections Interface
 #define TWAI_LedPin 26      // NMEA2000 communication led
 #define MCP_LedPin 33       // MCP communication led
 #define VED_LedPin 32       // VEDirect communication led
@@ -68,11 +66,6 @@ typedef void (*CANReceiveHandler) (uint32_t id, uint8_t *buffer, uint8_t size, b
 
 #define CAN_RX 4  // CAN Receive = GPIO04
 #define CAN_TX 5  // CAN Transmit = GPIO05
-
-#define BUTTON_UP_PIN 23
-#define BUTTON_UP_LED_PIN 14
-#define BUTTON_DOWN_PIN 25
-#define BUTTON_DOWN_LED_PIN 26
 
 #define IN_1_PIN 36
 #define IN_2_PIN 39

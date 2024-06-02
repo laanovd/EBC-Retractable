@@ -10,6 +10,7 @@
 #include <StateMachineLib.h>
 #include <endian.h>
 #include <esp_err.h>
+#include "GPIO.cpp"
 
 /********************************************************************
  * Type definitions
@@ -27,6 +28,15 @@ enum VEDOUTStateIds
 };
 
 /********************************************************************
+ * Global constants
+ ********************************************************************/
+const int emergency_blink_interval = 250;
+const int no_position_blink_interval = 500;
+const int calibrating_blink_interval = 500;
+const int moving_blink_interval = 500;
+const int init_blink_interval = 500;
+
+/********************************************************************
  * Global data
  ********************************************************************/
 static StateMachine stateMachine(8, 20);
@@ -34,11 +44,7 @@ static StateMachine stateMachine(8, 20);
 /********************************************************************
  * Controller Initializiation State
  ********************************************************************/
-static void fnStateInit()
-{
-    // TODO: Blink LED
-    // ? Blink leds here or in main file?
-}
+static void fnStateInit() {}
 static bool fnInitToCalibrating()
 {
     return true;
@@ -49,98 +55,129 @@ static bool fnInitToCalibrating()
  ********************************************************************/
 static void fnStateRetracted()
 {
-    // TODO: up down led on
+    LED_DOWN_set_interval(-1);
+    LED_UP_set_interval(0);
     // TODO: increment number of times up
 }
 static bool fnRetractedToExtending()
 {
     // TODO: check if azimuth is in the middle position
 }
-static bool fnRetractedToEmergencyStop() {}
+static bool fnRetractedToEmergencyStop()
+{
+    return EMERGENCY_BUTTON_is_pressed();
+}
 
 /********************************************************************
  * Controller Retracting State
  ********************************************************************/
 static void fnStateRetracting()
 {
+    LED_UP_set_interval(moving_blink_interval);
+    LED_DOWN_set_interval(-1);
     // TODO: lock DMC
-    // TODO: stop if down button pressed
 }
 static bool fnRetractingToNoPosition() {}
 static bool fnRetractingToRetracted() {}
-static bool fnRetractingToEmergencyStop() {}
-
+static bool fnRetractingToEmergencyStop()
+{
+    return EMERGENCY_BUTTON_is_pressed();
+}
 
 /********************************************************************
  * Controller Extended State
  ********************************************************************/
 static void fnStateExtended()
 {
-    // TODO: turn down led on
+    LED_DOWN_set_interval(0);
+    LED_UP_set_interval(-1);
     // TODO: Free DMC
     // TODO: increment number of times down
     // TODO: scale wheel position to voltage and send to azimuth
-    // TODO: check if both buttons are long pressed for callibration
 }
 static bool fnExtendedToRetracting()
 {
     // TODO: check if azimuth is in the middle position
 }
-static bool fnExtendedToCalibrating() {}
-static bool fnExtendedToEmergencyStop() {}
-
+static bool fnExtendedToCalibrating()
+{
+}
+static bool fnExtendedToEmergencyStop()
+{
+    return EMERGENCY_BUTTON_is_pressed();
+}
 
 /********************************************************************
  * Controller Extending State
  ********************************************************************/
 static void fnStateExtending()
 {
-    // TODO: stop if up button pressed
+    LED_DOWN_set_interval(moving_blink_interval);
+    LED_UP_set_interval(-1);
 }
-static bool fnExtendingToNoPosition() {}
+static bool fnExtendingToNoPosition()
+{
+    // TODO: stop if up button pressed
+    // TODO: check expiration timer
+}
 static bool fnExtendingToExtended() {}
-static bool fnExtendingToEmergencyStop() {}
-
+static bool fnExtendingToEmergencyStop()
+{
+    return EMERGENCY_BUTTON_is_pressed();
+}
 
 /********************************************************************
  * Controller Calibration State
  ********************************************************************/
-static void fnStateCalibrating() {
+static void fnStateCalibrating()
+{
+    LED_DOWN_set_interval(calibrating_blink_interval);
+    LED_UP_set_interval(calibrating_blink_interval);
+    LED_ERROR_set_low();
     // TODO: control azimuth via cli
-    // TODO: stop on any button press
     // TODO: command "factory reset"
 }
-static bool fnCalibratingToEmergencyStop() {}
-static bool fnCalibratingToNoPosition() {}
-
+static bool fnCalibratingToNoPosition()
+{
+    // TODO: stop on any button press
+}
+static bool fnCalibratingToEmergencyStop()
+{
+    return EMERGENCY_BUTTON_is_pressed();
+}
 
 /********************************************************************
  * Controller No Position State
  ********************************************************************/
 static void fnStateNoPosition()
 {
-    // TODO: slow blinking LEDs
+    LED_UP_set_interval(no_position_blink_interval);
+    LED_DOWN_set_interval(no_position_blink_interval);
     // TODO: lock DMC
     // TODO: give error
+    LED_ERROR_set_high();
 }
-static bool fnNoPositionToExtended() {} // ? This should also be possible right?
+static bool fnNoPositionToExtended() {}
 static bool fnNoPositionToExtending() {}
-static bool fnNoPositionToRetracted() {} // ? This should also be possible right?
+static bool fnNoPositionToRetracted() {}
 static bool fnNoPositionToRetracting() {}
-static bool fnNoPositionToEmergencyStop() {}
-
+static bool fnNoPositionToEmergencyStop()
+{
+    return EMERGENCY_BUTTON_is_pressed();
+}
 
 /********************************************************************
  * Controller No Position State
  ********************************************************************/
 static void fnStateEmergencyStop()
 {
-    // TODO: slow blinking LEDs
+    LED_UP_set_interval(emergency_blink_interval);
+    LED_DOWN_set_interval(emergency_blink_interval);
     // TODO: lock DMC
     // TODO: give error
+    LED_ERROR_set_high();
 }
-static bool fnEmergencyStopToCalibrating() {}
-
+static bool fnEmergencyStopToCalibrating(){}
 
 /********************************************************************
  * Setup Controller State Machine
