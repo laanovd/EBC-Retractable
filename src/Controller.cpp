@@ -118,7 +118,9 @@ static bool fnRetractingToNoPosition()
            BUTTON_UP_is_pressed() ||
            millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000;
 }
-static bool fnRetractingToRetracted() {}
+static bool fnRetractingToRetracted() {
+    return RETRACTABLE_is_retracted();
+}
 static bool fnRetractingToEmergencyStop()
 {
     return BUTTON_EMERGENCY_is_pressed();
@@ -167,7 +169,9 @@ static bool fnExtendingToNoPosition()
            BUTTON_UP_is_pressed() ||
            millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000;
 }
-static bool fnExtendingToExtended() {}
+static bool fnExtendingToExtended() {
+    return RETRACTABLE_is_extended();
+}
 static bool fnExtendingToEmergencyStop()
 {
     return BUTTON_EMERGENCY_is_pressed();

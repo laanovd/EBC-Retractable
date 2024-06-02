@@ -280,6 +280,28 @@ void DMC_set_low()
 }
 
 /*******************************************************************
+    Retractable sensor setup
+ *******************************************************************/
+#define MOTOR_UP_SENSOR_PIN 18
+#define MOTOR_DOWN_SENSOR_PIN 19
+
+void SENSOR_setup()
+{
+    pinMode(MOTOR_UP_SENSOR_PIN, INPUT_PULLDOWN);
+    pinMode(MOTOR_DOWN_SENSOR_PIN, INPUT_PULLDOWN);
+}
+
+bool RETRACTABLE_is_retracted()
+{
+    return digitalRead(MOTOR_UP_SENSOR_PIN);
+}
+
+bool RETRACTABLE_is_extended()
+{
+    return digitalRead(MOTOR_DOWN_SENSOR_PIN);
+}
+
+/*******************************************************************
     Main GPIO setup
  *******************************************************************/
 void GPIO_setup()
@@ -287,4 +309,5 @@ void GPIO_setup()
     BUTTONS_setup();
     LED_setup();
     DMC_setup();
+    SENSOR_setup();
 }
