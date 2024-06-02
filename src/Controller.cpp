@@ -186,7 +186,7 @@ static void fnStateCalibrating()
 }
 static bool fnCalibratingToNoPosition()
 {
-    return BUTTON_DOWN_is_pressed() || BUTTON_UP_is_pressed();
+    return BUTTON_UP_state || BUTTON_DOWN_state;
 }
 static bool fnCalibratingToEmergencyStop()
 {
