@@ -101,7 +101,7 @@ static bool fnRetractedToExtending()
 /********************************************************************
  * Controller Retracting Aligning State
  ********************************************************************/
-static void fnStateRetractingAligning()
+static void fnStatePreretracting()
 {
     LED_UP_set_interval(BLINK_INTERVAL_MOVING);
     LED_DOWN_set_interval(-1);
@@ -337,8 +337,11 @@ static bool fnAnyToEmergencyStop()
 
 static bool fnEmergencyStopToCalibrating()
 {
-    if (BUTTON_EMERGENCY_is_pressed())
+    if (true)
+    {
+        LED_ERROR_set_low();
         return true;
+    }
 
     return false;
 }
@@ -360,7 +363,7 @@ void CONTROLLER_setup_statemachine()
     stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_retracted, fnPreretractingToRetracting);
     stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_no_position, fnPreretractingToNoPosition);
     stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
-    stateMachine.SetOnEntering(CONTROLLER_preretracting, fnStateRetractingAligning);
+    stateMachine.SetOnEntering(CONTROLLER_preretracting, fnStatePreretracting);
 
     stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_extending, fnRetractedToExtending);
     stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
