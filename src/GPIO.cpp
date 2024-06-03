@@ -193,7 +193,7 @@ void LED_UP_update()
 {
     if (LED_UP_interval > 0)
     {
-        int delta_time = LED_UP_interval - millis();
+        int delta_time = LED_UP_millis - millis();
         if (delta_time % (2 * LED_UP_interval) < LED_UP_interval && LED_UP_state == LOW)
             LED_UP_set_high();
         if (delta_time % (2 * LED_UP_interval) >= LED_UP_interval && LED_UP_state == HIGH)
@@ -247,7 +247,7 @@ void LED_DOWN_update()
 {
     if (LED_DOWN_interval > 0)
     {
-        int delta_time = LED_DOWN_interval - millis();
+        int delta_time = LED_DOWN_millis - millis();
         if (delta_time % (2 * LED_DOWN_interval) < LED_DOWN_interval && LED_UP_state == LOW)
             LED_DOWN_set_high();
         if (delta_time % (2 * LED_DOWN_interval) >= LED_DOWN_interval && LED_UP_state == HIGH)

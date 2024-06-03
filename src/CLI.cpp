@@ -372,7 +372,7 @@ String RETRACTABLE_string(void)
 }
 
 /*********************************************************************
- *  Setup AZIMUTH commandline handlers
+ *  Setup retractable commandline handlers
  ********************************************************************/
 static void clicb_RETRACTABLE_handler(cmd *c)
 {
