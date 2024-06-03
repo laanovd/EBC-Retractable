@@ -171,7 +171,7 @@ static void fnStateExtended()
 
 static bool fnExtendedToRetracting()
 {
-    if (BUTTON_UP_is_pressed())
+    if (BUTTON_UP_is_pressed(250))
     {
         DMC_disable();
         AZIMUTH_disable();
@@ -183,7 +183,7 @@ static bool fnExtendedToRetracting()
 
 static bool fnExtendedToPrecalibrating()
 {
-    if (BUTTON_COMBINED_is_pressed())
+    if (BUTTON_UP_is_pressed() && BUTTON_DOWN_is_pressed())
     {
         AZIMUTH_disable();
         DMC_disable();
@@ -205,9 +205,9 @@ static void fnStateExtending()
 
 static bool fnExtendingToNoPosition()
 {
-    if (get_button_up_state())
+    if (BUTTON_UP_is_pressed())
         return true;
-    if (get_button_up_state())
+    if (BUTTON_DOWN_is_pressed())
         return true;
     if (millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000)
         return true;
@@ -234,9 +234,9 @@ static void fnStatePrecalibrating()
 
 static bool fnPrecalibratingToExtended()
 {
-    if (!get_button_up_state())
+    if (!BUTTON_UP_is_pressed())
         return true;
-    if (!get_button_down_state())
+    if (!BUTTON_DOWN_is_pressed())
         return true;
 
     return false;
@@ -263,13 +263,12 @@ static void fnStateCalibrating()
 
 static bool fnCalibratingToNoPosition()
 {
-    if (get_button_up_state())
+    if (BUTTON_UP_is_pressed())
     {
         set_calibrating(false);
-
         return true;
     }
-    if (get_button_down_state())
+    if (BUTTON_DOWN_is_pressed())
     {
         set_calibrating(false);
         return true;
@@ -297,7 +296,7 @@ static bool fnNoPositionToExtended()
 
 static bool fnNoPositionToExtending()
 {
-    if (get_button_down_state())
+    if (BUTTON_DOWN_is_pressed())
         return true;
 
     return false;
@@ -313,7 +312,7 @@ static bool fnNoPositionToRetracted()
 
 static bool fnNoPositionToRetracting()
 {
-    if (get_button_up_state())
+    if (BUTTON_UP_is_pressed())
         return true;
 
     return false;

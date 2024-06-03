@@ -18,65 +18,23 @@ void BUTTONS_setup()
 static bool BUTTON_UP_state = false;
 static bool BUTTON_DOWN_state = false;
 
-bool get_button_up_state() { return BUTTON_UP_state; }
-bool get_button_down_state() { return BUTTON_DOWN_state; }
+static int BUTTON_UP_millis = -1;
+static int BUTTON_DOWN_millis = -1;
+
+bool BUTTON_UP_is_pressed(int delay = 0) { return millis() - BUTTON_UP_millis > delay; }
+bool BUTTON_DOWN_is_pressed(int delay = 0) { return millis() - BUTTON_DOWN_millis > delay; }
 
 // * Edit this for active high/low
 void BUTTON_update()
 {
     BUTTON_UP_state = digitalRead(BUTTON_UP_PIN);
     BUTTON_DOWN_state = digitalRead(BUTTON_DOWN_PIN);
-}
 
-/*******************************************************************
-    Up button logic
- *******************************************************************/
-// Single button presses will be activated on release
-// Combined button press will be activated if both buttons are down
-// After button activation, short timeout will be activated
+    if(BUTTON_UP_state && BUTTON_UP_millis == -1) BUTTON_UP_millis = millis();
+    if(!BUTTON_UP_state && BUTTON_UP_millis >= 0) BUTTON_UP_millis = -1;
 
-static bool BUTTON_UP_previous_state = false;
-static bool BUTTON_DOWN_previous_state = false;
-
-static int BUTTON_previous_millis = 0;
-
-bool BUTTON_UP_is_pressed()
-{
-    bool is_released = BUTTON_UP_previous_state && !BUTTON_UP_state;
-    BUTTON_UP_previous_state = BUTTON_UP_state;
-    if (millis() - BUTTON_previous_millis < BUTTON_TIMEOUT)
-        return false;
-    if (is_released)
-    {
-        BUTTON_previous_millis = millis();
-        return true;
-    }
-    return false;
-}
-
-bool BUTTON_DOWN_is_pressed()
-{
-    bool is_released = BUTTON_DOWN_previous_state && !BUTTON_DOWN_state;
-    BUTTON_UP_previous_state = BUTTON_DOWN_state;
-    if (millis() - BUTTON_previous_millis < BUTTON_TIMEOUT)
-        return false;
-    if (is_released)
-    {
-        BUTTON_previous_millis = millis();
-        return true;
-    }
-    return false;
-}
-
-bool BUTTON_COMBINED_is_pressed()
-{
-    int is_pressed = BUTTON_UP_state && BUTTON_DOWN_state;
-    if (is_pressed)
-    {
-        BUTTON_previous_millis = millis();
-        return true;
-    }
-    return false;
+    if(BUTTON_DOWN_state && BUTTON_DOWN_millis == -1) BUTTON_DOWN_millis = millis();
+    if(!BUTTON_DOWN_state && BUTTON_DOWN_millis >= 0) BUTTON_DOWN_millis = -1;
 }
 
 bool BUTTON_EMERGENCY_is_pressed()
@@ -87,7 +45,7 @@ bool BUTTON_EMERGENCY_is_pressed()
 /*******************************************************************
     Buttons setup
  *******************************************************************/
-void BUTTONS_setup()
+void SENSOR_setup()
 {
     pinMode(MOTOR_UP_PIN, INPUT_PULLUP);
     pinMode(MOTOR_DOWN_PIN, INPUT_PULLUP);
