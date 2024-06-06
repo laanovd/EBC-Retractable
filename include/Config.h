@@ -14,6 +14,7 @@
 #define ProgramTitle "EBC-Base-program" // Title Web interface
 #define WiFiSSIDPrefix "EBC-E"          // Wifi ssid name
 #define PCBVersion "v0.31"              // Hardware version
+#define HTMLTitlePrefix "RDT"           // HTML page title prefix
 
 /*******************************************************************
  * CAN receive handler
@@ -67,16 +68,6 @@ typedef void (*CANReceiveHandler) (uint32_t id, uint8_t *buffer, uint8_t size, b
 
 #define CAN_RX 4  // CAN Receive = GPIO04
 #define CAN_TX 5  // CAN Transmit = GPIO05
-
-#define IN_1_PIN 36
-#define IN_2_PIN 39
-#define IN_3_PIN 34
-#define IN_4_PIN 35
-
-#define DMC_ENABLE_PIN 16
-#define RETRACT_ENABLE_PIN 17
-
-#define ENABLE_ANALOG_OUT_PIN 27
 
 /*******************************************************************
  * Hardware Implementation definitions

@@ -14,9 +14,11 @@
 
 #include "Storage.h"
 #include "CLI.h"
-#include "GPIO.cpp"
-#include "DMC.cpp"
-#include "Azimuth.cpp"
+#include "GPIO.h"
+#include "DMC.h"
+#include "Azimuth.h"
+
+#define DEBUG
 
 /********************************************************************
  * Type definitions
@@ -46,33 +48,39 @@ int timer_millis = 0;
  ********************************************************************/
 static JsonDocument controller_data;
 
-static void CONTROLLER_init_int(const char *key, int default_value)
+static void CONTROLLER_init_float(const char *key, int default_value)
 {
-    int integer;
-    if (STORAGE_get_int(key, integer))
+    float flt;
+    if (STORAGE_get_float(key, flt))
     {
-        integer = default_value;
-        STORAGE_set_int(key, integer);
+        flt = default_value;
+        STORAGE_set_float(key, flt);
     }
-    controller_data[key] = integer;
+    controller_data[key] = flt;
 }
 
 static void CONTROLLER_setup_variables(void)
 {
-    CONTROLLER_init_int(JSON_RETRACTED_COUNT, 0);
-    CONTROLLER_init_int(JSON_EXTENDED_COUNT, 0);
-    CONTROLLER_init_int(JSON_MOVE_TIMEOUT, JSON_MOVE_TIMEOUT_DEFAULT);
+    CONTROLLER_init_float(JSON_RETRACTED_COUNT, 0);
+    CONTROLLER_init_float(JSON_EXTENDED_COUNT, 0);
+    CONTROLLER_init_float(JSON_MOVE_TIMEOUT, JSON_MOVE_TIMEOUT_DEFAULT);
+    CONTROLLER_init_float(JSON_DELAY_TO_MIDDLE, JSON_DELAY_TO_MIDDLE_DEFAULT);
 }
 
 /********************************************************************
  * Global data
  ********************************************************************/
-static StateMachine stateMachine(10, 25);
+static StateMachine stateMachine(10, 27);
 
 /********************************************************************
  * Controller Initializiation State
  ********************************************************************/
-static void fnStateInit() {}
+static void fnStateInit()
+{
+#ifdef DEBUG
+    Serial.println("State INIT");
+#endif
+}
 static bool fnInitToCalibrating()
 {
     return true;
@@ -83,10 +91,13 @@ static bool fnInitToCalibrating()
  ********************************************************************/
 static void fnStateRetracted()
 {
-    LED_DOWN_set_interval(-1);
-    LED_UP_set_interval(0);
+#ifdef DEBUG
+    Serial.println("State RETRACTED");
+#endif
+    LED_UP_set_high();
+    LED_DOWN_set_low();
 
-    controller_data[JSON_EXTENDED_COUNT] = controller_data[JSON_EXTENDED_COUNT] + 1;
+    controller_data[JSON_EXTENDED_COUNT] = int(controller_data[JSON_EXTENDED_COUNT]) + 1;
     STORAGE_set_int(JSON_EXTENDED_COUNT, controller_data[JSON_EXTENDED_COUNT]);
 }
 
@@ -98,14 +109,28 @@ static bool fnRetractedToExtending()
     return false;
 }
 
+static bool fnRetractedToNoPosition()
+{
+    if (!RETRACTABLE_is_retracted())
+    {
+        return true;
+    }
+
+    return false;
+}
+
 /********************************************************************
  * Controller Retracting Aligning State
  ********************************************************************/
+static int preretracting_timer = 0;
 static void fnStatePreretracting()
 {
+#ifdef DEBUG
+    Serial.println("State PRERETRACTING");
+#endif
     LED_UP_set_interval(BLINK_INTERVAL_MOVING);
-    LED_DOWN_set_interval(-1);
-    timer_millis = millis();
+    LED_DOWN_set_low();
+    preretracting_timer = millis();
 }
 
 static bool fnPreretractingToNoPosition()
@@ -120,7 +145,7 @@ static bool fnPreretractingToNoPosition()
 
 static bool fnPreretractingToRetracting()
 {
-    if (millis() - timer_millis >= controller_data[JSON_DELAY_TO_MIDDLE] * 1000)
+    if (millis() - preretracting_timer >=  (int) controller_data[JSON_DELAY_TO_MIDDLE] * 1000)
         return true;
 
     return false;
@@ -131,6 +156,9 @@ static bool fnPreretractingToRetracting()
  ********************************************************************/
 static void fnStateRetracting()
 {
+#ifdef DEBUG
+    Serial.println("State RETRACTING");
+#endif
     timer_millis = millis();
 }
 
@@ -140,7 +168,7 @@ static bool fnRetractingToNoPosition()
         return true;
     if (BUTTON_DOWN_is_pressed())
         return true;
-    if (millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000)
+    if (millis() - timer_millis >= int(controller_data[JSON_MOVE_TIMEOUT]) * 1000)
         return true;
 
     return false;
@@ -159,26 +187,17 @@ static bool fnRetractingToRetracted()
  ********************************************************************/
 static void fnStateExtended()
 {
-    LED_DOWN_set_interval(0);
-    LED_UP_set_interval(-1);
+#ifdef DEBUG
+    Serial.println("State EXTENDED");
+#endif
+    LED_UP_set_low();
+    LED_DOWN_set_high();
 
-    controller_data[JSON_RETRACTED_COUNT] = controller_data[JSON_RETRACTED_COUNT] + 1;
+    controller_data[JSON_RETRACTED_COUNT] = int(controller_data[JSON_RETRACTED_COUNT]) + 1;
     STORAGE_set_int(JSON_RETRACTED_COUNT, controller_data[JSON_RETRACTED_COUNT]);
 
     DMC_enable();
     AZIMUTH_enable();
-}
-
-static bool fnExtendedToRetracting()
-{
-    if (BUTTON_UP_is_pressed(250))
-    {
-        DMC_disable();
-        AZIMUTH_disable();
-        return true;
-    }
-
-    return false;
 }
 
 static bool fnExtendedToPrecalibrating()
@@ -193,13 +212,40 @@ static bool fnExtendedToPrecalibrating()
     return false;
 }
 
+static bool fnExtendedToRetracting()
+{
+    if (BUTTON_UP_is_pressed() && !BUTTON_DOWN_is_pressed())
+    {
+        DMC_disable();
+        AZIMUTH_disable();
+        return true;
+    }
+
+    return false;
+}
+
+static bool fnExtendedToNoPosition()
+{
+    if (!RETRACTABLE_is_extended())
+    {
+        DMC_disable();
+        AZIMUTH_disable();
+        return true;
+    }
+
+    return false;
+}
+
 /********************************************************************
  * Controller Extending State
  ********************************************************************/
 static void fnStateExtending()
 {
+#ifdef DEBUG
+    Serial.println("State EXTENDING");
+#endif
+    LED_UP_set_low();
     LED_DOWN_set_interval(BLINK_INTERVAL_MOVING);
-    LED_UP_set_interval(-1);
     timer_millis = millis();
 }
 
@@ -209,7 +255,7 @@ static bool fnExtendingToNoPosition()
         return true;
     if (BUTTON_DOWN_is_pressed())
         return true;
-    if (millis() - timer_millis >= controller_data[JSON_MOVE_TIMEOUT] * 1000)
+    if (millis() - timer_millis >= int(controller_data[JSON_MOVE_TIMEOUT]) * 1000)
         return true;
 
     return false;
@@ -226,17 +272,22 @@ static bool fnExtendingToExtended()
 /********************************************************************
  * Controller Pre-Calibration State
  ********************************************************************/
-static int double_press_timer;
+static int precalibrating_timer =0;
 static void fnStatePrecalibrating()
 {
-    double_press_timer = millis();
+#ifdef DEBUG
+    Serial.println("State PRECALIBRATING");
+#endif
+    precalibrating_timer = millis();
+    LED_UP_set_interval(BLINK_INTERVAL_CALIBRATING);
+    LED_DOWN_set_interval(BLINK_INTERVAL_CALIBRATING);
 }
 
 static bool fnPrecalibratingToExtended()
 {
-    if (!BUTTON_UP_is_pressed())
+    if (!BUTTON_UP_is_pressed() && millis() - precalibrating_timer < 5000)
         return true;
-    if (!BUTTON_DOWN_is_pressed())
+    if (!BUTTON_DOWN_is_pressed() && millis() - precalibrating_timer < 5000)
         return true;
 
     return false;
@@ -244,7 +295,7 @@ static bool fnPrecalibratingToExtended()
 
 static bool fnPrecalibratingToCalibrating()
 {
-    if (millis() - double_press_timer >= DOUBLE_PRESS_HOLD_TIME)
+    if (!BUTTON_UP_is_pressed() && !BUTTON_DOWN_is_pressed() && millis() - precalibrating_timer >= 5000)
         return true;
 
     return false;
@@ -253,8 +304,13 @@ static bool fnPrecalibratingToCalibrating()
 /********************************************************************
  * Controller Calibration State
  ********************************************************************/
+static int calibrating_timer;
 static void fnStateCalibrating()
 {
+#ifdef DEBUG
+    Serial.println("State CALIBRATING");
+#endif
+    calibrating_timer = millis();
     set_calibrating(true);
     LED_DOWN_set_interval(BLINK_INTERVAL_CALIBRATING);
     LED_UP_set_interval(BLINK_INTERVAL_CALIBRATING);
@@ -273,6 +329,11 @@ static bool fnCalibratingToNoPosition()
         set_calibrating(false);
         return true;
     }
+    if (millis() - calibrating_timer >= 3 * 1000)
+    {
+        set_calibrating(false);
+        return true;
+    }
 
     return false;
 }
@@ -282,13 +343,16 @@ static bool fnCalibratingToNoPosition()
  ********************************************************************/
 static void fnStateNoPosition()
 {
+#ifdef DEBUG
+    Serial.println("State NO POSITION");
+#endif
     LED_UP_set_interval(BLINK_INTERVAL_NO_POSITION);
     LED_DOWN_set_interval(BLINK_INTERVAL_NO_POSITION);
     LED_ERROR_set_high();
 }
 static bool fnNoPositionToExtended()
 {
-    if (RETRACTABLE_is_extended())
+    if (RETRACTABLE_is_extended() && !RETRACTABLE_is_retracted())
         return true;
 
     return false;
@@ -304,7 +368,7 @@ static bool fnNoPositionToExtending()
 
 static bool fnNoPositionToRetracted()
 {
-    if (RETRACTABLE_is_retracted())
+    if (RETRACTABLE_is_retracted() && !RETRACTABLE_is_extended())
         return true;
 
     return false;
@@ -323,6 +387,9 @@ static bool fnNoPositionToRetracting()
  ********************************************************************/
 static void fnStateEmergencyStop()
 {
+#ifdef DEBUG
+    Serial.println("State EMERGENCY STOP");
+#endif
     LED_UP_set_interval(BLINK_INTERVAL_EMERGENCY);
     LED_DOWN_set_interval(BLINK_INTERVAL_EMERGENCY);
     LED_ERROR_set_high();
@@ -354,23 +421,43 @@ static bool fnEmergencyStopToCalibrating()
 /********************************************************************
  * Setup Controller State Machine
  ********************************************************************/
-void CONTROLLER_setup_statemachine()
+static void CONTROLLER_main_task(void *parameter)
+{
+    (void)parameter;
+    while (true)
+    {
+        stateMachine.Update();
+
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}
+
+static void CONTROLLER_setup_tasks()
+{
+    xTaskCreate(CONTROLLER_main_task, "Controller debug task", 4096, NULL, 15, NULL);
+}
+
+/********************************************************************
+ * Setup Controller State Machine
+ ********************************************************************/
+static void CONTROLLER_setup_statemachine()
 {
 
-    stateMachine.AddTransition(CONTROLLER_init, CONTROLLER_retracted, fnInitToCalibrating);
+    stateMachine.AddTransition(CONTROLLER_init, CONTROLLER_calibrating, fnInitToCalibrating);
     stateMachine.SetOnEntering(CONTROLLER_init, fnStateInit);
 
     stateMachine.AddTransition(CONTROLLER_retracting, CONTROLLER_retracted, fnRetractingToRetracted);
     stateMachine.AddTransition(CONTROLLER_retracting, CONTROLLER_no_position, fnRetractingToNoPosition);
     stateMachine.AddTransition(CONTROLLER_retracting, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
-    stateMachine.SetOnEntering(CONTROLLER_retracting, fnStateExtending);
+    stateMachine.SetOnEntering(CONTROLLER_retracting, fnStateRetracting);
 
-    stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_retracted, fnPreretractingToRetracting);
+    stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_retracting, fnPreretractingToRetracting);
     stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_no_position, fnPreretractingToNoPosition);
     stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_preretracting, fnStatePreretracting);
 
     stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_extending, fnRetractedToExtending);
+    stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_no_position, fnRetractedToNoPosition);
     stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_retracted, fnStateRetracted);
 
@@ -381,6 +468,7 @@ void CONTROLLER_setup_statemachine()
 
     stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_preretracting, fnExtendedToRetracting);
     stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_precalibrating, fnExtendedToPrecalibrating);
+    stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_no_position, fnExtendedToNoPosition);
     stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
     stateMachine.SetOnEntering(CONTROLLER_extended, fnStateExtended);
 
@@ -390,7 +478,7 @@ void CONTROLLER_setup_statemachine()
 
     stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_extended, fnPrecalibratingToExtended);
     stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_calibrating, fnPrecalibratingToCalibrating);
-    stateMachine.SetOnEntering(CONTROLLER_precalibrating, fnStateCalibrating);
+    stateMachine.SetOnEntering(CONTROLLER_precalibrating, fnStatePrecalibrating);
 
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extended, fnNoPositionToExtended);
     stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extending, fnNoPositionToExtending);
@@ -404,4 +492,11 @@ void CONTROLLER_setup_statemachine()
 
     // Initial state
     stateMachine.SetState(CONTROLLER_init, false, true);
+}
+
+void CONTROLLER_setup()
+{
+    CONTROLLER_setup_variables();
+    CONTROLLER_setup_statemachine();
+    CONTROLLER_setup_tasks();
 }

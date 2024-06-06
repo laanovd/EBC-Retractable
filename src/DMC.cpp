@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "Storage.h"
-#include "GPIO.cpp"
+#include "GPIO.h"
 
 #define DMC_ENABLE_DELAY 3000
 

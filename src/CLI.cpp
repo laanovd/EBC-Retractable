@@ -240,18 +240,18 @@ static void CLI_handlers(void)
 String AZIMUTH_string(void)
 {
   String text = "--- Azimuth ---";
-  int tmp;
+  float tmp;
 
   text.concat("\r\nAzimuth left: ");
-  STORAGE_get_int(JSON_AZIMUTH_LEFT, tmp);
+  STORAGE_get_float(JSON_AZIMUTH_LEFT, tmp);
   text.concat(String(tmp));
 
   text.concat("\r\nAzimuth right: ");
-  STORAGE_get_int(JSON_AZIMUTH_RIGHT, tmp);
+  STORAGE_get_float(JSON_AZIMUTH_RIGHT, tmp);
   text.concat(String(tmp));
 
   text.concat("\r\nAzimuth delay: ");
-  STORAGE_get_int(JSON_DELAY_TO_MIDDLE, tmp);
+  STORAGE_get_float(JSON_DELAY_TO_MIDDLE, tmp);
   text.concat(String(tmp));
 
   text.concat("\r\n");
@@ -261,6 +261,9 @@ String AZIMUTH_string(void)
 /*********************************************************************
  *  Setup AZIMUTH commandline handlers
  ********************************************************************/
+// TODO: move to azimuth file
+// TODO: update local json variable
+// TODO: check if right > left on setting left/right
 static void clicb_AZIMUTH_handler(cmd *c)
 {
   Command cmd(c);
@@ -273,98 +276,103 @@ static void clicb_AZIMUTH_handler(cmd *c)
     CLI_println(AZIMUTH_string());
     return;
   }
+  arg = cmd.getArg(0);
+  strArg = arg.getValue();
 
-  if (strArg.equalsIgnoreCase("set") && is_calibrating())
+  if (strArg.equalsIgnoreCase("left"))
+  {
+    float val = cmd.getArg(1).getValue().toFloat();
+    if (val < 0)
+    {
+      CLI_println("Illegal value, range: 0.0s ... 5.0s");
+      return;
+    }
+    if (val > 5)
+    {
+      CLI_println("Illegal value, range: 0.0s ... 5.0s");
+      return;
+    }
+    STORAGE_set_float(JSON_AZIMUTH_LEFT, val);
+    CLI_println("Azimuth left limit has been set to " + String(val) + " Volt");
+  }
+
+  if (strArg.equalsIgnoreCase("right"))
+  {
+    float val = cmd.getArg(1).getValue().toFloat();
+    if (val < 0)
+    {
+      CLI_println("Illegal value, range: 0.0s ... 5.0 Volt");
+      return;
+    }
+    if (val > 5)
+    {
+      CLI_println("Illegal value, range: 0.0 ... 5.0 Volt");
+      return;
+    }
+    STORAGE_set_float(JSON_AZIMUTH_RIGHT, val);
+    CLI_println("Azimuth right limit has been set to " + String(val) + " Volt");
+  }
+
+  if (strArg.equalsIgnoreCase("delay"))
+  {
+    float val = cmd.getArg(1).getValue().toFloat();
+    if (val < 0)
+    {
+      CLI_println("Illegal value, range: 0.0s ... 60.0s");
+      return;
+    }
+    if (val > 60)
+    {
+      CLI_println("Illegal value, range: 0.0s ... 60.0s");
+      return;
+    }
+    STORAGE_set_float(JSON_DELAY_TO_MIDDLE, val);
+    CLI_println("Azimuth delay-to-middle has been set to " + String(val) + " seconds");
+  }
+
+  if (strArg.equalsIgnoreCase("move") && is_calibrating())
   {
     arg = cmd.getArg(1);
     strArg = arg.getValue();
 
-    static int val = cmd.getArg(2).getValue().toInt();
+    static float val = cmd.getArg(2).getValue().toFloat();
     if (!val)
+    {
+      CLI_println("Illegal value, range: 0.0s ... 5.0s");
       return;
-
-    if (strArg.equalsIgnoreCase("left"))
-    {
-      if (val < 0)
-      {
-        return;
-      }
-      if (val > 5)
-      {
-        return;
-      }
-      STORAGE_set_int(JSON_AZIMUTH_LEFT, val);
     }
-
-    if (strArg.equalsIgnoreCase("right"))
+    if (val < 0)
     {
-      if (val < 0)
-      {
-        return;
-      }
-      if (val > 5)
-      {
-        return;
-      }
-      STORAGE_set_int(JSON_AZIMUTH_RIGHT, val);
+      CLI_println("Illegal value, range: 0.0s ... 5.0s");
+      return;
     }
-
-    if (strArg.equalsIgnoreCase("delay"))
+    if (val > 5)
     {
-      if (val < 0)
-      {
-        return;
-      }
-      if (val > 60)
-      {
-        return;
-      }
-      STORAGE_set_int(JSON_DELAY_TO_MIDDLE, val);
+      CLI_println("Illegal value, range: 0.0s ... 5.0s");
+      return;
     }
-
-    if (strArg.equalsIgnoreCase("move") && is_calibrating())
-    {
-      arg = cmd.getArg(1);
-      strArg = arg.getValue();
-
-      static int val = cmd.getArg(2).getValue().toInt();
-      if (!val)
-      {
-        // TODO: throw error
-        return;
-      }
-      if (val <0)
-      {
-        // TODO: throw error
-        return;
-      }
-      if (val >5)
-      {
-        // TODO: throw error
-        return;
-      }
-      AZIMUTH_set_position(int(val * 4095));
-    }
+    // AZIMUTH_set_position(val);
   }
+}
 
-} /*********************************************************************
-   * Create retractable string
-   ********************************************************************/
+/*********************************************************************
+ * Create retractable string
+ ********************************************************************/
 String RETRACTABLE_string(void)
 {
   String text = "--- Retractable ---";
-  int tmp;
+  float tmp;
 
   text.concat("\r\nRetracting / extending timeout: ");
-  STORAGE_get_int(JSON_MOVE_TIMEOUT, tmp);
+  STORAGE_get_float(JSON_MOVE_TIMEOUT, tmp);
   text.concat(String(tmp));
 
   text.concat("\r\nTimes retracted: ");
-  STORAGE_get_int(JSON_RETRACTED_COUNT, tmp);
+  STORAGE_get_float(JSON_RETRACTED_COUNT, tmp);
   text.concat(String(tmp));
 
   text.concat("\r\nTimes extended: ");
-  STORAGE_get_int(JSON_EXTENDED_COUNT, tmp);
+  STORAGE_get_float(JSON_EXTENDED_COUNT, tmp);
   text.concat(String(tmp));
 
   text.concat("\r\n");
@@ -387,27 +395,23 @@ static void clicb_RETRACTABLE_handler(cmd *c)
     return;
   }
 
-  if (strArg.equalsIgnoreCase("set") && is_calibrating())
+  arg = cmd.getArg(0);
+  strArg = arg.getValue();
+
+  static float val = cmd.getArg(1).getValue().toFloat();
+
+  if (strArg.equalsIgnoreCase("timeout"))
   {
-    arg = cmd.getArg(1);
-    strArg = arg.getValue();
-
-    static int val = cmd.getArg(2).getValue().toInt();
-    if (!val)
-      return;
-
-    if (strArg.equalsIgnoreCase("timeout"))
+    if (val < 0)
     {
-      if (val < 0)
-      {
-        return;
-      }
-      if (val > 120)
-      {
-        return;
-      }
-      STORAGE_set_int(JSON_MOVE_TIMEOUT, val);
+      return;
     }
+    if (val > (float)120)
+    {
+      return;
+    }
+    STORAGE_set_float(JSON_MOVE_TIMEOUT, val);
+    Serial.printf("Retractable timeout has been set to: %fV", val);
   }
 }
 
@@ -424,6 +428,7 @@ static void AZIMUTH_cli_handlers(void)
 void CLI_setup(void)
 {
   CLI_setup_tasks();
+  AZIMUTH_cli_handlers();
   CLI_handlers();
 
   Serial.println(F("CLI handlers setup completed..."));

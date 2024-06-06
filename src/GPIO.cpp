@@ -2,14 +2,17 @@
 
 #include <Arduino.h>
 
+#define DEBUG_IO
+// #define DEBUG_IO
+
 /*******************************************************************
     Buttons setup
  *******************************************************************/
-void BUTTONS_setup()
+void BUTTON_setup()
 {
-    pinMode(BUTTON_UP_PIN, INPUT_PULLUP);
-    pinMode(BUTTON_DOWN_PIN, INPUT_PULLUP);
-    pinMode(BUTTON_EMERGNECY_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_UP_PIN, INPUT);
+    pinMode(BUTTON_DOWN_PIN, INPUT);
+    pinMode(BUTTON_EMERGNECY_PIN, INPUT);
 }
 
 /*******************************************************************
@@ -18,45 +21,37 @@ void BUTTONS_setup()
 static bool BUTTON_UP_state = false;
 static bool BUTTON_DOWN_state = false;
 
+static bool BUTTON_UP_active = false;
+static bool BUTTON_DOWN_active = false;
+
 static int BUTTON_UP_millis = -1;
 static int BUTTON_DOWN_millis = -1;
 
-bool BUTTON_UP_is_pressed(int delay = 0) { return millis() - BUTTON_UP_millis > delay; }
-bool BUTTON_DOWN_is_pressed(int delay = 0) { return millis() - BUTTON_DOWN_millis > delay; }
+bool BUTTON_UP_is_pressed(int delay) { return BUTTON_UP_active; }
+bool BUTTON_DOWN_is_pressed(int delay) { return BUTTON_DOWN_active; }
 
 // * Edit this for active high/low
 void BUTTON_update()
 {
-    BUTTON_UP_state = digitalRead(BUTTON_UP_PIN);
-    BUTTON_DOWN_state = digitalRead(BUTTON_DOWN_PIN);
+    BUTTON_UP_state = digitalRead(BUTTON_UP_PIN) == HIGH;
+    BUTTON_DOWN_state = digitalRead(BUTTON_DOWN_PIN) == HIGH;
 
-    if(BUTTON_UP_state && BUTTON_UP_millis == -1) BUTTON_UP_millis = millis();
-    if(!BUTTON_UP_state && BUTTON_UP_millis >= 0) BUTTON_UP_millis = -1;
+    static bool BUTTON_UP_memo = false;
+    static bool BUTTON_DOWN_memo = false;
 
-    if(BUTTON_DOWN_state && BUTTON_DOWN_millis == -1) BUTTON_DOWN_millis = millis();
-    if(!BUTTON_DOWN_state && BUTTON_DOWN_millis >= 0) BUTTON_DOWN_millis = -1;
+    BUTTON_UP_active = (!BUTTON_UP_state && BUTTON_UP_memo);
+    BUTTON_DOWN_active = (!BUTTON_DOWN_state && BUTTON_DOWN_memo);
+
+    if (BUTTON_UP_state && BUTTON_DOWN_state)
+        BUTTON_UP_active = BUTTON_DOWN_active = true;
+
+    BUTTON_UP_memo = BUTTON_UP_state;
+    BUTTON_DOWN_memo = BUTTON_DOWN_state;
 }
 
 bool BUTTON_EMERGENCY_is_pressed()
 {
-    return digitalRead(BUTTON_EMERGNECY_PIN);
-}
-
-/*******************************************************************
-    Buttons setup
- *******************************************************************/
-void SENSOR_setup()
-{
-    pinMode(MOTOR_UP_PIN, INPUT_PULLUP);
-    pinMode(MOTOR_DOWN_PIN, INPUT_PULLUP);
-}
-bool is_motor_retracted()
-{
-    return digitalRead(MOTOR_UP_PIN);
-}
-bool is_motor_extended()
-{
-    return digitalRead(MOTOR_DOWN_PIN);
+    return false; // digitalRead(BUTTON_EMERGNECY_PIN);
 }
 
 /*******************************************************************
@@ -68,6 +63,20 @@ static void LED_setup(void)
     pinMode(LED_DOWN_PIN, OUTPUT);
     pinMode(LED_HEARTBEAT_PIN, OUTPUT);
     pinMode(LED_ERROR_PIN, OUTPUT);
+
+    digitalWrite(LED_UP_PIN, LOW);
+    digitalWrite(LED_DOWN_PIN, LOW);
+    digitalWrite(LED_HEARTBEAT_PIN, HIGH);
+    digitalWrite(LED_ERROR_PIN, HIGH);
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    digitalWrite(LED_UP_PIN, HIGH);
+    digitalWrite(LED_DOWN_PIN, HIGH);
+    digitalWrite(LED_HEARTBEAT_PIN, LOW);
+    digitalWrite(LED_ERROR_PIN, LOW);
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
 /*******************************************************************
@@ -75,23 +84,10 @@ static void LED_setup(void)
  *******************************************************************/
 static int LED_HEARTBEAT_state = LOW;
 
-void LED_HEARTBEAT_set_high()
-{
-    LED_HEARTBEAT_state = HIGH;
-    digitalWrite(LED_HEARTBEAT_PIN, HIGH);
-}
-void LED_HEARTBEAT_set_low()
-{
-    LED_HEARTBEAT_state = LOW;
-    digitalWrite(LED_HEARTBEAT_PIN, LOW);
-}
 void LED_HEARTBEAT_update()
 {
-    int current = millis();
-    if (current % BLINK_INTERVAL_HEARTBEAT > BLINK_INTERVAL_HEARTBEAT / 2 && LED_HEARTBEAT_state == HIGH)
-        LED_HEARTBEAT_set_low();
-    if (current % BLINK_INTERVAL_HEARTBEAT <= BLINK_INTERVAL_HEARTBEAT / 2 && LED_HEARTBEAT_state == LOW)
-        LED_HEARTBEAT_set_high();
+    LED_HEARTBEAT_state = !LED_HEARTBEAT_state;
+    digitalWrite(LED_HEARTBEAT_PIN, LED_HEARTBEAT_state);
 }
 
 /*******************************************************************
@@ -109,108 +105,79 @@ void LED_ERROR_set_low()
 /*******************************************************************
     LED up controls
  *******************************************************************/
-static int LED_UP_interval = -1;
-static int LED_UP_state = LOW;
+static int LED_UP_interval = 0;
+static bool LED_UP_state = LOW;
 static int LED_UP_millis = -1;
 
 void LED_UP_set_high()
 {
-    LED_UP_state = HIGH;
-    digitalWrite(LED_UP_PIN, HIGH);
+    LED_UP_interval = 0;
+    LED_UP_state = LOW;
 }
+
 void LED_UP_set_low()
 {
-    LED_UP_state = LOW;
-    digitalWrite(LED_UP_PIN, LOW);
+    LED_UP_interval = 0;
+    LED_UP_state = HIGH;
 }
 
 void LED_UP_set_interval(int interval)
 {
-    if (interval < -1)
-    {
-        // TODO: Throw invalid interval value error
-    }
-    else if (interval == -1) // stop loop and set led low
-    {
-        LED_UP_set_low();
-        LED_UP_interval = -1;
-    }
-    else if (interval == 0) // stop loop and set led low
-    {
-        LED_UP_set_high();
-        LED_UP_interval = -1;
-    }
-    else
-    {
-        LED_UP_interval = interval;
-        LED_UP_millis = millis();
-    }
+    LED_UP_interval = interval;
+    LED_UP_millis = millis();
 }
 
 void LED_UP_update()
 {
     if (LED_UP_interval > 0)
     {
-        int delta_time = LED_UP_millis - millis();
-        if (delta_time % (2 * LED_UP_interval) < LED_UP_interval && LED_UP_state == LOW)
-            LED_UP_set_high();
-        if (delta_time % (2 * LED_UP_interval) >= LED_UP_interval && LED_UP_state == HIGH)
-            LED_UP_set_low();
+        int delta_time = millis() - LED_UP_millis;
+        if (delta_time % (2 * LED_UP_interval) < LED_UP_interval)
+            LED_UP_state = HIGH;
+        if (delta_time % (2 * LED_UP_interval) >= LED_UP_interval)
+            LED_UP_state = LOW;
     }
+
+    digitalWrite(LED_UP_PIN, LED_UP_state);
 }
 
 /*******************************************************************
     LED down controls
  *******************************************************************/
-static int LED_DOWN_interval = -1;
-static int LED_DOWN_state = LOW;
+static int LED_DOWN_interval = 0;
+static bool LED_DOWN_state = LOW;
 static int LED_DOWN_millis = -1;
 
 void LED_DOWN_set_high()
 {
-    LED_DOWN_state = HIGH;
-    digitalWrite(LED_DOWN_PIN, HIGH);
+    LED_DOWN_interval = 0;
+    LED_DOWN_state = LOW;
 }
 
 void LED_DOWN_set_low()
 {
+    LED_DOWN_interval = 0;
     LED_DOWN_state = HIGH;
-    digitalWrite(LED_DOWN_PIN, HIGH);
 }
 
 void LED_DOWN_set_interval(int interval)
 {
-    if (interval < -1)
-    {
-        // TODO: Throw invalid interval value error
-    }
-    else if (interval == -1) // stop loop and set led low
-    {
-        LED_DOWN_set_low();
-        LED_DOWN_interval = -1;
-    }
-    else if (interval == 0) // stop loop and set led high
-    {
-        LED_DOWN_set_high();
-        LED_DOWN_interval = -1;
-    }
-    else
-    {
-        LED_DOWN_interval = interval;
-        LED_DOWN_millis = millis();
-    }
+    LED_DOWN_interval = interval;
+    LED_DOWN_millis = millis();
 }
 
 void LED_DOWN_update()
 {
     if (LED_DOWN_interval > 0)
     {
-        int delta_time = LED_DOWN_millis - millis();
-        if (delta_time % (2 * LED_DOWN_interval) < LED_DOWN_interval && LED_UP_state == LOW)
-            LED_DOWN_set_high();
-        if (delta_time % (2 * LED_DOWN_interval) >= LED_DOWN_interval && LED_UP_state == HIGH)
-            LED_DOWN_set_low();
+        int delta_time = millis() - LED_DOWN_millis;
+        if (delta_time % (2 * LED_DOWN_interval) < LED_DOWN_interval)
+            LED_DOWN_state = HIGH;
+        if (delta_time % (2 * LED_DOWN_interval) >= LED_DOWN_interval)
+            LED_DOWN_state = LOW;
     }
+
+    digitalWrite(LED_DOWN_PIN, LED_DOWN_state);
 }
 
 /*******************************************************************
@@ -258,19 +225,6 @@ float WHEEL_get_position()
 }
 
 /*******************************************************************
-    Azimuth
- *******************************************************************/
-static void AZIMUTH_setup()
-{
-    pinMode(AZIMUTH_PIN, OUTPUT);
-}
-
-void AZIMUTH_set_position(float position)
-{
-    analogWrite(AZIMUTH_PIN, int(position * 4095));
-}
-
-/*******************************************************************
     Analog enable/disable
  *******************************************************************/
 static void ANALOG_OUT_setup()
@@ -293,9 +247,10 @@ void ANALOG_OUT_disable()
  *******************************************************************/
 void GPIO_setup()
 {
-    BUTTONS_setup();
+    BUTTON_setup();
     LED_setup();
     DMC_setup();
     SENSOR_setup();
-    AZIMUTH_setup();
+
+    Serial.println(F("GPIO setup completed..."));
 }
