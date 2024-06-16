@@ -93,11 +93,11 @@ void LED_HEARTBEAT_update()
 /*******************************************************************
     LED error controls
  *******************************************************************/
-void LED_ERROR_set_high()
+void LED_ERROR_on()
 {
     digitalWrite(LED_ERROR_PIN, HIGH);
 }
-void LED_ERROR_set_low()
+void LED_ERROR_off()
 {
     digitalWrite(LED_ERROR_PIN, LOW);
 }
@@ -109,13 +109,13 @@ static int LED_UP_interval = 0;
 static bool LED_UP_state = LOW;
 static int LED_UP_millis = -1;
 
-void LED_UP_set_high()
+void LED_UP_on()
 {
     LED_UP_interval = 0;
     LED_UP_state = LOW;
 }
 
-void LED_UP_set_low()
+void LED_UP_off()
 {
     LED_UP_interval = 0;
     LED_UP_state = HIGH;
@@ -148,13 +148,13 @@ static int LED_DOWN_interval = 0;
 static bool LED_DOWN_state = LOW;
 static int LED_DOWN_millis = -1;
 
-void LED_DOWN_set_high()
+void LED_DOWN_on()
 {
     LED_DOWN_interval = 0;
     LED_DOWN_state = LOW;
 }
 
-void LED_DOWN_set_low()
+void LED_DOWN_off()
 {
     LED_DOWN_interval = 0;
     LED_DOWN_state = HIGH;

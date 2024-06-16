@@ -94,8 +94,8 @@ static void fnStateRetracted()
 #ifdef DEBUG
     Serial.println("State RETRACTED");
 #endif
-    LED_UP_set_high();
-    LED_DOWN_set_low();
+    LED_UP_on();
+    LED_DOWN_off();
 
     controller_data[JSON_EXTENDED_COUNT] = int(controller_data[JSON_EXTENDED_COUNT]) + 1;
     STORAGE_set_int(JSON_EXTENDED_COUNT, controller_data[JSON_EXTENDED_COUNT]);
@@ -129,7 +129,7 @@ static void fnStatePreretracting()
     Serial.println("State PRERETRACTING");
 #endif
     LED_UP_set_interval(BLINK_INTERVAL_MOVING);
-    LED_DOWN_set_low();
+    LED_DOWN_off();
     preretracting_timer = millis();
 }
 
@@ -190,8 +190,8 @@ static void fnStateExtended()
 #ifdef DEBUG
     Serial.println("State EXTENDED");
 #endif
-    LED_UP_set_low();
-    LED_DOWN_set_high();
+    LED_UP_off();
+    LED_DOWN_on();
 
     controller_data[JSON_RETRACTED_COUNT] = int(controller_data[JSON_RETRACTED_COUNT]) + 1;
     STORAGE_set_int(JSON_RETRACTED_COUNT, controller_data[JSON_RETRACTED_COUNT]);
@@ -244,7 +244,7 @@ static void fnStateExtending()
 #ifdef DEBUG
     Serial.println("State EXTENDING");
 #endif
-    LED_UP_set_low();
+    LED_UP_off();
     LED_DOWN_set_interval(BLINK_INTERVAL_MOVING);
     timer_millis = millis();
 }
@@ -314,7 +314,7 @@ static void fnStateCalibrating()
     set_calibrating(true);
     LED_DOWN_set_interval(BLINK_INTERVAL_CALIBRATING);
     LED_UP_set_interval(BLINK_INTERVAL_CALIBRATING);
-    LED_ERROR_set_low();
+    LED_ERROR_off();
 }
 
 static bool fnCalibratingToNoPosition()
@@ -348,7 +348,7 @@ static void fnStateNoPosition()
 #endif
     LED_UP_set_interval(BLINK_INTERVAL_NO_POSITION);
     LED_DOWN_set_interval(BLINK_INTERVAL_NO_POSITION);
-    LED_ERROR_set_high();
+    LED_ERROR_on();
 }
 static bool fnNoPositionToExtended()
 {
@@ -392,7 +392,7 @@ static void fnStateEmergencyStop()
 #endif
     LED_UP_set_interval(BLINK_INTERVAL_EMERGENCY);
     LED_DOWN_set_interval(BLINK_INTERVAL_EMERGENCY);
-    LED_ERROR_set_high();
+    LED_ERROR_on();
 }
 
 static bool fnAnyToEmergencyStop()
@@ -411,7 +411,7 @@ static bool fnEmergencyStopToCalibrating()
 {
     if (true)
     {
-        LED_ERROR_set_low();
+        LED_ERROR_off();
         return true;
     }
 
@@ -442,7 +442,6 @@ static void CONTROLLER_setup_tasks()
  ********************************************************************/
 static void CONTROLLER_setup_statemachine()
 {
-
     stateMachine.AddTransition(CONTROLLER_init, CONTROLLER_calibrating, fnInitToCalibrating);
     stateMachine.SetOnEntering(CONTROLLER_init, fnStateInit);
 
@@ -494,6 +493,9 @@ static void CONTROLLER_setup_statemachine()
     stateMachine.SetState(CONTROLLER_init, false, true);
 }
 
+/********************************************************************
+ * Setup Controller
+ ********************************************************************/
 void CONTROLLER_setup()
 {
     CONTROLLER_setup_variables();

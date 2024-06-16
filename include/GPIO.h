@@ -57,16 +57,16 @@ extern bool BUTTON_EMERGENCY_is_pressed();
  *******************************************************************/
 extern void LED_HEARTBEAT_update();
 
-extern void LED_ERROR_set_high();
-extern void LED_ERROR_set_low();
+extern void LED_ERROR_on();
+extern void LED_ERROR_off();
 
-extern void LED_UP_set_low();
-extern void LED_UP_set_high();
+extern void LED_UP_off();
+extern void LED_UP_on();
 extern void LED_UP_set_interval(int interval);
 extern void LED_UP_update();
 
-extern void LED_DOWN_set_low();
-extern void LED_DOWN_set_high();
+extern void LED_DOWN_off();
+extern void LED_DOWN_on();
 extern void LED_DOWN_set_interval(int interval);
 extern void LED_DOWN_update();
 
