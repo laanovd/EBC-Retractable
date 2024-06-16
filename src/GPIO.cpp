@@ -49,7 +49,10 @@ void BUTTON_update()
     BUTTON_DOWN_memo = BUTTON_DOWN_state;
 }
 
-bool BUTTON_EMERGENCY_is_pressed()
+/*******************************************************************
+    Emergency stop
+ *******************************************************************/
+bool EMERGENCY_STOP_active()
 {
     return false; // digitalRead(BUTTON_EMERGNECY_PIN);
 }
@@ -75,8 +78,6 @@ static void LED_setup(void)
     digitalWrite(LED_DOWN_PIN, HIGH);
     digitalWrite(LED_HEARTBEAT_PIN, LOW);
     digitalWrite(LED_ERROR_PIN, LOW);
-
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
 
 /*******************************************************************

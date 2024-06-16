@@ -397,7 +397,7 @@ static void fnStateEmergencyStop()
 
 static bool fnAnyToEmergencyStop()
 {
-    if (BUTTON_EMERGENCY_is_pressed())
+    if (EMERGENCY_STOP_active())
     {
         DMC_disable();
         AZIMUTH_disable();

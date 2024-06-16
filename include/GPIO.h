@@ -50,7 +50,7 @@ extern void BUTTON_update();
 extern bool BUTTON_UP_is_pressed(int delay = 0);
 extern bool BUTTON_DOWN_is_pressed(int delay = 0);
 
-extern bool BUTTON_EMERGENCY_is_pressed();
+extern bool EMERGENCY_STOP_active();
 
 /*******************************************************************
  *  LEDs
