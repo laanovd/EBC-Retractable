@@ -352,7 +352,7 @@ void WEBSERVER_cli_handlers(void) {
  *********************************************************************/
 static void WEBSERVER_setup_tasks(void) {
   xTaskCreate(WEBSERVER_main_task, "WebServer main task", 2048, NULL, 15, NULL);
-  xTaskCreate(WEBSOCKET_task, "WebSocketsServer main task", 2048, NULL, 15, NULL);
+  xTaskCreate(WEBSOCKET_task, "WebSocket main task", 4096, NULL, 15, NULL);
 }
 
 /*********************************************************************

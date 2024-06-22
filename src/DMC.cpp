@@ -9,19 +9,19 @@ bool DMC_is_enabled = false;
 
 void DMC_enable()
 {
-    DMC_is_enabled = true;
+    DMC_set_high();
     dmc_enable_timer = millis();
 }
 
 void DMC_disable()
 {
-    DMC_is_enabled = false;
     DMC_set_low();
+    dmc_enable_timer = -1;
 }
 
 void DMC_update()
 {
-    if (dmc_enable_timer != -1 && millis() - dmc_enable_timer > DMC_ENABLE_DELAY)
+    if (DMC_enabled() && ((millis() - dmc_enable_timer) > DMC_ENABLE_DELAY))
     {
         dmc_enable_timer = -1;
         DMC_set_high();

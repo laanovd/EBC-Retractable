@@ -28,13 +28,16 @@
 #define LED_HEARTBEAT_PIN 15
 #define LED_ERROR_PIN 12
 
+#define DMC_ENABLE_PIN 16
+
+#define UP_DOWN_ENABLE_PIN 17
+
 #define MOTOR_UP_PIN 18
 #define MOTOR_DOWN_PIN 19
 
 #define MOTOR_UP_SENSOR_PIN 36
 #define MOTOR_DOWN_SENSOR_PIN 39
 
-#define DMC_ENABLE_PIN 27
 
 #define WHEEL_PIN 32
 
@@ -52,13 +55,13 @@ extern bool BUTTON_DOWN_is_pressed(int delay = 0);
 
 extern bool EMERGENCY_STOP_active();
 
+extern int STEERING_WHEEL_get_position();
+
 /*******************************************************************
  *  LEDs
  *******************************************************************/
 extern void LED_HEARTBEAT_update();
-
-extern void LED_ERROR_on();
-extern void LED_ERROR_off();
+extern void LED_ERROR_update();
 
 extern void LED_UP_off();
 extern void LED_UP_on();
@@ -75,23 +78,37 @@ extern void LED_DOWN_update();
  *******************************************************************/
 extern bool RETRACTABLE_is_retracted();
 extern bool RETRACTABLE_is_extended();
-extern float WHEEL_get_position();
 
 /*******************************************************************
     Analog enable/disable
  *******************************************************************/
 extern void ANALOG_OUT_enable();
 extern void ANALOG_OUT_disable();
+extern bool ANALOG_OUT_enabled();
+
+/*******************************************************************
+  Retractable setup
+ *******************************************************************/
+extern void RETRACTABLE_enable();
+extern void RETRACTABLE_disable();
+extern bool RETRACTABLE_enabled();
+
+extern void MOTOR_UP_on();
+extern void MOTOR_UP_off();
+extern void MOTOR_DOWN_on();
+extern void MOTOR_DOWN_off();
 
 /*******************************************************************
     DMC enable/disable
  *******************************************************************/
+extern bool DMC_enabled();
 extern void DMC_set_high();
 extern void DMC_set_low();
 
 /*******************************************************************
     GPIO Setup
  *******************************************************************/
+extern void GPIO_test();
 extern void GPIO_setup();
 
 #endif

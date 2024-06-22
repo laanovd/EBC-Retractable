@@ -87,4 +87,5 @@ void loop()
 {
   vTaskDelay(1000 / portTICK_PERIOD_MS);
   LED_HEARTBEAT_update();
+  LED_ERROR_update();
 }
