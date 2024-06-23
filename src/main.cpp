@@ -13,6 +13,7 @@
 #include "GPIO.h"
 #include "DMC.h"
 #include "Azimuth.h"
+#include "Maintenance.h"
 
 /********************************************************************
  *  Initialize the command line handlers
@@ -72,10 +73,12 @@ void setup()
   GPIO_setup();
   AZIMUTH_setup();
   CONTROLLER_setup();
+  MAINTENANCE_setup();
 
   /* Main program */
   MAIN_handlers();
   MAIN_setup_tasks();
+  MAINTENANCE_start();
 
   Serial.println(F("Main setup completed."));
 }

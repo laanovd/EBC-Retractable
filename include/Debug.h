@@ -19,6 +19,7 @@ extern void DEBUG_info(String text);
 /*********************************************************************
  * Show communication (conditional)
  ********************************************************************/
+extern bool DEBUG_frames_active(void);
 extern void DEBUG_frames(String text);
 
 /*********************************************************************

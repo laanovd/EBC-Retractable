@@ -27,13 +27,7 @@
 #undef DEBUG_STORAGE
 
 /* Storage JSON keys */
-#define JSON_NUMBER_TIMES_RETRACTED "retracted"
-#define JSON_NUMBER_TIMES_EXTENDED "extended"
-#define JSON_MOVE_TIMEOUT "move_timeout"
-#define JSON_DELAY_TO_MIDDLE "delay_to_middle"
-#define JSON_AZIMUTH_LEFT "azimuth_left"
-#define JSON_AZIMUTH_RIGHT "azimuth_right"
-#define JSON_AZIMUTH_MIDDLE "azimuth_middle"
+#define JSON_CHECKSUM "checksum"
 
 #define FORMAT_LITTLEFS_IF_FAILED true
 #define APP_CONFIG_FILE "/device.cfg"

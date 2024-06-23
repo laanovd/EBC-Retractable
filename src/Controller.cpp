@@ -1,7 +1,7 @@
 /********************************************************************
- *    VEDOUT_RIM.ino
+ *    Controller.cpp
  *
- *    Data handling for Battery Management System (ved)
+ *    Retractable statemachine
  *
  ********************************************************************/
 #include "Controller.h"
