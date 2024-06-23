@@ -132,7 +132,7 @@ void MAINTENANCE_setup(void) {
 /*********************************************************************
  * Start MAINTENANCE
  ********************************************************************/
-void MAINTENANCE_start(bool active) {
+void MAINTENANCE_start(void) {
   if (active) {
     Serial.println("MAINTENANCE mode active.");
 
