@@ -11,7 +11,6 @@
  * Global variables
  ********************************************************************/
 static JsonDocument azimuth_data;
-static bool AZIMUTH_is_enabled = false;
 
 /********************************************************************
  * Setup variables
@@ -34,6 +33,7 @@ static void AZIMUTH_setup_variables(void) {
  * Azimuth output
  ********************************************************************/
 static void AZIMUTH_set_output(float value) {
+    azimuth_data[JSON_AZIMUTH_ACTUAL] = value;
     analogWrite(AZIMUTH_PIN, (int)value);
 }
 
@@ -41,15 +41,46 @@ static void AZIMUTH_set_output(float value) {
  * Azimuth enable/disable
  ********************************************************************/
 void AZIMUTH_enable() {
- AZIMUTH_is_enabled = true;
+  ANALOG_OUT_enable();
 }
 
 void AZIMUTH_disable() {
-  AZIMUTH_is_enabled = false;
+  ANALOG_OUT_disable();
 }
 
 bool AZIMUTH_enabled() {
-  return AZIMUTH_enabled;
+  return ANALOG_OUT_enabled();
+}
+
+void AZIMUTH_set_left(float value) {
+  if ((value >= 0.0) && (value <= 5.0)) {
+    azimuth_data[JSON_AZIMUTH_LEFT] = value;
+  }
+}
+
+void AZIMUTH_set_right(float value) {
+  if ((value >= 0.0) && (value <= 5.0)) {
+    azimuth_data[JSON_AZIMUTH_RIGHT] = value;
+  }
+}
+
+/********************************************************************
+ * Output settings
+ ********************************************************************/
+float AZIMUH_get_actual(void) {
+  return azimuth_data[JSON_AZIMUTH_ACTUAL].as<float>();
+}
+
+float AZIMUH_get_left(void) {
+  return azimuth_data[JSON_AZIMUTH_LEFT].as<float>();
+}
+
+float AZIMUH_get_right(void) {
+  return azimuth_data[JSON_AZIMUTH_RIGHT].as<float>();
+}
+
+int AZIMUTH_get_steering(void) {
+  return azimuth_data[JSON_AZIMUTH_STEERING].as<int>();
 }
 
 /********************************************************************
@@ -67,6 +98,7 @@ float scalef(float A, float A1, float A2, float Min, float Max)
 void AZIMUTH_update() {
   if (AZIMUTH_enabled()) {
     int wheel_position = STEERING_WHEEL_get_position();
+    azimuth_data[JSON_AZIMUTH_STEERING] = ((wheel_position * 100) / 4096);
 
     /* Scale */
     float azimuth_position = scalef(
