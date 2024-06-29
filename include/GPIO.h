@@ -28,16 +28,14 @@
 #define LED_HEARTBEAT_PIN 15
 #define LED_ERROR_PIN 12
 
+// Outputs
 #define DMC_ENABLE_PIN 16
-
 #define UP_DOWN_ENABLE_PIN 17
-
 #define MOTOR_UP_PIN 18
 #define MOTOR_DOWN_PIN 19
 
 #define MOTOR_UP_SENSOR_PIN 36
 #define MOTOR_DOWN_SENSOR_PIN 39
-
 
 #define WHEEL_PIN 32
 

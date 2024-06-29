@@ -243,11 +243,11 @@ String AZIMUTH_string(void)
   float tmp;
 
   text.concat("\r\nAzimuth left: ");
-  STORAGE_get_float(JSON_AZIMUTH_LEFT, tmp);
+  STORAGE_get_float(JSON_AZIMUTH_LEFT_V, tmp);
   text.concat(String(tmp));
 
   text.concat("\r\nAzimuth right: ");
-  STORAGE_get_float(JSON_AZIMUTH_RIGHT, tmp);
+  STORAGE_get_float(JSON_AZIMUTH_RIGHT_V, tmp);
   text.concat(String(tmp));
 
   text.concat("\r\nAzimuth delay: ");
@@ -282,47 +282,29 @@ static void clicb_AZIMUTH_handler(cmd *c)
   if (strArg.equalsIgnoreCase("left"))
   {
     float val = cmd.getArg(1).getValue().toFloat();
-    if (val < 0)
-    {
-      CLI_println("Illegal value, range: 0.0s ... 5.0s");
+    if ((val < 0.0) || (val > 5.0)) {
+      CLI_println("Illegal value, range: 0.0V ... 5.0V");
       return;
     }
-    if (val > 5)
-    {
-      CLI_println("Illegal value, range: 0.0s ... 5.0s");
-      return;
-    }
-    STORAGE_set_float(JSON_AZIMUTH_LEFT, val);
+    STORAGE_set_float(JSON_AZIMUTH_LEFT_V, val);
     CLI_println("Azimuth left limit has been set to " + String(val) + " Volt");
   }
 
   if (strArg.equalsIgnoreCase("right"))
   {
     float val = cmd.getArg(1).getValue().toFloat();
-    if (val < 0)
-    {
-      CLI_println("Illegal value, range: 0.0s ... 5.0 Volt");
+    if ((val < 0.0) || (val > 5.0)) {
+      CLI_println("Illegal value, range: 0.0V ... 5.0V");
       return;
     }
-    if (val > 5)
-    {
-      CLI_println("Illegal value, range: 0.0 ... 5.0 Volt");
-      return;
-    }
-    STORAGE_set_float(JSON_AZIMUTH_RIGHT, val);
+    STORAGE_set_float(JSON_AZIMUTH_RIGHT_V, val);
     CLI_println("Azimuth right limit has been set to " + String(val) + " Volt");
   }
 
   if (strArg.equalsIgnoreCase("delay"))
   {
     float val = cmd.getArg(1).getValue().toFloat();
-    if (val < 0)
-    {
-      CLI_println("Illegal value, range: 0.0s ... 60.0s");
-      return;
-    }
-    if (val > 60)
-    {
+    if ((val < 0) || (val > 60)) {
       CLI_println("Illegal value, range: 0.0s ... 60.0s");
       return;
     }
@@ -336,18 +318,7 @@ static void clicb_AZIMUTH_handler(cmd *c)
     strArg = arg.getValue();
 
     static float val = cmd.getArg(2).getValue().toFloat();
-    if (!val)
-    {
-      CLI_println("Illegal value, range: 0.0s ... 5.0s");
-      return;
-    }
-    if (val < 0)
-    {
-      CLI_println("Illegal value, range: 0.0s ... 5.0s");
-      return;
-    }
-    if (val > 5)
-    {
+    if ((val < 0.0) || (val > 5.0)) {
       CLI_println("Illegal value, range: 0.0s ... 5.0s");
       return;
     }

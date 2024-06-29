@@ -25,8 +25,8 @@ static void AZIMUTH_init_float(const char *key, int default_value) {
 }
 
 static void AZIMUTH_setup_variables(void) {
-  AZIMUTH_init_float(JSON_AZIMUTH_LEFT, JSON_AZIMUTH_LEFT_DEFAULT);
-  AZIMUTH_init_float(JSON_AZIMUTH_RIGHT, JSON_AZIMUTH_RIGHT_DEFAULT);
+  AZIMUTH_init_float(JSON_AZIMUTH_LEFT_V, JSON_AZIMUTH_LEFT_DEFAULT);
+  AZIMUTH_init_float(JSON_AZIMUTH_RIGHT_V, JSON_AZIMUTH_RIGHT_DEFAULT);
 }
 
 /********************************************************************
@@ -54,13 +54,13 @@ bool AZIMUTH_enabled() {
 
 void AZIMUTH_set_left(float value) {
   if ((value >= 0.0) && (value <= 5.0)) {
-    azimuth_data[JSON_AZIMUTH_LEFT] = value;
+    azimuth_data[JSON_AZIMUTH_LEFT_V] = value;
   }
 }
 
 void AZIMUTH_set_right(float value) {
   if ((value >= 0.0) && (value <= 5.0)) {
-    azimuth_data[JSON_AZIMUTH_RIGHT] = value;
+    azimuth_data[JSON_AZIMUTH_RIGHT_V] = value;
   }
 }
 
@@ -72,11 +72,23 @@ float AZIMUH_get_actual(void) {
 }
 
 float AZIMUH_get_left(void) {
-  return azimuth_data[JSON_AZIMUTH_LEFT].as<float>();
+  return azimuth_data[JSON_AZIMUTH_LEFT_V].as<float>();
+}
+
+void AZIMUH_set_left(float value) {
+  if ((value >= 0.0) && (value <= 10.0)) {
+    azimuth_data[JSON_AZIMUTH_LEFT_V] = value;
+  }
 }
 
 float AZIMUH_get_right(void) {
-  return azimuth_data[JSON_AZIMUTH_RIGHT].as<float>();
+  return azimuth_data[JSON_AZIMUTH_RIGHT_V].as<float>();
+}
+
+void AZIMUH_set_right(float value) {
+  if ((value >= 0.0) && (value <= 10.0)) {
+    azimuth_data[JSON_AZIMUTH_RIGHT_V] = value;
+  }
 }
 
 int AZIMUTH_get_steering(void) {
@@ -93,11 +105,34 @@ float scalef(float A, float A1, float A2, float Min, float Max)
 }
 
 /********************************************************************
+ * Set steering percentage
+ ********************************************************************/
+void AZIMUTH_set_steering(int value) {
+  if ((value >= 0) && (value <= 100)) {
+
+    azimuth_data[JSON_AZIMUTH_STEERING] = value;
+
+    /* Scale */
+    float azimuth_position = scalef(
+        (float)value, 
+        0.0, 
+        100.0, 
+        azimuth_data[JSON_AZIMUTH_LEFT_V].as<float>(), 
+        azimuth_data[JSON_AZIMUTH_RIGHT_V].as<float>()
+    );
+
+    AZIMUTH_set_output(azimuth_position);
+  }
+}
+
+/********************************************************************
  * Azimuth main loop
  ********************************************************************/
 void AZIMUTH_update() {
   if (AZIMUTH_enabled()) {
     int wheel_position = STEERING_WHEEL_get_position();
+
+    // 0 ... 100%
     azimuth_data[JSON_AZIMUTH_STEERING] = ((wheel_position * 100) / 4096);
 
     /* Scale */
@@ -105,8 +140,8 @@ void AZIMUTH_update() {
         (float)wheel_position, 
         0.0, 
         4096.0, 
-        azimuth_data[JSON_AZIMUTH_LEFT].as<float>(), 
-        azimuth_data[JSON_AZIMUTH_RIGHT].as<float>()
+        azimuth_data[JSON_AZIMUTH_LEFT_V].as<float>(), 
+        azimuth_data[JSON_AZIMUTH_RIGHT_V].as<float>()
     );
 
     AZIMUTH_set_output(azimuth_position);
