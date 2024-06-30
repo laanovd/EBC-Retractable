@@ -15,10 +15,68 @@
 #include "Azimuth.h"
 #include "Maintenance.h"
 
+
+/********************************************************************
+ * CLI: Show all cli commands and descriptions
+ ********************************************************************/
+static void clicb_help(cmd *c) {
+  (void)c;
+
+  CLI_println(F("--- Help commands ---"));
+  CLI_println(F("[?] ~ Help information."));
+  CLI_println(F("[!] ~ System information."));
+  CLI_println(F("[web] ~ Web-server information."));
+  CLI_println(F("[wifi] ~ WiFi information."));
+  CLI_println(F("[mcp] ~ MCP information."));
+  CLI_println(F("[storage] ~ List settings."));
+  CLI_println(F("[restart] ~ Restart the system."));
+  CLI_println(F("[factory...] ~ Factory reset settings (yes)"));
+}
+
+/********************************************************************
+ * CLI: Show all cli commands and descriptions
+ ********************************************************************/
+static void clicb_system(cmd *c) {
+  (void)c;
+  String text;
+
+  text = "--- System ---";
+
+  text.concat("\r\nProgram title: ");
+  text.concat(ProgramTitle);
+
+  text.concat("\r\nProgram name: ");
+  text.concat(ProgramName);
+  text.concat(", version: ");
+  text.concat(ProgramVersion);
+
+  text.concat("\r\nWiFi ssid: ");
+  text.concat(WiFi_ssid());
+  text.concat(", MAC: ");
+  text.concat(WiFi_mac());
+
+  text.concat("\r\nHardware id: ");
+  text.concat(ChipIds());
+  text.concat(", PCB version: ");
+  text.concat(PCBVersion);
+
+  text.concat("\r\nFlash size(MB): ");
+  text.concat(ESP.getFlashChipSize() / (1024 * 1024));
+  text.concat(", Free memory(kB): ");
+  text.concat((ESP.getFreeHeap() / 1024));
+
+  text.concat("\r\n");
+  CLI_println(text);
+}
+
 /********************************************************************
  *  Initialize the command line handlers
+ *
  ********************************************************************/
-static void MAIN_handlers(void) {}
+static void MAIN_handlers(void) {
+  cli.addCommand("?,help", clicb_help);
+  cli.addCommand("!,system", clicb_system);
+}
 
 /*******************************************************************
  *  Setup tasks

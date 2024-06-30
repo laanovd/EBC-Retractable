@@ -9,9 +9,9 @@
 /*******************************************************************
  * Program name and version definitions
  *******************************************************************/
-#define ProgramName "EBC-Base-Program"  // Program name
+#define ProgramName "EBC-Retractable"  // Program name
 #define ProgramVersion "v0.1"           // Program version
-#define ProgramTitle "EBC-Base-program" // Title Web interface
+#define ProgramTitle "EBC-Retractable" // Title Web interface
 #define WiFiSSIDPrefix "EBC-E"          // Wifi ssid name
 #define PCBVersion "v0.31"              // Hardware version
 #define HTMLTitlePrefix "RDT"           // HTML page title prefix

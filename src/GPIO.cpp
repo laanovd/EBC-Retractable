@@ -2,8 +2,10 @@
 
 #include <Arduino.h>
 
+/*******************************************************************
+  Defineitions
+ *******************************************************************/
 #define DEBUG_IO
-// #define DEBUG_IO
 
 /*******************************************************************
     Buttons setup
@@ -173,15 +175,9 @@ void LED_DOWN_update() {
  *******************************************************************/
 void DMC_set_high() {
   digitalWrite(DMC_ENABLE_PIN, HIGH);
-#ifdef DEBUG_IO
-  Serial.println("Enable DMC");
-#endif
 }
 void DMC_set_low() {
   digitalWrite(DMC_ENABLE_PIN, LOW);
-#ifdef DEBUG_IO
-  Serial.println("Disable DMC");
-#endif
 }
 
 bool DMC_enabled() {

@@ -43,6 +43,8 @@ static bool OTA_Ready = false;
 
 static String htmlString;
 
+static JsonDocument WebSocket_JSON_data;
+
 /*********************************************************************
  * Create initial JSON data
  ********************************************************************/
@@ -175,13 +177,21 @@ static void WEBSERVER_main_task(void *parameter) {
 }
 
 /*********************************************************************
+ * WebSocketsServer broadcast
+ *********************************************************************/
+void WEBSocket_set(JsonDocument doc) {
+  for (JsonPair kv : doc.as<JsonObject>()) {
+   WebSocket_JSON_data[kv.key().c_str()] = kv.value();  
+  }
+}
+
+/*********************************************************************
  * WebSocketsServer task
  *********************************************************************/
 static void WEBSOCKET_task(void *parameter) {
   (void)parameter;
   JsonDocument doc;
   String str;
-  int timer = 0;
 
   while (true) {
     vTaskDelay(500 / portTICK_PERIOD_MS);
@@ -190,7 +200,9 @@ static void WEBSOCKET_task(void *parameter) {
     doc["chip_id"] = ChipIds();
     doc["wifi_ssid"] = WiFi_ssid();
 
-    serializeJson(doc, str);
+    WEBSocket_set(doc);
+
+    serializeJson(WebSocket_JSON_data, str);
     web_socket_server.broadcastTXT(str);
   }
 }
@@ -335,15 +347,30 @@ static void WEBSERVER_init(void) {
  *  CLI: List storage content
  ********************************************************************/
 static void clicb_list_web(cmd *c) {
-  (void)c;
-  CLI_println(WEBSERVER_string());
+  Command cmd(c);
+  Argument arg = cmd.getArg(0);
+  String strArg = arg.getValue();
+
+  /* List settings */
+  if (strArg.isEmpty()) {
+    CLI_println(WEBSERVER_string());
+    return;
+  }
+
+  if (strArg.equalsIgnoreCase("data")) {
+    serializeJson(WebSocket_JSON_data, strArg);
+    CLI_println(strArg);
+    return;
+  }
+
+  CLI_println("Invalid command: WEB <data>.");
 }
 
 /*********************************************************************
  * Setup CommandLine handler(s)
  ********************************************************************/
 void WEBSERVER_cli_handlers(void) {
-  cli.addCommand("web", clicb_list_web);
+  cli.addBoundlessCmd("web", clicb_list_web);
 }
 
 /*********************************************************************

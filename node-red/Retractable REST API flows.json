@@ -1,0 +1,1783 @@
+[
+    {
+        "id": "ad05b63ddc72ca9c",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "bbac17e43455c73a",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "40087b6d50630d8a",
+        "type": "tab",
+        "label": "Flow 3",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "7b10aba582cdd471",
+        "type": "tab",
+        "label": "Flow 4",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "e59c26e8c6c50cd6",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "140e01621445c31f",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-dark",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#097479",
+                    "value": "#097479",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#097479",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#333333",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#0eb8c0",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#555555",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#333333",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#eeeeee",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#097479",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#333333",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "583982d2e3a617cf",
+        "type": "ui_group",
+        "name": "General",
+        "tab": "e59c26e8c6c50cd6",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "42916984488f9c0a",
+        "type": "ui_group",
+        "name": "Lift",
+        "tab": "e59c26e8c6c50cd6",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "6c6a5b5806a1bb53",
+        "type": "ui_group",
+        "name": "DMC",
+        "tab": "e59c26e8c6c50cd6",
+        "order": 3,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "ea4bb5bbb253ba27",
+        "type": "ui_group",
+        "name": "Steering",
+        "tab": "e59c26e8c6c50cd6",
+        "order": 4,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "95371b84cbe9bc25",
+        "type": "http request",
+        "z": "ad05b63ddc72ca9c",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.114/api/v1/maintenance",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 310,
+        "y": 60,
+        "wires": [
+            [
+                "7228c154452eafbf",
+                "8f341eabf6196193",
+                "f56d05d4fb2db08a",
+                "b73b6727f4918172"
+            ]
+        ]
+    },
+    {
+        "id": "002b0fc98ca9a745",
+        "type": "inject",
+        "z": "ad05b63ddc72ca9c",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "0.5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 60,
+        "wires": [
+            [
+                "95371b84cbe9bc25"
+            ]
+        ]
+    },
+    {
+        "id": "aa133e1c20a95b80",
+        "type": "http request",
+        "z": "ad05b63ddc72ca9c",
+        "name": "",
+        "method": "PUT",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.114/api/v1/maintenance",
+        "tls": "",
+        "persist": true,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 710,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7668fbac50df0c93",
+        "type": "ui_switch",
+        "z": "ad05b63ddc72ca9c",
+        "name": "",
+        "label": "Maintenance mode",
+        "tooltip": "",
+        "group": "583982d2e3a617cf",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "payload",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 130,
+        "y": 300,
+        "wires": [
+            [
+                "196ba6f7bc6094fa"
+            ]
+        ]
+    },
+    {
+        "id": "196ba6f7bc6094fa",
+        "type": "switch",
+        "z": "ad05b63ddc72ca9c",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 330,
+        "y": 300,
+        "wires": [
+            [
+                "4f619008be0c108b"
+            ],
+            [
+                "df1f9405cac6663a"
+            ]
+        ]
+    },
+    {
+        "id": "4f619008be0c108b",
+        "type": "function",
+        "z": "ad05b63ddc72ca9c",
+        "name": "function 1",
+        "func": "msg.payload = '{\"maintenance_activate\":true}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 280,
+        "wires": [
+            [
+                "aa133e1c20a95b80"
+            ]
+        ]
+    },
+    {
+        "id": "df1f9405cac6663a",
+        "type": "function",
+        "z": "ad05b63ddc72ca9c",
+        "name": "function 2",
+        "func": "msg.payload = '{\"maintenance_activate\":false}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 320,
+        "wires": [
+            [
+                "aa133e1c20a95b80"
+            ]
+        ]
+    },
+    {
+        "id": "d8fbae7df1e84b41",
+        "type": "ui_led",
+        "z": "ad05b63ddc72ca9c",
+        "order": 2,
+        "group": "583982d2e3a617cf",
+        "width": 0,
+        "height": 0,
+        "label": "Maintenace active",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "false",
+                "valueType": "bool"
+            },
+            {
+                "color": "#008000",
+                "value": "true",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "Maitenance active",
+        "x": 570,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "b4e5e4e763d6e1e9",
+        "type": "ui_led",
+        "z": "ad05b63ddc72ca9c",
+        "order": 2,
+        "group": "583982d2e3a617cf",
+        "width": 0,
+        "height": 0,
+        "label": "Emergency stop",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "false",
+                "valueType": "bool"
+            },
+            {
+                "color": "#008000",
+                "value": "true",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "Emergency stop",
+        "x": 560,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "7228c154452eafbf",
+        "type": "change",
+        "z": "ad05b63ddc72ca9c",
+        "name": "General",
+        "rules": [
+            {
+                "t": "set",
+                "p": "maintenance_active",
+                "pt": "global",
+                "to": "payload.maintenance_active",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "emergency_stop",
+                "pt": "global",
+                "to": "payload.emergency_stop",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 60,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "aa673ab045afd23a",
+        "type": "inject",
+        "z": "ad05b63ddc72ca9c",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "0.25",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 380,
+        "wires": [
+            [
+                "76f3a0c2ac1a2a0b",
+                "77cea8a09efc7b4c"
+            ]
+        ]
+    },
+    {
+        "id": "76f3a0c2ac1a2a0b",
+        "type": "change",
+        "z": "ad05b63ddc72ca9c",
+        "name": "Maintenance active",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "maintenance_active",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 350,
+        "y": 380,
+        "wires": [
+            [
+                "d8fbae7df1e84b41"
+            ]
+        ]
+    },
+    {
+        "id": "77cea8a09efc7b4c",
+        "type": "change",
+        "z": "ad05b63ddc72ca9c",
+        "name": "Emergency stop",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "emergency_stop",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 340,
+        "y": 420,
+        "wires": [
+            [
+                "b4e5e4e763d6e1e9"
+            ]
+        ]
+    },
+    {
+        "id": "8f341eabf6196193",
+        "type": "change",
+        "z": "ad05b63ddc72ca9c",
+        "name": "Lift",
+        "rules": [
+            {
+                "t": "set",
+                "p": "lift_enabled",
+                "pt": "global",
+                "to": "payload.lift_enabled",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "lift_extended",
+                "pt": "global",
+                "to": "payload.lift_extended",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "lift_retracted",
+                "pt": "global",
+                "to": "payload.lift_retracted",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 490,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f56d05d4fb2db08a",
+        "type": "change",
+        "z": "ad05b63ddc72ca9c",
+        "name": "DMC",
+        "rules": [
+            {
+                "t": "set",
+                "p": "dmc_enabled",
+                "pt": "global",
+                "to": "payload.dmc_enabled",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 490,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b73b6727f4918172",
+        "type": "change",
+        "z": "ad05b63ddc72ca9c",
+        "name": "Steering",
+        "rules": [
+            {
+                "t": "set",
+                "p": "steering_enabled",
+                "pt": "global",
+                "to": "payload.steering_enabled",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "steering_analog_out_enabled",
+                "pt": "global",
+                "to": "payload.steering_analog_out_enabled",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "steering_actual_volt",
+                "pt": "global",
+                "to": "payload.steering_actual_volt",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "steering_left_volt",
+                "pt": "global",
+                "to": "payload.steering_left_volt",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "steering_right_volt",
+                "pt": "global",
+                "to": "payload.steering_right_volt",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b203533a698553f6",
+        "type": "http request",
+        "z": "bbac17e43455c73a",
+        "name": "",
+        "method": "PUT",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.114/api/v1/maintenance",
+        "tls": "",
+        "persist": true,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 650,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "081f65615e2b4ebe",
+        "type": "ui_switch",
+        "z": "bbac17e43455c73a",
+        "name": "",
+        "label": "Lift enable",
+        "tooltip": "",
+        "group": "42916984488f9c0a",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "payload",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 130,
+        "y": 120,
+        "wires": [
+            [
+                "c149cec5ee0ea2f2"
+            ]
+        ]
+    },
+    {
+        "id": "c149cec5ee0ea2f2",
+        "type": "switch",
+        "z": "bbac17e43455c73a",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 290,
+        "y": 120,
+        "wires": [
+            [
+                "a79a843d993d1198"
+            ],
+            [
+                "be99670f8c893dcf"
+            ]
+        ]
+    },
+    {
+        "id": "a79a843d993d1198",
+        "type": "function",
+        "z": "bbac17e43455c73a",
+        "name": "Enable-True",
+        "func": "msg.payload = '{\"lift_enable\":true}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 100,
+        "wires": [
+            [
+                "b203533a698553f6"
+            ]
+        ]
+    },
+    {
+        "id": "be99670f8c893dcf",
+        "type": "function",
+        "z": "bbac17e43455c73a",
+        "name": "Enable-False",
+        "func": "msg.payload = '{\"lift_enable\":false}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 140,
+        "wires": [
+            [
+                "b203533a698553f6"
+            ]
+        ]
+    },
+    {
+        "id": "cdf4e458aa4c8cf5",
+        "type": "ui_led",
+        "z": "bbac17e43455c73a",
+        "order": 2,
+        "group": "42916984488f9c0a",
+        "width": 0,
+        "height": 0,
+        "label": "Lift enabled",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "false",
+                "valueType": "bool"
+            },
+            {
+                "color": "#008000",
+                "value": "true",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "Enabled",
+        "x": 560,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "42a1c7e9e5a6e447",
+        "type": "ui_led",
+        "z": "bbac17e43455c73a",
+        "order": 2,
+        "group": "42916984488f9c0a",
+        "width": 0,
+        "height": 0,
+        "label": "Extended",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "false",
+                "valueType": "bool"
+            },
+            {
+                "color": "#008000",
+                "value": "true",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "Extended",
+        "x": 560,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "57963b73b14725ea",
+        "type": "inject",
+        "z": "bbac17e43455c73a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "0.25",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 220,
+        "wires": [
+            [
+                "8f568f71c3f31668",
+                "39980d53d1806649",
+                "c0dad1174b44261d"
+            ]
+        ]
+    },
+    {
+        "id": "8f568f71c3f31668",
+        "type": "change",
+        "z": "bbac17e43455c73a",
+        "name": "Lift_enabled",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "lift_enabled",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 350,
+        "y": 220,
+        "wires": [
+            [
+                "cdf4e458aa4c8cf5"
+            ]
+        ]
+    },
+    {
+        "id": "39980d53d1806649",
+        "type": "change",
+        "z": "bbac17e43455c73a",
+        "name": "Lift extended",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "lift_extended",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 350,
+        "y": 260,
+        "wires": [
+            [
+                "42a1c7e9e5a6e447"
+            ]
+        ]
+    },
+    {
+        "id": "c0dad1174b44261d",
+        "type": "change",
+        "z": "bbac17e43455c73a",
+        "name": "Lift retracted",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "lift_retracted",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 350,
+        "y": 300,
+        "wires": [
+            [
+                "9bd2101b85b523bc"
+            ]
+        ]
+    },
+    {
+        "id": "9bd2101b85b523bc",
+        "type": "ui_led",
+        "z": "bbac17e43455c73a",
+        "order": 2,
+        "group": "42916984488f9c0a",
+        "width": 0,
+        "height": 0,
+        "label": "Retracted",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "false",
+                "valueType": "bool"
+            },
+            {
+                "color": "#008000",
+                "value": "true",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "Retracted",
+        "x": 560,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "e917290f8df635aa",
+        "type": "http request",
+        "z": "40087b6d50630d8a",
+        "name": "",
+        "method": "PUT",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.114/api/v1/maintenance",
+        "tls": "",
+        "persist": true,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 650,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e70ab818512d4e95",
+        "type": "ui_switch",
+        "z": "40087b6d50630d8a",
+        "name": "",
+        "label": "DMC enable",
+        "tooltip": "",
+        "group": "6c6a5b5806a1bb53",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "payload",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 130,
+        "y": 120,
+        "wires": [
+            [
+                "ae15195b76b6693f"
+            ]
+        ]
+    },
+    {
+        "id": "ae15195b76b6693f",
+        "type": "switch",
+        "z": "40087b6d50630d8a",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 290,
+        "y": 120,
+        "wires": [
+            [
+                "7366d91f4536d17a"
+            ],
+            [
+                "f32dc0df52946431"
+            ]
+        ]
+    },
+    {
+        "id": "7366d91f4536d17a",
+        "type": "function",
+        "z": "40087b6d50630d8a",
+        "name": "Enable-True",
+        "func": "msg.payload = '{\"dmc_enable\":true}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 100,
+        "wires": [
+            [
+                "e917290f8df635aa"
+            ]
+        ]
+    },
+    {
+        "id": "f32dc0df52946431",
+        "type": "function",
+        "z": "40087b6d50630d8a",
+        "name": "Enable-False",
+        "func": "msg.payload = '{\"dmc_enable\":false}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 140,
+        "wires": [
+            [
+                "e917290f8df635aa"
+            ]
+        ]
+    },
+    {
+        "id": "128c9b49253e38fa",
+        "type": "ui_led",
+        "z": "40087b6d50630d8a",
+        "order": 2,
+        "group": "6c6a5b5806a1bb53",
+        "width": 0,
+        "height": 0,
+        "label": "Enabled",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "false",
+                "valueType": "bool"
+            },
+            {
+                "color": "#008000",
+                "value": "true",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "Extended",
+        "x": 540,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "4c601fd9e4f8389c",
+        "type": "inject",
+        "z": "40087b6d50630d8a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "0.25",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 220,
+        "wires": [
+            [
+                "6d5c2ca9d8ca4263"
+            ]
+        ]
+    },
+    {
+        "id": "6d5c2ca9d8ca4263",
+        "type": "change",
+        "z": "40087b6d50630d8a",
+        "name": "DMC enabled",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "dmc_enabled",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 340,
+        "y": 220,
+        "wires": [
+            [
+                "128c9b49253e38fa"
+            ]
+        ]
+    },
+    {
+        "id": "210cfa27a39c1b82",
+        "type": "http request",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "method": "PUT",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.114/api/v1/maintenance",
+        "tls": "",
+        "persist": true,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 630,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ce275a80838fb9db",
+        "type": "ui_switch",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "label": "Steering enable",
+        "tooltip": "",
+        "group": "ea4bb5bbb253ba27",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "payload",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 120,
+        "y": 320,
+        "wires": [
+            [
+                "4ba4d84029ac02a6"
+            ]
+        ]
+    },
+    {
+        "id": "4ba4d84029ac02a6",
+        "type": "switch",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 270,
+        "y": 320,
+        "wires": [
+            [
+                "7cf9d5fdfec6548c"
+            ],
+            [
+                "d1ab9fd7167119db"
+            ]
+        ]
+    },
+    {
+        "id": "7cf9d5fdfec6548c",
+        "type": "function",
+        "z": "7b10aba582cdd471",
+        "name": "Enable-True",
+        "func": "msg.payload = '{\"steering_enable\":true}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 300,
+        "wires": [
+            [
+                "210cfa27a39c1b82"
+            ]
+        ]
+    },
+    {
+        "id": "d1ab9fd7167119db",
+        "type": "function",
+        "z": "7b10aba582cdd471",
+        "name": "Enable-False",
+        "func": "msg.payload = '{\"steering_enable\":false}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 340,
+        "wires": [
+            [
+                "210cfa27a39c1b82"
+            ]
+        ]
+    },
+    {
+        "id": "e89ffbb158334b5d",
+        "type": "ui_led",
+        "z": "7b10aba582cdd471",
+        "order": 2,
+        "group": "ea4bb5bbb253ba27",
+        "width": 0,
+        "height": 0,
+        "label": "Enabled",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "false",
+                "valueType": "bool"
+            },
+            {
+                "color": "#008000",
+                "value": "true",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "Enabled",
+        "x": 520,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "cdbffc9c2f4a194c",
+        "type": "inject",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "0.25",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 40,
+        "wires": [
+            [
+                "2f8e17dd8d60aecb",
+                "ed3577fa29f71f2d",
+                "234aea69956a761f",
+                "37a7a1c3aae98674"
+            ]
+        ]
+    },
+    {
+        "id": "2f8e17dd8d60aecb",
+        "type": "change",
+        "z": "7b10aba582cdd471",
+        "name": "Steering enabled",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "steering_analog_out_enabled",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 330,
+        "y": 40,
+        "wires": [
+            [
+                "e89ffbb158334b5d"
+            ]
+        ]
+    },
+    {
+        "id": "26105770be709421",
+        "type": "ui_switch",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "label": "Output enable",
+        "tooltip": "",
+        "group": "ea4bb5bbb253ba27",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "payload",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 120,
+        "y": 420,
+        "wires": [
+            [
+                "f3e569ca3dcaaea5"
+            ]
+        ]
+    },
+    {
+        "id": "f3e569ca3dcaaea5",
+        "type": "switch",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 270,
+        "y": 420,
+        "wires": [
+            [
+                "30697d3cb06deaa9"
+            ],
+            [
+                "f0edef27d520db6c"
+            ]
+        ]
+    },
+    {
+        "id": "30697d3cb06deaa9",
+        "type": "function",
+        "z": "7b10aba582cdd471",
+        "name": "Enable-True",
+        "func": "msg.payload = '{\"steering_analog_out_enable\":true}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 400,
+        "wires": [
+            [
+                "d6c612810c26c923"
+            ]
+        ]
+    },
+    {
+        "id": "f0edef27d520db6c",
+        "type": "function",
+        "z": "7b10aba582cdd471",
+        "name": "Enable-False",
+        "func": "msg.payload = '{\"steering_analog_out_enable\":false}'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 440,
+        "wires": [
+            [
+                "d6c612810c26c923"
+            ]
+        ]
+    },
+    {
+        "id": "d6c612810c26c923",
+        "type": "http request",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "method": "PUT",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.114/api/v1/maintenance",
+        "tls": "",
+        "persist": true,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 630,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "66f893faca426186",
+        "type": "ui_slider",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "label": "Steering",
+        "tooltip": "",
+        "group": "ea4bb5bbb253ba27",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "end",
+        "topic": "payload",
+        "topicType": "msg",
+        "min": 0,
+        "max": "100",
+        "step": 1,
+        "className": "",
+        "x": 100,
+        "y": 500,
+        "wires": [
+            [
+                "f3d5eb6d88dd9a20"
+            ]
+        ]
+    },
+    {
+        "id": "d6fc90f6a15985a5",
+        "type": "http request",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "method": "PUT",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.114/api/v1/maintenance",
+        "tls": "",
+        "persist": true,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 510,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f3d5eb6d88dd9a20",
+        "type": "change",
+        "z": "7b10aba582cdd471",
+        "name": "Set steering manual",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.steering_manual",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 300,
+        "y": 500,
+        "wires": [
+            [
+                "d6fc90f6a15985a5"
+            ]
+        ]
+    },
+    {
+        "id": "ed3577fa29f71f2d",
+        "type": "change",
+        "z": "7b10aba582cdd471",
+        "name": "Actual(V)",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "steering_actual_v",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 300,
+        "y": 100,
+        "wires": [
+            [
+                "9b1dece768cd19c8"
+            ]
+        ]
+    },
+    {
+        "id": "234aea69956a761f",
+        "type": "change",
+        "z": "7b10aba582cdd471",
+        "name": "Left(V)",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "steering_left_v",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 290,
+        "y": 160,
+        "wires": [
+            [
+                "8eeeb4134fcfefb7"
+            ]
+        ]
+    },
+    {
+        "id": "37a7a1c3aae98674",
+        "type": "change",
+        "z": "7b10aba582cdd471",
+        "name": "Right(V)",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "steering_right_v",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 300,
+        "y": 220,
+        "wires": [
+            [
+                "0732a580e4a05d31"
+            ]
+        ]
+    },
+    {
+        "id": "9b1dece768cd19c8",
+        "type": "ui_gauge",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "group": "ea4bb5bbb253ba27",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Actual(V)",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "5.0",
+        "colors": [
+            "#00b500",
+            "#00b500",
+            "#00b500"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 520,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "8eeeb4134fcfefb7",
+        "type": "ui_gauge",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "group": "ea4bb5bbb253ba27",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Left(V)",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "5.0",
+        "colors": [
+            "#00b500",
+            "#00b500",
+            "#00b500"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 510,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "0732a580e4a05d31",
+        "type": "ui_gauge",
+        "z": "7b10aba582cdd471",
+        "name": "",
+        "group": "ea4bb5bbb253ba27",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Right(V)",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "5.0",
+        "colors": [
+            "#00b500",
+            "#00b500",
+            "#00b500"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 520,
+        "y": 220,
+        "wires": []
+    }
+]

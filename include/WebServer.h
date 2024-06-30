@@ -6,6 +6,7 @@
 #define HEADER_WEB_H
 
 #include <ElegantOTAPro.h>
+#include <ArduinoJson.h>
 
 /*******************************************************************
  * JSON fields
@@ -42,7 +43,12 @@ extern AsyncWebServer web_server;
 extern void setup_uri(rest_api_t *uri_hdl);
 
 /*********************************************************************
- *  Setup webserver
+ * Send data to web
+ *********************************************************************/
+extern void WEBSocket_set(JsonDocument value);
+
+/*********************************************************************
+ * Setup webserver
  *********************************************************************/
 extern void WEBSERVER_setup(void);
 
