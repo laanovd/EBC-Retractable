@@ -1,29 +1,57 @@
 #include <Arduino.h>
-#include "Storage.h"
+
+#include "Config.h"
 #include "GPIO.h"
+#include "Storage.h"
 
-#define DMC_ENABLE_DELAY 3000
+/*******************************************************************
+ * Definitions
+ *******************************************************************/
+#define DEBUG_DMC
 
-int dmc_enable_timer = -1;
-bool DMC_is_enabled = false;
+/*******************************************************************
+ * Globals
+ *******************************************************************/
+static int dmc_enable_timer = -1;
+static bool DMC_is_enabled = false;
 
-void DMC_enable()
-{
-    DMC_set_high();
-    dmc_enable_timer = millis();
+/*******************************************************************
+ * DMC Enable
+ *******************************************************************/
+void DMC_enable(void) {
+  PCF8574_write(DMC_ENABLE_PIN, IO_ON);
+
+#ifdef DEBUG_DMC
+  Serial.println("DMC enabled");
+#endif
 }
 
-void DMC_disable()
-{
-    DMC_set_low();
-    dmc_enable_timer = -1;
+void DMC_disable(void) {
+  PCF8574_write(DMC_ENABLE_PIN, IO_OFF);
+
+#ifdef DEBUG_DMC
+  Serial.println("DMC disabled");
+#endif
 }
 
-void DMC_update()
-{
-    if (DMC_enabled() && ((millis() - dmc_enable_timer) > DMC_ENABLE_DELAY))
-    {
-        dmc_enable_timer = -1;
-        DMC_set_high();
-    }
+bool DMC_enabled(void) {
+  return PCF8574_read(DMC_ENABLE_PIN) == IO_ON;
+}
+
+/*******************************************************************
+ * GPIO setup
+ *******************************************************************/
+static void DMC_setup_gpio(void) {
+  pinMode(DMC_ENABLE_PIN, OUTPUT);
+}
+
+/*******************************************************************
+ * DMC general
+ *******************************************************************/
+void DMC_setup(void) {
+  DMC_setup_gpio();
+  DMC_disable();
+}
+
+void DMC_start(void) {
 }

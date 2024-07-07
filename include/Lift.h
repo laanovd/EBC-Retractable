@@ -1,61 +1,57 @@
 /*******************************************************************
- *  Definitions and constants
- *
+ * Lift.h
+ *    
+ * EBC Retractable/lift control
+ * 
  *******************************************************************/
-#ifndef EBC_GPIO_HEADER
-#define EBC_GPIO_HEADER
-
-#include <stdint.h>
+#ifndef EBC_LIFT_HEADER
+#define EBC_LIFT_HEADER
 
 /*******************************************************************
- *  Blinking intervals
+ * Lift getters
  *******************************************************************/
-#define BLINK_INTERVAL_EMERGENCY 250
-#define BLINK_INTERVAL_NO_POSITION 250
-#define BLINK_INTERVAL_CALIBRATING 500
-#define BLINK_INTERVAL_MOVING 500
-#define BLINK_INTERVAL_HEARTBEAT 100
-
-#define BUTTON_TIMEOUT 100
+extern int LIFT_move_timeout(void);
 
 /*******************************************************************
- *  GPIO defenitions
+ * Lift enable
  *******************************************************************/
-// Get/set digital IO status
-#define IO_ON 1
-#define IO_OFF 0
-#define IO_RESET -1
-
+extern void LIFT_enable(void);
+extern void LIFT_disable(void);
+extern bool LIFT_enabled(void);
 
 /*******************************************************************
- * PCF8574 digital output
+ * Lift motor
  *******************************************************************/
-extern void PCF8574_write(int output, int value);
-extern bool PCF8574_read(int output);
+extern void LIFT_UP_on(void);
+extern void LIFT_UP_off(void);
+extern void LIFT_DOWN_on(void);
+extern void LIFT_DOWN_off(void);
+extern bool LIFT_UP_moving(void);
+extern bool LIFT_DOWN_moving(void);
 
 /*******************************************************************
- * MC4725 DAC out (12bit)
+ * Lift position
  *******************************************************************/
-extern void MCP4725_write(uint8_t address, uint16_t value);
-
-extern uint8_t MCP4725_DAC_R;
-extern uint8_t MCP4725_DAC_L;
+extern bool LIFT_UP_sensor(void);
+extern bool LIFT_DOWN_sensor(void);
 
 /*******************************************************************
- * Emergency stop
+ * LIFT counters
  *******************************************************************/
-extern bool EMERGENCY_STOP_active(void);
+extern void LIFT_retected_increment(void);
+extern void LIFT_extended_increment(void);
 
 /*******************************************************************
-  * LED blink timing
+ * Lift buttons
  *******************************************************************/
-extern bool LED_blink_takt(void);
-extern bool LED_error_takt(void);
+extern bool LIFT_UP_button(void);
+extern bool LIFT_DOWN_button(void);
+extern bool LIFT_BOTH_button(void);
 
 /*******************************************************************
- * General
+ * Lift general
  *******************************************************************/
-extern void GPIO_setup(void);
-extern void GPIO_start(void);
+extern void LIFT_setup(void);
+extern void LIFT_start(void);
 
-#endif  // EBC_GPIO_HEADER
+#endif // EBC_LIFT_HEADER

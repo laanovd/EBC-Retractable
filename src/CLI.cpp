@@ -1,7 +1,7 @@
-/********************************************************************
+/*******************************************************************
  * Commandline interface
  *
- ********************************************************************/
+ *******************************************************************/
 #include "cli.h"
 
 #include <Arduino.h>
@@ -16,31 +16,31 @@
 #include "Storage.h"
 #include "WiFiCom.h"
 #include "esp_chip_info.h"
-/********************************************************************
+/*******************************************************************
  * Global variables
- ********************************************************************/
+ *******************************************************************/
 SimpleCLI cli; /* Command Line Interface */
 
 static cli_output_t cli_output = CLI_SERIAL;
 
-/********************************************************************
+/*******************************************************************
  * Output mode for commandline interface
- ********************************************************************/
+ *******************************************************************/
 void cli_set_output(cli_output_t value)
 {
   cli_output = value;
 }
 
-/********************************************************************
+/*******************************************************************
  * Calibration commandline handler
- ********************************************************************/
+ *******************************************************************/
 static bool calibrating = false;
 void set_calibrating(bool value) { calibrating = value; }
 bool is_calibrating() { return calibrating; }
 
-/********************************************************************
+/*******************************************************************
  * Bytes to String
- ********************************************************************/
+ *******************************************************************/
 static String bytes2string(const uint8_t *data, size_t len)
 {
   String text = "";
@@ -51,9 +51,9 @@ static String bytes2string(const uint8_t *data, size_t len)
   return text;
 }
 
-/********************************************************************
+/*******************************************************************
  * Output ComandlIne interface data
- ********************************************************************/
+ *******************************************************************/
 void CLI_print(String txt)
 {
   if (cli_output == CLI_WEBSERIAL)
@@ -75,9 +75,9 @@ void CLI_println(String txt)
   CLI_print(txt);
 }
 
-/********************************************************************
+/*******************************************************************
  * System reboot
- ********************************************************************/
+ *******************************************************************/
 void system_restart(void)
 {
   CLI_println("System wil restart in 3 sec...");
@@ -87,9 +87,9 @@ void system_restart(void)
   ESP.restart();
 }
 
-/*********************************************************************
+/********************************************************************
  * Create initial JSON data
- ********************************************************************/
+ *******************************************************************/
 static JsonDocument CLI_data(void)
 {
   JsonDocument doc;
@@ -109,10 +109,10 @@ static JsonDocument CLI_data(void)
   return doc;
 }
 
-/********************************************************************
+/*******************************************************************
  *  WebSerial Command line interface
  *
- ********************************************************************/
+ *******************************************************************/
 void CLI_webserial_task(uint8_t *data, size_t len)
 {
   String input = bytes2string(data, len);
@@ -134,10 +134,10 @@ void CLI_webserial_task(uint8_t *data, size_t len)
   }
 }
 
-/********************************************************************
+/*******************************************************************
  *  Serial Command line interval
  *
- ********************************************************************/
+ *******************************************************************/
 static void CLI_serial_task(void *parameter)
 {
   static String input = "";
@@ -187,19 +187,19 @@ static void CLI_serial_task(void *parameter)
   }
 }
 
-/********************************************************************
+/*******************************************************************
  * CLI: Reboot the system
- ********************************************************************/
+ *******************************************************************/
 static void clicb_reboot(cmd *c)
 {
   (void)c;
   system_restart();
 }
 
-/********************************************************************
+/*******************************************************************
  * Command line interface error callback
  *
- ********************************************************************/
+ *******************************************************************/
 void errorCallback(cmd_error *e)
 {
   CommandError cmdError(e); // Create wrapper object
@@ -212,19 +212,19 @@ void errorCallback(cmd_error *e)
   }
 }
 
-/********************************************************************
+/*******************************************************************
  *  Initialize the debug tasks
  *
- ********************************************************************/
+ *******************************************************************/
 static void CLI_setup_tasks(void)
 {
   xTaskCreate(CLI_serial_task, "Serial commandline interface task", 4096, NULL, 15, NULL); // Needs large stack
 }
 
-/********************************************************************
+/*******************************************************************
  *  Initialize the command line handlers
  *
- ********************************************************************/
+ *******************************************************************/
 static void CLI_handlers(void)
 {
   static Command cli_cmd_help, cli_cmd_system_info, cli_cmd_reboot;
@@ -234,172 +234,13 @@ static void CLI_handlers(void)
   cli.addCommand("restart", clicb_reboot);
 }
 
-/*********************************************************************
- * Create azimuth string
- ********************************************************************/
-String AZIMUTH_string(void)
-{
-  String text = "--- Azimuth ---";
-  float tmp;
-
-  text.concat("\r\nAzimuth left: ");
-  STORAGE_get_float(JSON_AZIMUTH_LEFT_V, tmp);
-  text.concat(String(tmp));
-
-  text.concat("\r\nAzimuth right: ");
-  STORAGE_get_float(JSON_AZIMUTH_RIGHT_V, tmp);
-  text.concat(String(tmp));
-
-  text.concat("\r\nAzimuth delay: ");
-  STORAGE_get_float(JSON_DELAY_TO_MIDDLE, tmp);
-  text.concat(String(tmp));
-
-  text.concat("\r\n");
-  return text;
-}
-
-/*********************************************************************
- *  Setup AZIMUTH commandline handlers
- ********************************************************************/
-// TODO: move to azimuth file
-// TODO: update local json variable
-// TODO: check if right > left on setting left/right
-static void clicb_AZIMUTH_handler(cmd *c)
-{
-  Command cmd(c);
-  Argument arg = cmd.getArg(0);
-  String strArg = arg.getValue();
-
-  /* List settings */
-  if (strArg.isEmpty())
-  {
-    CLI_println(AZIMUTH_string());
-    return;
-  }
-  arg = cmd.getArg(0);
-  strArg = arg.getValue();
-
-  if (strArg.equalsIgnoreCase("left"))
-  {
-    float val = cmd.getArg(1).getValue().toFloat();
-    if ((val < 0.0) || (val > 5.0)) {
-      CLI_println("Illegal value, range: 0.0V ... 5.0V");
-      return;
-    }
-    STORAGE_set_float(JSON_AZIMUTH_LEFT_V, val);
-    CLI_println("Azimuth left limit has been set to " + String(val) + " Volt");
-  }
-
-  if (strArg.equalsIgnoreCase("right"))
-  {
-    float val = cmd.getArg(1).getValue().toFloat();
-    if ((val < 0.0) || (val > 5.0)) {
-      CLI_println("Illegal value, range: 0.0V ... 5.0V");
-      return;
-    }
-    STORAGE_set_float(JSON_AZIMUTH_RIGHT_V, val);
-    CLI_println("Azimuth right limit has been set to " + String(val) + " Volt");
-  }
-
-  if (strArg.equalsIgnoreCase("delay"))
-  {
-    float val = cmd.getArg(1).getValue().toFloat();
-    if ((val < 0) || (val > 60)) {
-      CLI_println("Illegal value, range: 0.0s ... 60.0s");
-      return;
-    }
-    STORAGE_set_float(JSON_DELAY_TO_MIDDLE, val);
-    CLI_println("Azimuth delay-to-middle has been set to " + String(val) + " seconds");
-  }
-
-  if (strArg.equalsIgnoreCase("move") && is_calibrating())
-  {
-    arg = cmd.getArg(1);
-    strArg = arg.getValue();
-
-    static float val = cmd.getArg(2).getValue().toFloat();
-    if ((val < 0.0) || (val > 5.0)) {
-      CLI_println("Illegal value, range: 0.0s ... 5.0s");
-      return;
-    }
-    // AZIMUTH_set_position(val);
-  }
-}
-
-/*********************************************************************
- * Create retractable string
- ********************************************************************/
-String RETRACTABLE_string(void)
-{
-  String text = "--- Retractable ---";
-  float tmp;
-
-  text.concat("\r\nRetracting / extending timeout: ");
-  STORAGE_get_float(JSON_MOVE_TIMEOUT, tmp);
-  text.concat(String(tmp));
-
-  text.concat("\r\nTimes retracted: ");
-  STORAGE_get_float(JSON_RETRACTED_COUNT, tmp);
-  text.concat(String(tmp));
-
-  text.concat("\r\nTimes extended: ");
-  STORAGE_get_float(JSON_EXTENDED_COUNT, tmp);
-  text.concat(String(tmp));
-
-  text.concat("\r\n");
-  return text;
-}
-
-/*********************************************************************
- *  Setup retractable commandline handlers
- ********************************************************************/
-static void clicb_RETRACTABLE_handler(cmd *c)
-{
-  Command cmd(c);
-  Argument arg = cmd.getArg(0);
-  String strArg = arg.getValue();
-
-  /* List settings */
-  if (strArg.isEmpty())
-  {
-    CLI_println(RETRACTABLE_string());
-    return;
-  }
-
-  arg = cmd.getArg(0);
-  strArg = arg.getValue();
-
-  static float val = cmd.getArg(1).getValue().toFloat();
-
-  if (strArg.equalsIgnoreCase("timeout"))
-  {
-    if (val < 0)
-    {
-      return;
-    }
-    if (val > (float)120)
-    {
-      return;
-    }
-    STORAGE_set_float(JSON_MOVE_TIMEOUT, val);
-    Serial.printf("Retractable timeout has been set to: %fV", val);
-  }
-}
-
-static void AZIMUTH_cli_handlers(void)
-{
-  cli.addBoundlessCmd("azimuth", clicb_AZIMUTH_handler);
-  cli.addBoundlessCmd("retractable", clicb_RETRACTABLE_handler);
-}
-
-/********************************************************************
+/*******************************************************************
  *  Initialize the command line interface
  *
- ********************************************************************/
+ *******************************************************************/
 void CLI_setup(void)
 {
   CLI_setup_tasks();
-  AZIMUTH_cli_handlers();
   CLI_handlers();
 
   Serial.println(F("CLI handlers setup completed..."));

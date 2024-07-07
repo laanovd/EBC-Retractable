@@ -1,329 +1,194 @@
 #include "GPIO.h"
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
+#include <Wire.h>
+
+#include "Config.h"
+#include "EBC_IOlib.h" 
 
 /*******************************************************************
-  Defineitions
+  Definitions
  *******************************************************************/
-#define DEBUG_IO
+#define DEBUG_GPIO
+
+#define SDA0 21  // I2C Bus SDA
+#define SCL0 22  // I2C Bus SCL
 
 /*******************************************************************
-    Buttons setup
+ * Storage keys and defaults
  *******************************************************************/
-void BUTTON_setup() {
-  pinMode(BUTTON_UP_PIN, INPUT);
-  pinMode(BUTTON_DOWN_PIN, INPUT);
-  pinMode(BUTTON_EMERGNECY_PIN, INPUT);
+#define JSON_GPIO_PCF8574_ADDRESS "dig_out_address"
+#define JSON_GPIO_PCF8574_STATUS "dig_out_status"
+#define JSON_GPIO_MCP4725_L_ADDRESS "dac_left_address"
+#define JSON_GPIO_MCP4725_L_STATUS "dac_left_status"
+#define JSON_GPIO_MCP4725_L_EPROM "dac_left_eprom"
+#define JSON_GPIO_MCP4725_R_ADDRESS "dac_right_address"
+#define JSON_GPIO_MCP4725_R_STATUS "dac_right_status"
+#define JSON_GPIO_MCP4725_R_EPROM "dac_right_eprom"
+
+/*******************************************************************
+  Globals
+ *******************************************************************/
+static JsonDocument GPIO_data;
+
+uint8_t PCF8574_address  = 0;
+uint8_t MCP4725_DAC_R_address  = 0;
+uint8_t MCP4725_DAC_L_address  = 0;
+
+/********************************************************************
+ * Create initial JSON data
+ *******************************************************************/
+static JsonDocument GPIO_json_int(void) {
+  JsonDocument doc;
+
+  doc[JSON_GPIO_PCF8574_ADDRESS] = 0;
+  doc[JSON_GPIO_PCF8574_STATUS] = 0;
+
+  doc[JSON_GPIO_MCP4725_L_ADDRESS] = 0;
+  doc[JSON_GPIO_MCP4725_L_STATUS] = 0;
+  doc[JSON_GPIO_MCP4725_L_EPROM] = 0;
+
+  doc[JSON_GPIO_MCP4725_R_ADDRESS] = 0;
+  doc[JSON_GPIO_MCP4725_R_STATUS] = 0;
+  doc[JSON_GPIO_MCP4725_R_EPROM] = 0;
+
+  return doc;
 }
 
 /*******************************************************************
-    Buttons loop
+ * Emergency stop
  *******************************************************************/
-static bool BUTTON_UP_state = false;
-static bool BUTTON_DOWN_state = false;
-
-static bool BUTTON_UP_active = false;
-static bool BUTTON_DOWN_active = false;
-
-static int BUTTON_UP_millis = -1;
-static int BUTTON_DOWN_millis = -1;
-
-bool BUTTON_UP_is_pressed(int delay) { 
-    return BUTTON_UP_active; 
-}
-
-bool BUTTON_DOWN_is_pressed(int delay) { 
-    return BUTTON_DOWN_active; 
-}
-
-// * Edit this for active high/low
-void BUTTON_update() {
-  static bool BUTTON_UP_memo = false;
-  static bool BUTTON_DOWN_memo = false;
-
-  BUTTON_UP_state = digitalRead(BUTTON_UP_PIN) == HIGH;
-  BUTTON_UP_active = (!BUTTON_UP_state && !BUTTON_DOWN_state && BUTTON_UP_memo);
-
-  BUTTON_DOWN_state = digitalRead(BUTTON_DOWN_PIN) == HIGH;
-  BUTTON_DOWN_active = (!BUTTON_UP_state && !BUTTON_DOWN_state && BUTTON_DOWN_memo);
-
-  if (BUTTON_UP_state && BUTTON_DOWN_state)
-    BUTTON_UP_active = BUTTON_DOWN_active = true;
-
-  BUTTON_UP_memo = BUTTON_UP_state;
-  BUTTON_DOWN_memo = BUTTON_DOWN_state;
+bool EMERGENCY_STOP_active(void) {
+  // return pinMode(EMERGNECY_STOP_PIN, INPUT);
+  return false;
 }
 
 /*******************************************************************
-    Emergency stop
+ * LED
  *******************************************************************/
-bool EMERGENCY_STOP_active() {
-  return false;  // digitalRead(BUTTON_EMERGNECY_PIN);
+static int led_blink_timer = 0;
+bool LED_blink_takt(void) {
+  return (led_blink_timer < 2);
 }
 
-/*******************************************************************
-    LED setup
- *******************************************************************/
-static void LED_setup(void) {
-  pinMode(LED_UP_PIN, OUTPUT);
-  pinMode(LED_DOWN_PIN, OUTPUT);
-  pinMode(LED_HEARTBEAT_PIN, OUTPUT);
-  pinMode(LED_ERROR_PIN, OUTPUT);
-
-  digitalWrite(LED_UP_PIN, LOW);
-  digitalWrite(LED_DOWN_PIN, LOW);
-  digitalWrite(LED_HEARTBEAT_PIN, HIGH);
-  digitalWrite(LED_ERROR_PIN, HIGH);
-
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-  digitalWrite(LED_UP_PIN, HIGH);
-  digitalWrite(LED_DOWN_PIN, HIGH);
-  digitalWrite(LED_HEARTBEAT_PIN, LOW);
-  digitalWrite(LED_ERROR_PIN, LOW);
+bool LED_error_takt(void) {
+  return (led_blink_timer == 1) == 0;
 }
 
 /*******************************************************************
   LED heartbeat setup
  *******************************************************************/
-void LED_HEARTBEAT_update() {
-  digitalWrite(LED_HEARTBEAT_PIN, !digitalRead(LED_HEARTBEAT_PIN));
-}
-
-int LED_HAERTBEAT_on() {
-  return digitalRead(LED_HEARTBEAT_PIN);
+void LED_HEARTBEAT_update(void) {
+  digitalWrite(LED_HEARTBEAT_PIN, LED_blink_takt());
 }
 
 /*******************************************************************
   LED error setup
  *******************************************************************/
-void LED_ERROR_update() {
-  int state = true ? LED_HAERTBEAT_on() : LOW;  // TODO: link general error status
+void LED_ERROR_update(void) {
+  int state = true ? LED_blink_takt() : LOW;  // TODO: link general error status
   digitalWrite(LED_ERROR_PIN, state);
 }
 
 /*******************************************************************
-    LED up controls
+  GPIO main task
  *******************************************************************/
-static int LED_UP_interval = 0;
-static bool LED_UP_state = LOW;
-static int LED_UP_millis = -1;
+static void GPIO_main(void *parameter) {
+  (void)parameter;
 
-void LED_UP_on() {
-  LED_UP_interval = 0;
-  LED_UP_state = LOW;
-}
+  while (true) {
+    LED_HEARTBEAT_update();
+    LED_ERROR_update();
 
-void LED_UP_off() {
-  LED_UP_interval = 0;
-  LED_UP_state = HIGH;
-}
-
-void LED_UP_set_interval(int interval) {
-  LED_UP_interval = interval;
-  LED_UP_millis = millis();
-}
-
-void LED_UP_update() {
-  if (LED_UP_interval > 0) {
-    int delta_time = millis() - LED_UP_millis;
-    if (delta_time % (2 * LED_UP_interval) < LED_UP_interval)
-      LED_UP_state = HIGH;
-    if (delta_time % (2 * LED_UP_interval) >= LED_UP_interval)
-      LED_UP_state = LOW;
+    ++led_blink_timer %= 4;
+    vTaskDelay(250 / portTICK_PERIOD_MS);
   }
-
-  digitalWrite(LED_UP_PIN, LED_UP_state);
 }
 
 /*******************************************************************
-    LED down controls
+ * System LED setup
  *******************************************************************/
-static int LED_DOWN_interval = 0;
-static bool LED_DOWN_state = LOW;
-static int LED_DOWN_millis = -1;
+static void LED_setup(void) {
+  pinMode(LED_HEARTBEAT_PIN, OUTPUT);
+  pinMode(LED_ERROR_PIN, OUTPUT);
 
-void LED_DOWN_on() {
-  LED_DOWN_interval = 0;
-  LED_DOWN_state = LOW;
+  digitalWrite(LED_HEARTBEAT_PIN, HIGH);
+  digitalWrite(LED_ERROR_PIN, HIGH);
+
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+  digitalWrite(LED_HEARTBEAT_PIN, LOW);
+  digitalWrite(LED_ERROR_PIN, LOW);
 }
 
-void LED_DOWN_off() {
-  LED_DOWN_interval = 0;
-  LED_DOWN_state = HIGH;
-}
+/*******************************************************************
+  I2C setup
+ *******************************************************************/
+static void I2C_int(void) {
+  uint8_t list[6] = {0,0,0,0,0,0};
 
-void LED_DOWN_set_interval(int interval) {
-  LED_DOWN_interval = interval;
-  LED_DOWN_millis = millis();
-}
+  PCF8574_address = 0;
+  MCP4725_DAC_R = 0;
+  MCP4725_DAC_R = 0;
 
-void LED_DOWN_update() {
-  if (LED_DOWN_interval > 0) {
-    int delta_time = millis() - LED_DOWN_millis;
-    if (delta_time % (2 * LED_DOWN_interval) < LED_DOWN_interval)
-      LED_DOWN_state = HIGH;
-    if (delta_time % (2 * LED_DOWN_interval) >= LED_DOWN_interval)
-      LED_DOWN_state = LOW;
+  if (I2C_setup()) {
+    if (I2C_scan(list, sizeof(list)) == 2) {
+      if (list[0] < 0x60) {
+        PCF8574_address = list[0];
+        MCP4725_DAC_R = list[1];
+      }
+      else {
+        MCP4725_DAC_R = list[0];
+        MCP4725_DAC_L = list[1];
+      }
+
+      if (MCP4725_DAC_L) {
+        GPIO_data[JSON_GPIO_MCP4725_L_EPROM] = (int)MCP4725_read_eeprom(MCP4725_DAC_L);
+        GPIO_data[JSON_GPIO_MCP4725_L_STATUS] = (int)MCP4725_read_status(MCP4725_DAC_L);
+      }
+
+      if (MCP4725_DAC_R) {
+        GPIO_data[JSON_GPIO_MCP4725_R_EPROM] = (int)MCP4725_read_eeprom(MCP4725_DAC_R);
+        GPIO_data[JSON_GPIO_MCP4725_R_STATUS] = (int)MCP4725_read_status(MCP4725_DAC_R);
+      }
+
+      Serial.println("I2C Bus 1 opgestart.");
+      return;
+    }
   }
-
-  digitalWrite(LED_DOWN_PIN, LED_DOWN_state);
+  Serial.println("I2C Bus 1 error.");
 }
 
 /*******************************************************************
-    DMC Enable setup
+  Setup tasks
  *******************************************************************/
-void DMC_set_high() {
-  digitalWrite(DMC_ENABLE_PIN, HIGH);
-}
-void DMC_set_low() {
-  digitalWrite(DMC_ENABLE_PIN, LOW);
-}
-
-bool DMC_enabled() {
-  return digitalRead(DMC_ENABLE_PIN) == HIGH;
-}
-
-static void DMC_setup() {
-  pinMode(DMC_ENABLE_PIN, OUTPUT);
-  DMC_set_low();
+static void setup_tasks(void) {
+  xTaskCreate(GPIO_main, "GPIO main", 1024, NULL, 15, NULL);
 }
 
 /*******************************************************************
-  RETRACTABLE enable setup
+  Setup variables
  *******************************************************************/
-void RETRACTABLE_enable() {
-  digitalWrite(UP_DOWN_ENABLE_PIN, HIGH);
-#ifdef DEBUG_IO
-  Serial.println("Up-down ENABLE");
-#endif
-}
-void RETRACTABLE_disable() {
-  digitalWrite(UP_DOWN_ENABLE_PIN, LOW);
-
-#ifdef DEBUG_IO
-  Serial.println("Up-down DISABLE");
-#endif
-}
-
-bool RETRACTABLE_enabled() {
-  return digitalRead(UP_DOWN_ENABLE_PIN) == HIGH;
-}
-
-static void RETRACTABLE_setup() {
-  pinMode(UP_DOWN_ENABLE_PIN, OUTPUT);
-  RETRACTABLE_disable();
+static void setup_variables(void) {
 }
 
 /*******************************************************************
-  Retractable motor setup
+  Main setup
  *******************************************************************/
-void MOTOR_UP_on() {
-  digitalWrite(MOTOR_UP_PIN, HIGH);
-#ifdef DEBUG_IO
-  Serial.println("Retractable up ON");
-#endif
-}
-
-void MOTOR_UP_off() {
-  digitalWrite(MOTOR_UP_PIN, LOW);
-#ifdef DEBUG_IO
-  Serial.println("Retractable up OFF");
-#endif
-}
-
-void MOTOR_DOWN_on() {
-  digitalWrite(MOTOR_DOWN_PIN, HIGH);
-#ifdef DEBUG_IO
-  Serial.println("Retractable down ON");
-#endif
-}
-
-void MOTOR_DOWN_off() {
-  digitalWrite(MOTOR_DOWN_PIN, LOW);
-#ifdef DEBUG_IO
-  Serial.println("Retractable down OFF");
-#endif
-}
-
-static void MOTOR_UP_DOWN_setup() {
-  pinMode(MOTOR_UP_PIN, INPUT_PULLDOWN);
-  MOTOR_UP_off();
-  pinMode(MOTOR_DOWN_PIN, INPUT_PULLDOWN);
-  MOTOR_DOWN_off();
-}
-
-/*******************************************************************
-    Analog enable/disable
- *******************************************************************/
-void ANALOG_OUT_enable() {
-  digitalWrite(ENABLE_ANALOG_OUT_PIN, HIGH);
-#ifdef DEBUG_IO
-  Serial.println("Enable steering");
-#endif
-}
-
-void ANALOG_OUT_disable() {
-  digitalWrite(ENABLE_ANALOG_OUT_PIN, HIGH);
-#ifdef DEBUG_IO
-  Serial.println("Disable steering");
-#endif
-}
-
-bool ANALOG_OUT_enabled() {
-  return digitalRead(ENABLE_ANALOG_OUT_PIN) == HIGH;
-}
-
-static void ANALOG_OUT_setup() {
-  pinMode(ENABLE_ANALOG_OUT_PIN, OUTPUT);
-  ANALOG_OUT_disable();
-}
-
-/*******************************************************************
-    Retractable sensor setup
- *******************************************************************/
-static void SENSOR_setup() {
-  pinMode(MOTOR_UP_SENSOR_PIN, INPUT_PULLDOWN);
-  pinMode(MOTOR_DOWN_SENSOR_PIN, INPUT_PULLDOWN);
-}
-
-bool RETRACTABLE_is_retracted() {
-  return digitalRead(MOTOR_UP_SENSOR_PIN) == HIGH;
-}
-
-bool RETRACTABLE_is_extended() {
-  return digitalRead(MOTOR_DOWN_SENSOR_PIN) == HIGH;
-}
-
-/*******************************************************************
-    Steering wheel
- *******************************************************************/
-int STEERING_WHEEL_get_position() {
-  return analogRead(WHEEL_PIN);
-}
-
-/*******************************************************************
-  GPIO test
- *******************************************************************/
-void GPIO_test() {
-  // digitalWrite(DMC_ENABLE_PIN, !digitalRead(DMC_ENABLE_PIN));
-  // digitalWrite(UP_DOWN_ENABLE_PIN, !digitalRead(UP_DOWN_ENABLE_PIN));
-  // digitalWrite(MOTOR_UP_PIN, !digitalRead(MOTOR_UP_PIN));
-  // digitalWrite(MOTOR_DOWN_PIN, !digitalRead(MOTOR_DOWN_PIN));
-  // digitalWrite(ENABLE_ANALOG_OUT_PIN, !digitalRead(ENABLE_ANALOG_OUT_PIN));
-}
-
-/*******************************************************************
-    Main GPIO setup
- *******************************************************************/
-void GPIO_setup() {
-  BUTTON_setup();
+void GPIO_setup(void) {
+  setup_variables();
+  I2C_setup();
   LED_setup();
-  DMC_setup();
-  RETRACTABLE_setup();
-  MOTOR_UP_DOWN_setup();
-  ANALOG_OUT_enable();
-  SENSOR_setup();
+
+  PCF8574_write(0,IO_OFF); // Initialise IO
+}
+
+/*******************************************************************
+  Start
+ *******************************************************************/
+void GPIO_start(void) {
+  setup_tasks();
 
   Serial.println(F("GPIO setup completed..."));
 }

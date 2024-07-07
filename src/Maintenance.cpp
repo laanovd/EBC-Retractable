@@ -1,9 +1,9 @@
-/********************************************************************
+/*******************************************************************
  *    Maintenace.cpp
  *
  *    Retractable maintenance mode
  *
- ********************************************************************/
+ *******************************************************************/
 #include "Maintenance.h"
 
 #include <Arduino.h>
@@ -18,20 +18,21 @@
 #include "Config.h"
 #include "Debug.h"
 #include "GPIO.h"
-#include "MCPCom.h"
 #include "StateMachineLib.h"
 #include "Storage.h"
 #include "WebServer.h"
+#include "Lift.h"
+#include "DMC.h"
 
-/********************************************************************
+/*******************************************************************
  * Definitions
- ********************************************************************/
+ *******************************************************************/
 #define DEBUG
 #define DEBUG_API
 
-/********************************************************************
+/*******************************************************************
  * Local definitions
- ********************************************************************/
+ *******************************************************************/
 #define JSON_MAINTENANCE_ACTIVATE "maintenance_activate"
 #define JSON_MAINTENANCE_ACTIVE "maintenance_active"
 #define JSON_EMERGENCY_STOP "emergency_stop"
@@ -56,14 +57,14 @@
 #define JSON_STEERING_OUTPUT_ENABLE "steering_analog_out_enable"
 #define JSON_STEERING_OUTPUT_ENABLED "steering_analog_out_enabled"
 
-/********************************************************************
+/*******************************************************************
  * Local variables
- ********************************************************************/
+ *******************************************************************/
 static JsonDocument maintenance_data;
 
-/*********************************************************************
+/********************************************************************
  * Internal JSON data
- ********************************************************************/
+ *******************************************************************/
 static JsonDocument MAINTENANCE_defaults(void) {
   JsonDocument data;
 
@@ -73,16 +74,16 @@ static JsonDocument MAINTENANCE_defaults(void) {
   data[JSON_EMERGENCY_STOP] = EMERGENCY_STOP_active();
 
   // Lift
-  data[JSON_LIFT_ENABLED] = false;
-  data[JSON_LIFT_RETRACTED] = RETRACTABLE_is_retracted();
-  data[JSON_LIFT_EXTENDED] = RETRACTABLE_is_extended();
+  data[JSON_LIFT_ENABLED] = LIFT_enabled();
+  data[JSON_LIFT_RETRACTED] = LIFT_UP_sensor();
+  data[JSON_LIFT_EXTENDED] = LIFT_DOWN_sensor();
   data[JSON_LIFT_HOMING] = false;
 
   // DMC
   data[JSON_DMC_ENABLED] = DMC_enabled();
 
   // Steering
-  data[JSON_STEERING_ENABLED] = false;
+  data[JSON_STEERING_ENABLED] = AZIMUTH_enabled();
   data[JSON_STEERING_LEFT_V] = AZIMUH_get_left();
   data[JSON_STEERING_RIGHT_V] = AZIMUH_get_right();
   data[JSON_STEERING_ACTUAL_V] = AZIMUH_get_actual();
@@ -96,9 +97,9 @@ static void MAINTENANCE_json_update(void) {
   maintenance_data[JSON_EMERGENCY_STOP] = EMERGENCY_STOP_active();
 
   // Lift
-  maintenance_data[JSON_LIFT_ENABLED] = RETRACTABLE_enabled();
-  maintenance_data[JSON_LIFT_RETRACTED] = RETRACTABLE_is_retracted();
-  maintenance_data[JSON_LIFT_EXTENDED] = RETRACTABLE_is_extended();
+  maintenance_data[JSON_LIFT_ENABLED] = LIFT_enabled();
+  maintenance_data[JSON_LIFT_RETRACTED] = LIFT_UP_sensor();
+  maintenance_data[JSON_LIFT_EXTENDED] = LIFT_DOWN_sensor();
 
   // DMC
   maintenance_data[JSON_DMC_ENABLED] = DMC_enabled();
@@ -117,9 +118,9 @@ static JsonDocument MAINTENANCE_json(void) {
   return maintenance_data;
 }
 
-/*********************************************************************
+/********************************************************************
  * Create string
- ********************************************************************/
+ *******************************************************************/
 String MAINTENANCE_string(void) {
   JsonDocument doc = MAINTENANCE_json();
 
@@ -132,37 +133,37 @@ String MAINTENANCE_string(void) {
   return text;
 }
 
-/*********************************************************************
+/********************************************************************
  * Getters and setters
- ********************************************************************/
+ *******************************************************************/
 bool MAINTENANCE_enabled(void) {
   return maintenance_data[JSON_MAINTENANCE_ACTIVE].as<bool>();
 }
 
 bool MAINTENANCE_activate(void) {
-  return maintenance_data[JSON_MAINTENANCE_ACTIVE].as<bool>();
+  return maintenance_data[JSON_MAINTENANCE_ACTIVATE].as<bool>();
 }
 
 static bool MAINTENANCE_dmc_active(void) {
   return DMC_enabled();
 }
 
-static void MAINTENANCE_dmc_disable(void) {
-  DMC_set_low();
-
-#ifdef DEBUG_API
-  Serial.println("MAINTENANCE DMC disable...");
-#endif
-}
-
 static void MAINTENANCE_dmc_enable(void) {
   if (MAINTENANCE_enabled()) {
-    DMC_set_high();
+    DMC_enable();
 
 #ifdef DEBUG_API
     Serial.println("MAINTENANCE DMC enable...");
 #endif
   }
+}
+
+static void MAINTENANCE_dmc_disable(void) {
+  DMC_disable();
+
+#ifdef DEBUG_API
+  Serial.println("MAINTENANCE DMC disable...");
+#endif
 }
 
 static bool MAINTENANCE_azimuth_active(void) {
@@ -212,7 +213,7 @@ static void MAINTENANCE_steering_output_enable(void) {
 }
 
 static void MAINTENANCE_lift_disable(void) {
-  RETRACTABLE_disable();
+  LIFT_disable();
   maintenance_data[JSON_LIFT_EXTEND] = false;
   maintenance_data[JSON_LIFT_RETRACT] = false;
   maintenance_data[JSON_LIFT_HOMING] = false;
@@ -224,7 +225,7 @@ static void MAINTENANCE_lift_disable(void) {
 
 static void MAINTENANCE_lift_enable(void) {
   if (MAINTENANCE_enabled()) {
-    RETRACTABLE_enable();
+    LIFT_enable();
 
 #ifdef DEBUG_API
     Serial.println("MAINTENANCE LIFT enable...");
@@ -233,14 +234,14 @@ static void MAINTENANCE_lift_enable(void) {
 }
 
 static bool MAINTENANCE_lift_enabled(void) {
-  return RETRACTABLE_enabled();
+  return LIFT_enabled();
 }
 
 static void MAINTENANCE_lift_extend(void) {
   if (MAINTENANCE_enabled() && MAINTENANCE_lift_enabled()) {
-    MOTOR_UP_off();
+    LIFT_UP_off();
     vTaskDelay(500 / portTICK_PERIOD_MS); // Wait 0.5s
-    MOTOR_DOWN_on();
+    LIFT_DOWN_on();
     maintenance_data[JSON_LIFT_EXTEND] = true;
     maintenance_data[JSON_LIFT_RETRACT] = false;
     maintenance_data[JSON_LIFT_HOMING] = false;
@@ -253,9 +254,9 @@ static void MAINTENANCE_lift_extend(void) {
 
 static void MAINTENANCE_lift_retract(void) {
   if (MAINTENANCE_enabled() && MAINTENANCE_lift_enabled()) {
-    MOTOR_DOWN_off();
+    LIFT_DOWN_off();
     vTaskDelay(500 / portTICK_PERIOD_MS); // Wait 0.5s
-    MOTOR_UP_on();
+    LIFT_UP_on();
     maintenance_data[JSON_LIFT_RETRACT] = true;
     maintenance_data[JSON_LIFT_EXTEND] = false;
     maintenance_data[JSON_LIFT_HOMING] = false;
@@ -300,7 +301,7 @@ static bool MAINTENANCE_steering_enabled(void) {
   return maintenance_data[JSON_STEERING_ENABLED].as<bool>();
 }
 
-static void MAINTENANCE_disable(void) {
+void MAINTENANCE_disable(void) {
   maintenance_data[JSON_MAINTENANCE_ACTIVE] = false;
   MAINTENANCE_dmc_disable();
   MAINTENANCE_lift_disable();
@@ -311,7 +312,7 @@ static void MAINTENANCE_disable(void) {
 #endif
 }
 
-static void MAINTENANCE_enable(void) {
+void MAINTENANCE_enable(void) {
   if (!EMERGENCY_STOP_active()) {
     maintenance_data[JSON_MAINTENANCE_ACTIVE] = true;
 #ifdef DEBUG_API
@@ -320,7 +321,7 @@ static void MAINTENANCE_enable(void) {
   }
 }
 
-/*********************************************************************
+/********************************************************************
  * REST API: read handler
  *********************************************************************/
 void MAINTENANCE_rest_read(AsyncWebServerRequest *request) {
@@ -414,9 +415,9 @@ void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size
     AZIMUH_set_left(doc[JSON_STEERING_LEFT_V].as<float>());
     maintenance_data[JSON_STEERING_LEFT_V] = doc[JSON_STEERING_LEFT_V].as<float>();
 
-#ifdef DEBUG_API
-    Serial.printf("MAINTENANCE set left voltage to %2.1fV.\n\r", AZIMUH_get_left());
-#endif
+// #ifdef DEBUG_API
+//     Serial.printf("MAINTENANCE set left voltage to %2.1fV.\n\r", AZIMUH_get_left());
+// #endif
   }
 
   /* Steering set RIGHT voltage */
@@ -424,18 +425,18 @@ void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size
     AZIMUH_set_right(doc[JSON_STEERING_RIGHT_V].as<float>());
     maintenance_data[JSON_STEERING_RIGHT_V] = doc[JSON_STEERING_RIGHT_V].as<float>();
 
-#ifdef DEBUG_API
-    Serial.printf("MAINTENANCE set right voltage to %2.1fV.\n\r", AZIMUH_get_right());
-#endif
+// #ifdef DEBUG_API
+//     Serial.printf("MAINTENANCE set right voltage to %2.1fV.\n\r", AZIMUH_get_right());
+// #endif
   }
 
   /* Steering manual control (%) */
   if (doc.containsKey(JSON_STEERING_MANUAL)) {
     AZIMUTH_set_steering(doc[JSON_STEERING_MANUAL].as<int>());
 
-#ifdef DEBUG_API
-    Serial.printf("MAINTENANCE set manual steering to %d%%.\n\r", AZIMUTH_get_steering());
-#endif
+// #ifdef DEBUG_API
+//     Serial.printf("MAINTENANCE set manual steering to %d%%.\n\r", AZIMUTH_get_steering());
+// #endif
   }
 
   request->send(200, "text/plain", "200, OK");
@@ -451,7 +452,7 @@ static rest_api_t MAINTENANCE_api_handlers = {
     /* fn_delete */ nullptr,
 };
 
-/*********************************************************************
+/********************************************************************
  * WebSocketsServer task
  *********************************************************************/
 static void MAINETNACE_websocket_task(void *parameter) {
@@ -468,14 +469,14 @@ static void MAINETNACE_websocket_task(void *parameter) {
   }
 }
 
-/*********************************************************************
+/********************************************************************
  * Maintenance parts
- ********************************************************************/
+ *******************************************************************/
 void MAINTENANCE_dmc_control(void) {
   if (MAINTENANCE_enabled()) {
-    DMC_set_high();
+    DMC_enable();
   } else {
-    DMC_set_low();
+    DMC_disable();
   }
 }
 
@@ -506,9 +507,9 @@ void MAINTENANCE_steering_output_control(void) {
   // TODO: STEERING output control
 }
 
-/*********************************************************************
+/********************************************************************
  * Main task
- ********************************************************************/
+ *******************************************************************/
 void MAINTENANCE_main(void *parameter) {
   (void)parameter;
 
@@ -541,7 +542,7 @@ void MAINTENANCE_main(void *parameter) {
   }
 }
 
-/*********************************************************************
+/********************************************************************
  *  Initialize the debug tasks
  *
  *********************************************************************/
@@ -549,9 +550,9 @@ static void MAINTENANCE_setup_tasks(void) {
   xTaskCreate(MAINETNACE_websocket_task, "WwebSocketServer task", 8192, NULL, 15, NULL);
 }
 
-/*********************************************************************
+/********************************************************************
  * Setup
- ********************************************************************/
+ *******************************************************************/
 void MAINTENANCE_setup(void) {
   maintenance_data = MAINTENANCE_defaults();
   setup_uri(&MAINTENANCE_api_handlers);
@@ -559,9 +560,9 @@ void MAINTENANCE_setup(void) {
   Serial.println("MAINTENANCE setup completed...");
 }
 
-/*********************************************************************
+/********************************************************************
  * Start
- ********************************************************************/
+ *******************************************************************/
 void MAINTENANCE_start(void) {
   MAINTENANCE_disable();
   MAINTENANCE_setup_tasks();

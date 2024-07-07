@@ -1,4 +1,4 @@
-/*****************************************************************************************
+/***************************************************************************
 * This is implementation of CAN BUS ASCII protocol based on LAWICEL v1.3 serial protocol
 *  of CAN232/CANUSB device (http://www.can232.com/docs/can232_v3.pdf)
 *

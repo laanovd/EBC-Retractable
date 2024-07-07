@@ -51,7 +51,7 @@ uint16_t DRV_CANFDSPI_CalculateCRC16(uint8_t *data, uint16_t size) {
 }
 
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           begin
 ** Descriptions:            init can and set speed
 *********************************************************************************************************/
@@ -65,7 +65,7 @@ byte mcp2518fd::begin(uint32_t speedset, const byte clockset) {
   return res;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           mcp2518fd_reset
 ** Descriptions:            reset the device
 *********************************************************************************************************/
@@ -1742,7 +1742,7 @@ void mcp2518fd::mcp2518fd_TransmitMessageQueue(void) {
   mcp2518fd_TransmitChannelLoad(APP_TX_FIFO, &txObj, txd, n, true);
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           sendMsg
 ** Descriptions:            send message
 *********************************************************************************************************/
@@ -1828,7 +1828,7 @@ uint32_t mcp2518fd::bittime_compat_to_mcp2518fd(uint32_t speedset) {
   return r;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           mcp2515_init
 ** Descriptions:            init the device
 **                          speedset msb  8 bits = factor (0 or 1 is no bit rate switch)
@@ -1891,7 +1891,7 @@ uint8_t mcp2518fd::mcp2518fd_init(uint32_t speedset, const byte clock) {
   return 0;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           enableTxInterrupt
 ** Descriptions:            enable interrupt for all tx buffers
 *********************************************************************************************************/
@@ -1923,7 +1923,7 @@ byte mcp2518fd::init_Mask(byte num, byte ext, unsigned long ulData) {
   return err;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           init_Filt
 ** Descriptions:            init canid filters
 *********************************************************************************************************/
@@ -1949,7 +1949,7 @@ byte mcp2518fd::init_Filt(byte num, byte ext, unsigned long ulData) {
   return err;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           setSleepWakeup
 ** Descriptions:            Enable or disable the wake up interrupt (If disabled
 *the MCP2515 will not be woken up by CAN bus activity)
@@ -1962,7 +1962,7 @@ void mcp2518fd::setSleepWakeup(const byte enable) {
   }
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           sleep
 ** Descriptions:            Put mcp2515 in sleep mode to save power
 *********************************************************************************************************/
@@ -1974,7 +1974,7 @@ byte mcp2518fd::sleep() {
   }
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           wake
 ** Descriptions:            wake MCP2515 manually from sleep. It will come back
 *in the mode it was before sleeping.
@@ -1988,7 +1988,7 @@ byte mcp2518fd::wake() {
   }
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           getMode
 ** Descriptions:            Returns current control mode
 *********************************************************************************************************/
@@ -1998,7 +1998,7 @@ byte mcp2518fd::getMode() {
   return (byte)mode;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           setMode
 ** Descriptions:            Sets control mode
 *********************************************************************************************************/
@@ -2011,7 +2011,7 @@ byte mcp2518fd::setMode(const byte opMode) {
   return mcp2518fd_OperationModeSelect(mcpMode);
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           readMsgBufID
 ** Descriptions:            Read message buf and can bus source ID according to
 *status.
@@ -2031,7 +2031,7 @@ byte mcp2518fd::readMsgBufID(byte status, volatile unsigned long *id,
   return r;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           checkReceive
 ** Descriptions:            check if got something
 *********************************************************************************************************/
@@ -2044,7 +2044,7 @@ byte mcp2518fd::checkReceive(void) {
   return res;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           checkError
 ** Descriptions:            if something error
 *********************************************************************************************************/
@@ -2057,7 +2057,7 @@ byte mcp2518fd::checkError(uint8_t* err_ptr) {
   return (byte)flags;
 }
 
-// /*********************************************************************************************************
+// /*******************************************************************
 // ** Function name:           readMsgBufID
 // ** Descriptions:            Read message buf and can bus source ID according
 // to status.
@@ -2080,7 +2080,7 @@ byte mcp2518fd::mcp2518fd_readMsgBufID(volatile byte *len, volatile byte *buf) {
   return 0;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           trySendMsgBuf
 ** Descriptions:            Try to send message. There is no delays for waiting
 *free buffer.
@@ -2091,7 +2091,7 @@ byte mcp2518fd::trySendMsgBuf(unsigned long id, byte ext, byte rtr, byte len,
   return mcp2518fd_sendMsg(buf, len, id, ext, rtr, false);
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           clearBufferTransmitIfFlags
 ** Descriptions:            Clear transmit interrupt flags for specific buffer
 *or for all unreserved buffers.
@@ -2105,7 +2105,7 @@ void mcp2518fd::clearBufferTransmitIfFlags(byte flags) {
   return;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           sendMsgBuf
 ** Descriptions:            Send message by using buffer read as free from
 *CANINTF status
@@ -2117,7 +2117,7 @@ byte mcp2518fd::sendMsgBuf(byte status, unsigned long id, byte ext, byte rtr,
   return mcp2518fd_sendMsg((const byte *)buf, len, id, ext, rtr, true);
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           sendMsgBuf
 ** Descriptions:            send buf
 *********************************************************************************************************/
@@ -2126,7 +2126,7 @@ byte mcp2518fd::sendMsgBuf(unsigned long id, byte ext, byte rtr, byte len,
   return mcp2518fd_sendMsg(buf, len, id, ext, rtr, wait_sent);
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           readRxTxStatus
 ** Descriptions:            Read RX and TX interrupt bits. Function uses status
 *reading, but translates.
@@ -2143,7 +2143,7 @@ byte mcp2518fd::readRxTxStatus(void) {
   return ret;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           checkClearRxStatus
 ** Descriptions:            Return first found rx CANINTF status and clears it
 *from parameter.
@@ -2155,7 +2155,7 @@ byte mcp2518fd::checkClearRxStatus(byte *status) {
   return 1;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           checkClearTxStatus
 ** Descriptions:            Return specified buffer of first found tx CANINTF
 *status and clears it from parameter.
@@ -2168,7 +2168,7 @@ byte mcp2518fd::checkClearTxStatus(byte *status, byte iTxBuf) {
   return 1;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           mcpPinMode
 ** Descriptions:            switch supported pins between HiZ, interrupt, output
 *or input
@@ -2197,7 +2197,7 @@ bool mcp2518fd::mcpPinMode(const byte pin, const byte mode) {
   return spiTransferError;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           mcpDigitalWrite
 ** Descriptions:            write HIGH or LOW to RX0BF/RX1BF
 *********************************************************************************************************/
@@ -2236,7 +2236,7 @@ bool mcp2518fd::mcpDigitalWrite(const byte pin, const byte mode) {
   return spiTransferError;
 }
 
-/*********************************************************************************************************
+/*******************************************************************
 ** Function name:           mcpDigitalRead
 ** Descriptions:            read HIGH or LOW from supported pins
 *********************************************************************************************************/

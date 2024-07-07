@@ -13,12 +13,12 @@
 #include "GPIO.h"
 #include "DMC.h"
 #include "Azimuth.h"
+#include "lift.h"
 #include "Maintenance.h"
 
-
-/********************************************************************
+/*******************************************************************
  * CLI: Show all cli commands and descriptions
- ********************************************************************/
+ *******************************************************************/
 static void clicb_help(cmd *c) {
   (void)c;
 
@@ -27,15 +27,16 @@ static void clicb_help(cmd *c) {
   CLI_println(F("[!] ~ System information."));
   CLI_println(F("[web] ~ Web-server information."));
   CLI_println(F("[wifi] ~ WiFi information."));
-  CLI_println(F("[mcp] ~ MCP information."));
   CLI_println(F("[storage] ~ List settings."));
   CLI_println(F("[restart] ~ Restart the system."));
   CLI_println(F("[factory...] ~ Factory reset settings (yes)"));
+  CLI_println(F("[lift] ~ Retractable information (timeout n)."));
+  CLI_println(F("[azimuth] ~ Azimuth information (left <n>, right <n>, delay <n>, move)."));
 }
 
-/********************************************************************
+/*******************************************************************
  * CLI: Show all cli commands and descriptions
- ********************************************************************/
+ *******************************************************************/
 static void clicb_system(cmd *c) {
   (void)c;
   String text;
@@ -69,84 +70,53 @@ static void clicb_system(cmd *c) {
   CLI_println(text);
 }
 
-/********************************************************************
+/*******************************************************************
  *  Initialize the command line handlers
  *
- ********************************************************************/
-static void MAIN_handlers(void) {
+ *******************************************************************/
+static void MAIN_CLI_handlers(void) {
   cli.addCommand("?,help", clicb_help);
   cli.addCommand("!,system", clicb_system);
 }
 
 /*******************************************************************
- *  Setup tasks
+ * loop
  *******************************************************************/
-void LED_main_task(void *parameter)
+void loop()
 {
-  (void)parameter;
-  while (true)
-  {
-    LED_UP_update();
-    LED_DOWN_update();
-
-    BUTTON_update();
-
-    DMC_update();
-
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-  }
+  // Do main task things...
 }
 
-void AZIMUTH_main_task(void *parameter)
-{
-  (void)parameter;
-  while (true)
-  {
-    AZIMUTH_update();
-
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-  }
-}
-
-/********************************************************************
+/*******************************************************************
  * setup
- ********************************************************************/
-static void MAIN_setup_tasks()
-{
-  xTaskCreate(LED_main_task, "LED monitor task", 1024, NULL, 10, NULL);
-  xTaskCreate(AZIMUTH_main_task, "Azimuth debug task", 2048, NULL, 15, NULL);
-}
-
-/********************************************************************
- * setup
- ********************************************************************/
+ *******************************************************************/
 void setup()
 {
   Serial.begin(115200);
-
+  
+  /*--- SETUP ---*/
   STORAGE_setup();
   CLI_setup();
   WiFi_setup();
   WEBSERVER_setup();
   GPIO_setup();
   AZIMUTH_setup();
+  LIFT_setup();
+  DMC_setup();
   CONTROLLER_setup();
   MAINTENANCE_setup();
-
-  /* Main program */
-  MAIN_handlers();
-  MAIN_setup_tasks();
-  MAINTENANCE_start();
+  // MAIN_setup();
 
   Serial.println(F("Main setup completed."));
-}
+  vTaskDelay(1000 / portTICK_PERIOD_MS); // Wait one second for LED's
 
-/********************************************************************
- * loop
- ********************************************************************/
-void loop()
-{
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-  LED_HEARTBEAT_update();
-  LED_ERROR_update();
+  /*--- STARTUP ---*/
+  MAIN_CLI_handlers();
+  GPIO_start();
+  AZIMUTH_start();
+  LIFT_start();
+  DMC_start();
+  CONTROLLER_start();
+  MAINTENANCE_start();
+  // MAIN_start();
 }
