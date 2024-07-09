@@ -8,6 +8,11 @@
 #include <stdint.h>
 
 /*******************************************************************
+ * RESTfull API keys
+ *******************************************************************/
+#define JSON_EMERGENCY_STOP "emergency_stop"
+
+/*******************************************************************
  *  Blinking intervals
  *******************************************************************/
 #define BLINK_INTERVAL_EMERGENCY 250
@@ -26,20 +31,12 @@
 #define IO_OFF 0
 #define IO_RESET -1
 
-
 /*******************************************************************
- * PCF8574 digital output
+ * Global variables
  *******************************************************************/
-extern void PCF8574_write(int output, int value);
-extern bool PCF8574_read(int output);
-
-/*******************************************************************
- * MC4725 DAC out (12bit)
- *******************************************************************/
-extern void MCP4725_write(uint8_t address, uint16_t value);
-
-extern uint8_t MCP4725_DAC_R;
-extern uint8_t MCP4725_DAC_L;
+extern uint8_t PCF8574_address;
+extern uint8_t MCP4725_L_address;
+extern uint8_t MCP4725_R_address;
 
 /*******************************************************************
  * Emergency stop

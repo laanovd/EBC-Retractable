@@ -7,11 +7,28 @@
 #ifndef AZIMUTH_HEADER
 #define AZIMUTH_HEADER
 
+/*******************************************************************
+ * RESTfull API keys
+ *******************************************************************/
+#define JSON_AZIMUTH_ENABLE "steering_enable"
+#define JSON_AZIMUTH_ENABLED "steering_enabled"
+#define JSON_AZIMUTH_LEFT_V "steering_left_volt"
+#define JSON_AZIMUTH_RIGHT_V "steering_right_volt"
+#define JSON_AZIMUTH_ACTUAL_V "steering_output_volt"
+#define JSON_AZIMUTH_MANUAL "steering_manual"
+#define JSON_AZIMUTH_STEERING "steering_steer"
+#define JSON_AZIMUTH_CONTROL_PERC "steering_control_percentage"
+#define JSON_AZIMUTH_OUTPUT_ENABLE "steering_analog_out_enable"
+#define JSON_AZIMUTH_OUTPUT_ENABLED "steering_analog_out_enabled"
+#define JSON_DELAY_TO_MIDDLE "azimuth_delay_to_the_middle"
+
+/*******************************************************************
+ * Azimuth
+ *******************************************************************/
 extern void AZIMUTH_update();
 extern void AZIMUTH_enable();
 extern void AZIMUTH_disable();
 extern bool AZIMUTH_enabled();
-
 
 extern float AZIMUH_get_actual(void);
 extern float AZIMUH_get_left(void);

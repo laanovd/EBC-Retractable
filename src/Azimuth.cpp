@@ -13,6 +13,7 @@
 #include "Storage.h"
 #include "CLI.h"
 #include "GPIO.h"
+#include "EBC_IOlib.h" 
 
 /*******************************************************************
  * Definitions
@@ -22,16 +23,8 @@
 /*******************************************************************
  * Storage keys and defaults
  *******************************************************************/
-#define JSON_AZIMUTH_LEFT_V "azimuth_left"
 #define JSON_AZIMUTH_LEFT_DEFAULT 0.0
-
-#define JSON_AZIMUTH_RIGHT_V "azimuth_right"
 #define JSON_AZIMUTH_RIGHT_DEFAULT 5.0
-
-#define JSON_AZIMUTH_ACTUAL "azimuth_actual"
-#define JSON_AZIMUTH_STEERING "azimuth_steering"
-
-#define JSON_DELAY_TO_MIDDLE "delay_to_middle"
 #define DELAY_TO_MIDDLE_DEFAULT 5
 
 /*******************************************************************
@@ -70,7 +63,7 @@ String AZIMUTH_info(void)
  * AZIMUTH analog 
  *******************************************************************/
 static void AZIMUTH_right_set(int value) {
-  MCP4725_write(MCP4725_DAC_R, value);
+  MCP4725_write(MCP4725_R_address, value);
 
 #ifdef DEBUG_AZIMUTH
   Serial.println("Azimuth set analog out: " + String(value));
@@ -100,7 +93,7 @@ static void AZIMUTH_set_right(float value) {
 }
 
 void AZIMUTH_enable(void) {
-  PCF8574_write(AZIMUTH_ENABLE_PIN, IO_ON);
+  PCF8574_write(PCF8574_address,AZIMUTH_ENABLE_PIN, IO_ON);
 
 #ifdef DEBUG_AZIMUTH
   Serial.println("Azimuth enable");
@@ -108,7 +101,7 @@ void AZIMUTH_enable(void) {
 }
 
 void AZIMUTH_disable(void) {
-  PCF8574_write(AZIMUTH_ENABLE_PIN, IO_OFF);
+  PCF8574_write(PCF8574_address,AZIMUTH_ENABLE_PIN, IO_OFF);
 
 #ifdef DEBUG_AZIMUTH
   Serial.println("Azimuth disable");
@@ -116,14 +109,14 @@ void AZIMUTH_disable(void) {
 }
 
 bool AZIMUTH_enabled() {
-  return PCF8574_read(AZIMUTH_ENABLE_PIN) == IO_ON;
+  return PCF8574_read(PCF8574_address, AZIMUTH_ENABLE_PIN) == IO_ON;
 }
 
 /*******************************************************************
  * Output settings
  *******************************************************************/
 float AZIMUH_get_actual(void) {
-  return AZIMUTH_data[JSON_AZIMUTH_ACTUAL].as<float>();
+  return AZIMUTH_data[JSON_AZIMUTH_ACTUAL_V].as<float>();
 }
 
 float AZIMUH_get_left(void) {
@@ -144,10 +137,6 @@ void AZIMUH_set_right(float value) {
   if ((value >= 0.0) && (value <= 10.0)) {
     AZIMUTH_data[JSON_AZIMUTH_RIGHT_V] = value;
   }
-}
-
-int AZIMUTH_get_steering(void) {
-  return AZIMUTH_data[JSON_AZIMUTH_STEERING].as<int>();
 }
 
 int AZIMUTH_to_the_middle_delay(void) {
@@ -187,6 +176,10 @@ void AZIMUTH_set_steering(int value) {
 
     AZIMUTH_set_right(azimuth_position);
   }
+}
+
+int AZIMUTH_get_steering(void) {
+  return AZIMUTH_data[JSON_AZIMUTH_STEERING].as<int>();
 }
 
 /*******************************************************************

@@ -232,7 +232,6 @@ void WEBSERVER_rest_update(AsyncWebServerRequest *request, uint8_t *data, size_t
   (void)total;
 
   JsonDocument doc;
-
   DeserializationError error = deserializeJson(doc, (char *)data);
   if (error) {
     Serial.print(F("deserializeJson() failed: "));
@@ -241,8 +240,15 @@ void WEBSERVER_rest_update(AsyncWebServerRequest *request, uint8_t *data, size_t
     return;
   }
 
-  Serial.printf("SYSTEM-on-update: len=%d, index=%d, total=%d\n\r", (int)len, (int)index, (int)total);
-  Serial.println(doc.as<String>());
+#ifdef DEBUG_API
+  String str;
+  Serial.print(F("WEBSERVER REST API received: "));
+  serializeJson(doc, str);
+  Serial.println(str);
+#endif
+
+  // Serial.printf("SYSTEM-on-update: len=%d, index=%d, total=%d\n\r", (int)len, (int)index, (int)total);
+  // Serial.println(doc.as<String>());
 
   if (doc.containsKey("password"))
     Serial.println(doc["password"].as<String>());

@@ -33,8 +33,8 @@
 static JsonDocument GPIO_data;
 
 uint8_t PCF8574_address  = 0;
-uint8_t MCP4725_DAC_R_address  = 0;
-uint8_t MCP4725_DAC_L_address  = 0;
+uint8_t MCP4725_R_address  = 0;
+uint8_t MCP4725_L_address  = 0;
 
 /********************************************************************
  * Create initial JSON data
@@ -125,32 +125,32 @@ static void LED_setup(void) {
 /*******************************************************************
   I2C setup
  *******************************************************************/
-static void I2C_int(void) {
+static void I2C_init(void) {
   uint8_t list[6] = {0,0,0,0,0,0};
 
   PCF8574_address = 0;
-  MCP4725_DAC_R = 0;
-  MCP4725_DAC_R = 0;
+  MCP4725_R_address = 0;
+  MCP4725_R_address = 0;
 
-  if (I2C_setup()) {
+  if (I2C_setup(SDA0, SCL0)) {
     if (I2C_scan(list, sizeof(list)) == 2) {
       if (list[0] < 0x60) {
         PCF8574_address = list[0];
-        MCP4725_DAC_R = list[1];
+        MCP4725_R_address = list[1];
       }
       else {
-        MCP4725_DAC_R = list[0];
-        MCP4725_DAC_L = list[1];
+        MCP4725_R_address = list[0];
+        MCP4725_L_address = list[1];
       }
 
-      if (MCP4725_DAC_L) {
-        GPIO_data[JSON_GPIO_MCP4725_L_EPROM] = (int)MCP4725_read_eeprom(MCP4725_DAC_L);
-        GPIO_data[JSON_GPIO_MCP4725_L_STATUS] = (int)MCP4725_read_status(MCP4725_DAC_L);
+      if (MCP4725_L_address) {
+        GPIO_data[JSON_GPIO_MCP4725_L_EPROM] = (int)MCP4725_read_eeprom(MCP4725_L_address);
+        GPIO_data[JSON_GPIO_MCP4725_L_STATUS] = (int)MCP4725_read_status(MCP4725_L_address);
       }
 
-      if (MCP4725_DAC_R) {
-        GPIO_data[JSON_GPIO_MCP4725_R_EPROM] = (int)MCP4725_read_eeprom(MCP4725_DAC_R);
-        GPIO_data[JSON_GPIO_MCP4725_R_STATUS] = (int)MCP4725_read_status(MCP4725_DAC_R);
+      if (MCP4725_R_address) {
+        GPIO_data[JSON_GPIO_MCP4725_R_EPROM] = (int)MCP4725_read_eeprom(MCP4725_R_address);
+        GPIO_data[JSON_GPIO_MCP4725_R_STATUS] = (int)MCP4725_read_status(MCP4725_R_address);
       }
 
       Serial.println("I2C Bus 1 opgestart.");
@@ -178,10 +178,8 @@ static void setup_variables(void) {
  *******************************************************************/
 void GPIO_setup(void) {
   setup_variables();
-  I2C_setup();
+  I2C_init();
   LED_setup();
-
-  PCF8574_write(0,IO_OFF); // Initialise IO
 }
 
 /*******************************************************************

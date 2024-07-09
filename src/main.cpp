@@ -30,6 +30,7 @@ static void clicb_help(cmd *c) {
   CLI_println(F("[storage] ~ List settings."));
   CLI_println(F("[restart] ~ Restart the system."));
   CLI_println(F("[factory...] ~ Factory reset settings (yes)"));
+  CLI_println(F("[dmc] ~ DMC information."));
   CLI_println(F("[lift] ~ Retractable information (timeout n)."));
   CLI_println(F("[azimuth] ~ Azimuth information (left <n>, right <n>, delay <n>, move)."));
 }

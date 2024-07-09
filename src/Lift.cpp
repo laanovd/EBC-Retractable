@@ -16,6 +16,7 @@
 #include "Storage.h"
 #include "CLI.h"
 #include "GPIO.h"
+#include "EBC_IOlib.h" 
 
 /*******************************************************************
  * Definitions
@@ -28,7 +29,7 @@
  * Storage keys and defaults
  *******************************************************************/
 #define JSON_LIFT_ENABLED "lift_enabled"
-#define JSON_LIFT_MOTOR_UP "lift_motor4_up"
+#define JSON_LIFT_MOTOR_UP "lift_motor_up"
 #define JSON_LIFT_MOTOR_DOWN "lift_motor_down"
 #define JSON_LIFT_SENSOR_UP "lift_sensor_up"
 #define JSON_LIFT_SENSOR_DOWN "lift_sensor_down"
@@ -53,6 +54,8 @@ static int LIFT_error_mask = 0;
  * Create initial JSON data
  *******************************************************************/
 static JsonDocument LIFT_json(void) {
+  int value;
+
   LIFT_data[JSON_LIFT_ENABLED] = LIFT_enabled();
 
   LIFT_data[JSON_LIFT_MOTOR_UP] = LIFT_UP_moving();
@@ -61,6 +64,12 @@ static JsonDocument LIFT_json(void) {
   LIFT_data[JSON_LIFT_SENSOR_UP] = LIFT_UP_sensor();
   LIFT_data[JSON_LIFT_SENSOR_DOWN] = LIFT_DOWN_sensor();
 
+  STORAGE_get_int(JSON_RETRACTED_COUNT, value);
+  LIFT_data[JSON_RETRACTED_COUNT] = value;
+
+  STORAGE_get_int(JSON_EXTENDED_COUNT, value);
+  LIFT_data[JSON_EXTENDED_COUNT] = value;
+
   return LIFT_data;
 }
 
@@ -68,34 +77,31 @@ static JsonDocument LIFT_json(void) {
  * Create string
  *******************************************************************/
 static String LIFT_info_str(void) {
-  LIFT_json();  // Update
+  JsonDocument doc = LIFT_json();  // Update
 
   String text = "--- LIFT ---";
 
   text.concat("\r\nEnabled: ");
-  text.concat(LIFT_data[JSON_LIFT_ENABLED].as<boolean>());
+  text.concat(doc[JSON_LIFT_ENABLED].as<boolean>());
 
   text.concat("\r\nMoving UP: ");
-  text.concat(LIFT_data[JSON_LIFT_MOTOR_UP].as<boolean>());
+  text.concat(doc[JSON_LIFT_MOTOR_UP].as<boolean>());
   text.concat(", DOWN: ");
-  text.concat(LIFT_data[JSON_LIFT_MOTOR_DOWN].as<boolean>());
+  text.concat(doc[JSON_LIFT_MOTOR_DOWN].as<boolean>());
 
   text.concat("\r\nSensors UP: ");
-  text.concat(LIFT_data[JSON_LIFT_SENSOR_UP].as<boolean>());
+  text.concat(doc[JSON_LIFT_SENSOR_UP].as<boolean>());
   text.concat(", DOWN: ");
-  text.concat(LIFT_data[JSON_LIFT_SENSOR_DOWN].as<boolean>());
+  text.concat(doc[JSON_LIFT_SENSOR_DOWN].as<boolean>());
 
   text.concat("\r\nMoving up/down timeout: ");
-  text.concat(LIFT_data[JSON_LIFT_MOVE_TIMEOUT].as<int>());
+  text.concat(doc[JSON_LIFT_MOVE_TIMEOUT].as<int>());
   
-  int value;
   text.concat("\r\nTimes retracted: ");
-  STORAGE_get_int(JSON_RETRACTED_COUNT, value);
-  text.concat(value);
+  text.concat(doc[JSON_RETRACTED_COUNT].as<int>());
 
   text.concat("\r\nTimes extended: ");
-  STORAGE_get_int(JSON_EXTENDED_COUNT, value);
-  text.concat(value);
+  text.concat(doc[JSON_EXTENDED_COUNT].as<int>());
 
   text.concat("\r\n");
   return text;
@@ -116,14 +122,14 @@ bool LIFT_error(void) {
  * LIFT enable
  *******************************************************************/
 void LIFT_enable(void) {
-  PCF8574_write(LIFT_ENABLE_PIN, IO_ON);
+  PCF8574_write(PCF8574_address, LIFT_ENABLE_PIN, IO_ON);
 
 #ifdef DEBUG_LIFT
   Serial.println("Up-down ENABLE");
 #endif
 }
 void LIFT_disable(void) {
-  PCF8574_write(LIFT_ENABLE_PIN, IO_OFF);
+  PCF8574_write(PCF8574_address, LIFT_ENABLE_PIN, IO_OFF);
 
 #ifdef DEBUG_LIFT
   Serial.println("Up-down DISABLE");
@@ -131,14 +137,14 @@ void LIFT_disable(void) {
 }
 
 bool LIFT_enabled(void) {
-  return PCF8574_read(LIFT_ENABLE_PIN) == IO_ON;
+  return PCF8574_read(PCF8574_address, LIFT_ENABLE_PIN) == IO_ON;
 }
 
 /*******************************************************************
  * Lift motor
  *******************************************************************/
 void LIFT_UP_on(void) {
-  PCF8574_write(LIFT_MOTOR_UP_PIN, IO_ON);
+  PCF8574_write(PCF8574_address, LIFT_MOTOR_UP_PIN, IO_ON);
 
 #ifdef DEBUG_LIFT
   Serial.println("Lift motor up ON");
@@ -146,7 +152,7 @@ void LIFT_UP_on(void) {
 }
 
 void LIFT_UP_off(void) {
-  PCF8574_write(LIFT_MOTOR_UP_PIN, IO_OFF);
+  PCF8574_write(PCF8574_address, LIFT_MOTOR_UP_PIN, IO_OFF);
 
 #ifdef DEBUG_LIFT
   Serial.println("Lift motor up OFF");
@@ -154,15 +160,15 @@ void LIFT_UP_off(void) {
 }
 
 bool LIFT_UP_moving(void) {
-  return PCF8574_read(LIFT_MOTOR_UP_PIN);
+  return PCF8574_read(PCF8574_address, LIFT_MOTOR_UP_PIN);
 }
 
 bool LIFT_DOWN_moving(void) {
-  return PCF8574_read(LIFT_MOTOR_DOWN_PIN);
+  return PCF8574_read(PCF8574_address, LIFT_MOTOR_DOWN_PIN);
 }
 
 void LIFT_DOWN_on(void) {
-  PCF8574_write(LIFT_MOTOR_DOWN_PIN, IO_ON);
+  PCF8574_write(PCF8574_address, LIFT_MOTOR_DOWN_PIN, IO_ON);
 
 #ifdef DEBUG_LIFT
   Serial.println("Lift motor down ON");
@@ -170,7 +176,7 @@ void LIFT_DOWN_on(void) {
 }
 
 void LIFT_DOWN_off(void) {
-  PCF8574_write(LIFT_MOTOR_DOWN_PIN, IO_OFF);
+  PCF8574_write(PCF8574_address, LIFT_MOTOR_DOWN_PIN, IO_OFF);
 
 #ifdef DEBUG_LIFT
   Serial.println("Lift motor down OFF");
@@ -186,6 +192,10 @@ bool LIFT_UP_sensor(void) {
 
 bool LIFT_DOWN_sensor(void) {
   return digitalRead(LIFT_SENSOR_DOWN_PIN) == HIGH;
+}
+
+bool LIFT_HOME_sensor(void) {
+  return digitalRead(LIFT_HOMING_PIN) == HIGH;
 }
 
 static void LIFT_position_check(void) {

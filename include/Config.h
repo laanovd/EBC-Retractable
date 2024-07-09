@@ -16,6 +16,11 @@
 #define HTMLTitlePrefix "RDT"           // HTML page title prefix
 
 /*******************************************************************
+ * Global debug flags
+ *******************************************************************/
+#define DEBUG_API
+
+/*******************************************************************
  * CAN receive handler
  *******************************************************************/
 typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bool rtr, bool ext);
@@ -76,7 +81,7 @@ typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bo
  * LIFT PCF8574 pin numbers
  *******************************************************************/
 #define LIFT_ENABLE_PIN 0
-
+#define LIFT_HOMING_PIN 2
 #define LIFT_MOTOR_UP_PIN 3
 #define LIFT_MOTOR_DOWN_PIN 1
 
@@ -95,7 +100,8 @@ typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bo
 /*******************************************************************
  * AZIMUTH PCF8574 
  *******************************************************************/
-#define AZIMUTH_ENABLE_PIN 0
+#define AZIMUTH_ENABLE_PIN 6
+#define AZIMUTH_HOMING_PIN 5
 
 #define WHEEL_PIN 32
 
@@ -107,6 +113,7 @@ typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bo
 /*******************************************************************
  * AZIMUTH ESP32 GPIO
  *******************************************************************/
+#define AZIMUTH_HOME_PIN 19
 // #define AZIMUTH_LED_UP_PIN 32
 // #define AZIMUTH_LED_DOWN_PIN 26
 // #define AZIMUTH_SENSOR_UP_PIN 36

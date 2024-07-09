@@ -8,6 +8,17 @@
 #define EBC_LIFT_HEADER
 
 /*******************************************************************
+ * RESTfull API keys
+ *******************************************************************/
+#define JSON_LIFT_ENABLE "lift_enable"
+#define JSON_LIFT_HOMING "lift_homing"
+#define JSON_LIFT_ENABLED "lift_enabled"
+#define JSON_LIFT_MOTOR_UP "lift_motor_up"
+#define JSON_LIFT_MOTOR_DOWN "lift_motor_down"
+#define JSON_LIFT_SENSOR_UP "lift_sensor_up"
+#define JSON_LIFT_SENSOR_DOWN "lift_sensor_down"
+
+/*******************************************************************
  * Lift getters
  *******************************************************************/
 extern int LIFT_move_timeout(void);
@@ -34,6 +45,7 @@ extern bool LIFT_DOWN_moving(void);
  *******************************************************************/
 extern bool LIFT_UP_sensor(void);
 extern bool LIFT_DOWN_sensor(void);
+extern bool LIFT_HOME_sensor(void);
 
 /*******************************************************************
  * LIFT counters
