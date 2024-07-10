@@ -58,7 +58,7 @@ static int MCP4725_read(uint8_t address, uint8_t *data, int len) {
 int MCP4725_read_eeprom(uint8_t address) {
   uint8_t data[6] = {0, 0, 0, 0, 0, 0};
 
-  if (!MCP4725_read(address, data, sizeof(data))) {
+  if (address && !MCP4725_read(address, data, sizeof(data))) {
     return (int(data[3]) << 8) + int(data[4]);  // big-endian
   }
 
@@ -79,7 +79,7 @@ int MCP4725_read_eeprom(uint8_t address) {
 int MCP4725_read_status(uint8_t address) {
   uint8_t data[6] = {0, 0, 0, 0, 0, 0};
 
-  if (!MCP4725_read(address, data, sizeof(data))) {
+  if (address && !MCP4725_read(address, data, sizeof(data))) {
     return (int(data[1]) << 4) + ((int(data[2]) >> 4) & 0x000F);  // big-endian
   }
 
@@ -97,17 +97,16 @@ int MCP4725_read_status(uint8_t address) {
  * @return 0 if successful, -1 otherwise.
  *******************************************************************/
 int MCP4725_write(uint8_t address, uint16_t value) {
-  if (!address) {
-    return false;  // Invalid address
-  }
 
-  value <<= 4;  // Shift 12 Bit Value to 16 Bit
+  if (address != 0) {
+    value <<= 4;  // Shift 12 Bit Value to 16 Bit
 
-  I2C_1.beginTransmission(address);             // Set the MCP4725 address
-  if (I2C_1.write(MCP4725_CMD_WRITEDAC) == 1) { // Write command to analog output
-    if (I2C_1.write(highByte(value)) == 1) {    // Upper data bits (D11.D10.D9.D8.D7.D6.D5.D4)
-      if (I2C_1.write(lowByte(value)) == 1) {   // Lower data bits (D3.D2.D1.D0.x.x.x.x)
-        return int(I2C_1.endTransmission());    // End transmission
+    I2C_1.beginTransmission(address);             // Set the MCP4725 address
+    if (I2C_1.write(MCP4725_CMD_WRITEDAC) == 1) { // Write command to analog output
+      if (I2C_1.write(highByte(value)) == 1) {    // Upper data bits (D11.D10.D9.D8.D7.D6.D5.D4)
+        if (I2C_1.write(lowByte(value)) == 1) {   // Lower data bits (D3.D2.D1.D0.x.x.x.x)
+          return int(I2C_1.endTransmission());    // End transmission
+        }
       }
     }
   }
