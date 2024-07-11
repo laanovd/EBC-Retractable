@@ -65,11 +65,11 @@ static JsonDocument MAINTENANCE_defaults(void) {
 
   // Steering
   data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
-  data[JSON_AZIMUTH_LEFT_V] = AZIMUH_get_left();
-  data[JSON_AZIMUTH_RIGHT_V] = AZIMUH_get_right();
-  data[JSON_AZIMUTH_ACTUAL_V] = AZIMUH_get_actual();
-  data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_steering();
-  data[JSON_AZIMUTH_CONTROL_PERC] = STEERING_WHEEL_get_position();
+  data[JSON_AZIMUTH_LEFT_V] = AZIMTUH_get_left();
+  data[JSON_AZIMUTH_RIGHT_V] = AZIMTUH_get_right();
+  data[JSON_AZIMUTH_ACTUAL_V] = AZIMTUH_get_actual();
+  data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
+  data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_wheel();
 
   return data;
 }
@@ -86,11 +86,11 @@ static void MAINTENANCE_json_update(void) {
   maintenance_data[JSON_DMC_ENABLED] = DMC_enabled();
 
   // Steering
-  maintenance_data[JSON_AZIMUTH_LEFT_V] = AZIMUH_get_left();
-  maintenance_data[JSON_AZIMUTH_RIGHT_V] = AZIMUH_get_right();
-  maintenance_data[JSON_AZIMUTH_ACTUAL_V] = AZIMUH_get_actual();
-  maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_steering();
-  maintenance_data[JSON_AZIMUTH_CONTROL_PERC] = STEERING_WHEEL_get_position();
+  maintenance_data[JSON_AZIMUTH_LEFT_V] = AZIMTUH_get_left();
+  maintenance_data[JSON_AZIMUTH_RIGHT_V] = AZIMTUH_get_right();
+  maintenance_data[JSON_AZIMUTH_ACTUAL_V] = AZIMTUH_get_actual();
+  maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
+  maintenance_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_wheel();
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_enabled();
 }
 
@@ -289,19 +289,19 @@ void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size
 
   /* Steering set LEFT voltage */
   if (doc.containsKey(JSON_AZIMUTH_LEFT_V)) {
-    AZIMUH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
+    AZIMTUH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
     maintenance_data[JSON_AZIMUTH_LEFT_V] = doc[JSON_AZIMUTH_LEFT_V].as<float>();
   }
 
   /* Steering set RIGHT voltage */
   if (doc.containsKey(JSON_AZIMUTH_RIGHT_V)) {
-    AZIMUH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
+    AZIMTUH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
     maintenance_data[JSON_AZIMUTH_RIGHT_V] = doc[JSON_AZIMUTH_RIGHT_V].as<float>();
   }
 
   /* Steering manual control (%) */
   if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
-    AZIMUTH_set_steering(doc[JSON_AZIMUTH_MANUAL].as<int>());
+    AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
   }
 
   request->send(200, "text/plain", "200, OK");

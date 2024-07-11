@@ -101,25 +101,18 @@ typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bo
  * AZIMUTH PCF8574 
  *******************************************************************/
 #define AZIMUTH_ENABLE_PIN 6
-#define AZIMUTH_HOMING_PIN 5
-
-#define WHEEL_PIN 32
+#define AZIMUTH_START_HOMING_PIN 5
 
 /*******************************************************************
  * AZIMUTH MCP4725 
  *******************************************************************/
 
-
 /*******************************************************************
  * AZIMUTH ESP32 GPIO
  *******************************************************************/
+#define STEER_WHEEL_PIN 32
 #define AZIMUTH_HOME_PIN 19
-// #define AZIMUTH_LED_UP_PIN 32
-// #define AZIMUTH_LED_DOWN_PIN 26
-// #define AZIMUTH_SENSOR_UP_PIN 36
-// #define AZIMUTH_SENSOR_DOWN_PIN 39
-// #define AZIMUTH_BUTTON_UP_PIN 36
-// #define AZIMUTH_BUTTON_DOWN_PIN 39
+#define AZIMUTH_ANALOG_ENABLE_PIN 27
 
 /*******************************************************************
  * DMC PCF8574 pin numbers
