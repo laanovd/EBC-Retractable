@@ -3,7 +3,6 @@
  *
  *******************************************************************/
 #include <Arduino.h>
-#include <ArduinoJson.h>
 #include <ESPmDNS.h>
 #include <ElegantOTAPro.h>
 #include <FS.h>
@@ -19,6 +18,7 @@
 #include "Debug.h"
 #include "Storage.h"
 #include "WiFiCom.h"
+#include "Maintenance.h"
 
 /********************************************************************
  * Constants
@@ -307,6 +307,17 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length)
       Serial.print((char)payload[i]);
     }
     Serial.println("");
+
+    DeserializationError error = MAINTENANCE_command_handler((char *)payload);
+
+    if (error)
+    {
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(error.f_str());
+      // TODO: sent error
+      return;
+    }
+
     break;
   }
 }
@@ -372,7 +383,7 @@ static void WEBSERVER_init(void)
 
   web_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
                 { request->send(200, "text/html", htmlString); });
-                
+
   web_server.on("/maintenance", HTTP_GET, [](AsyncWebServerRequest *request)
                 { 
     String html = "/web" + request->url();
@@ -425,7 +436,7 @@ void WEBSERVER_cli_handlers(void)
  *********************************************************************/
 static void WEBSERVER_setup_tasks(void)
 {
-  xTaskCreate(WEBSERVER_main_task, "WebServer main task", 2048, NULL, 15, NULL);
+  xTaskCreate(WEBSERVER_main_task, "WebServer main task", 4096, NULL, 15, NULL);
   xTaskCreate(WEBSOCKET_task, "WebSocketsServer main task", 4096, NULL, 15, NULL);
 }
 

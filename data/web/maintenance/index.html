@@ -20,7 +20,7 @@
     </header>
 
     <main class="p-4 flex flex-col gap-4">
-        <div class="fixed bg-black/75 inset-0 flex items-center justify-center hidden" id="loading_overlay">
+        <div class="fixed bg-black/75 inset-0 flex items-center justify-center" id="loading_overlay">
             <svg aria-hidden="true" class="w-16 h-16 text-gray-200 animate-spin dark:text-slate-400 fill-blue-500"
                 viewBox="0 0 100 101" fill="none">
                 <path
@@ -37,12 +37,12 @@
             <div class="flex-1 rounded bg-slate-100 w-full p-4 py-2 text-slate-500" id="terminal">
                 test
             </div>
-            <div class="flex items-center bg-slate-200 text-slate-500 rounded whitespace-nowrap px-4 hidden" id="maintenance_button_off">
+            <button class="flex items-center bg-slate-200 text-slate-500 rounded whitespace-nowrap px-4 hidden disabled:bg-slate-100 disabled:text-slate-300" id="maintenance_button_off">
                 Maintenance mode off
-            </div>
-            <div class="flex items-center bg-blue-500 text-white rounded whitespace-nowrap px-4 hidden" id="maintenance_button_on">
+            </button>
+            <button class="flex items-center bg-blue-500 text-white rounded whitespace-nowrap px-4 hidden disabled:bg-blue-200" id="maintenance_button_on">
                 Maintenance mode on
-            </div>
+            </button>
         </div>
 
         <hr>
@@ -154,7 +154,7 @@
                 </div>
             </div>
             <div class="flex-1 flex items-center gap-2">
-                <input type="range" min="1" max="100" id="steering_value" class="w-full">
+                <input type="range" min="0" max="5" step="0.05" id="steering_value" class="w-full">
                 <span>Steering</span>
             </div>
         </div>

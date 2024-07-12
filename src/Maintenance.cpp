@@ -32,7 +32,6 @@
 /*******************************************************************
  * RESTfull API keys
  *******************************************************************/
-#define JSON_MAINTENANCE_ACTIVATE "maintenance_activate"
 #define JSON_MAINTENANCE_ACTIVE "maintenance_active"
 
 /*******************************************************************
@@ -43,10 +42,11 @@ static JsonDocument maintenance_data;
 /********************************************************************
  * Internal JSON data
  *******************************************************************/
-static JsonDocument MAINTENANCE_defaults(void) {
+static JsonDocument MAINTENANCE_defaults(void)
+{
   JsonDocument data;
 
-  data[JSON_MAINTENANCE_ACTIVE] = false;
+  data[JSON_MAINTENANCE_ACTIVE] = MAINTENANCE_enabled();
 
   // Emergency stop
   data[JSON_EMERGENCY_STOP] = EMERGENCY_STOP_active();
@@ -58,7 +58,7 @@ static JsonDocument MAINTENANCE_defaults(void) {
   data[JSON_LIFT_SENSOR_UP] = LIFT_UP_sensor();
   data[JSON_LIFT_SENSOR_DOWN] = LIFT_DOWN_sensor();
   data[JSON_LIFT_HOMING] = LIFT_HOME_sensor();
-;
+  ;
 
   // DMC
   data[JSON_DMC_ENABLED] = DMC_enabled();
@@ -74,7 +74,8 @@ static JsonDocument MAINTENANCE_defaults(void) {
   return data;
 }
 
-static void MAINTENANCE_json_update(void) {
+static void MAINTENANCE_json_update(void)
+{
   maintenance_data[JSON_EMERGENCY_STOP] = EMERGENCY_STOP_active();
 
   // Lift
@@ -94,7 +95,8 @@ static void MAINTENANCE_json_update(void) {
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_enabled();
 }
 
-static JsonDocument MAINTENANCE_json(void) {
+static JsonDocument MAINTENANCE_json(void)
+{
   MAINTENANCE_json_update();
   return maintenance_data;
 }
@@ -102,7 +104,8 @@ static JsonDocument MAINTENANCE_json(void) {
 /********************************************************************
  * Create string
  *******************************************************************/
-String MAINTENANCE_string(void) {
+String MAINTENANCE_string(void)
+{
   JsonDocument doc = MAINTENANCE_json();
 
   String text = "--- MAINTENANCE ---";
@@ -117,128 +120,131 @@ String MAINTENANCE_string(void) {
 /********************************************************************
  * Getters and setters
  *******************************************************************/
-bool MAINTENANCE_enabled(void) {
+bool MAINTENANCE_enabled(void)
+{
   return maintenance_data[JSON_MAINTENANCE_ACTIVE].as<bool>();
 }
 
-bool MAINTENANCE_activate(void) {
-  return maintenance_data[JSON_MAINTENANCE_ACTIVATE].as<bool>();
-}
-
-static void MAINTENANCE_dmc_enable(void) {
-  if (MAINTENANCE_enabled()) {
+static void MAINTENANCE_dmc_enable(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     DMC_enable();
   }
 }
 
-static void MAINTENANCE_azimuth_enable(void) {
-  if (MAINTENANCE_enabled()) {
+static void MAINTENANCE_azimuth_enable(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     AZIMUTH_enable();
   }
 }
 
-static void MAINTENANCE_lift_disable(void) {
+static void MAINTENANCE_lift_disable(void)
+{
   LIFT_disable();
 }
 
-static void MAINTENANCE_lift_enable(void) {
-  if (MAINTENANCE_enabled()) {
+static void MAINTENANCE_lift_enable(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     LIFT_enable();
   }
 }
 
-static void MAINTENANCE_lift_extend(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+static void MAINTENANCE_lift_extend(void)
+{
+  if (MAINTENANCE_enabled() && LIFT_enabled())
+  {
     LIFT_UP_off();
     vTaskDelay(500 / portTICK_PERIOD_MS); // Wait 0.5s
     LIFT_DOWN_on();
   }
 }
 
-static void MAINTENANCE_lift_retract(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+static void MAINTENANCE_lift_retract(void)
+{
+  if (MAINTENANCE_enabled() && LIFT_enabled())
+  {
     LIFT_DOWN_off();
     vTaskDelay(500 / portTICK_PERIOD_MS); // Wait 0.5s
     LIFT_UP_on();
   }
 }
 
-static void MAINTENANCE_lift_homing(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+static void MAINTENANCE_lift_homing(void)
+{
+  if (MAINTENANCE_enabled() && LIFT_enabled())
+  {
     maintenance_data[JSON_LIFT_SENSOR_UP] = false;
     maintenance_data[JSON_LIFT_SENSOR_DOWN] = false;
     maintenance_data[JSON_LIFT_HOMING] = true;
   }
 }
 
-static void MAINTENANCE_steering_disable(void) {
+static void MAINTENANCE_steering_disable(void)
+{
   maintenance_data[JSON_AZIMUTH_ENABLED] = false;
   AZIMUTH_disable();
 }
 
-static void MAINTENANCE_steering_enable(void) {
-  if (MAINTENANCE_enabled()) {
+static void MAINTENANCE_steering_enable(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     maintenance_data[JSON_AZIMUTH_ENABLED] = true;
   }
 }
 
-static bool MAINTENANCE_steering_enabled(void) {
+static bool MAINTENANCE_steering_enabled(void)
+{
   return maintenance_data[JSON_AZIMUTH_ENABLED].as<bool>();
 }
 
-void MAINTENANCE_disable(void) {
+void MAINTENANCE_disable(void)
+{
   maintenance_data[JSON_MAINTENANCE_ACTIVE] = false;
   DMC_disable();
   LIFT_disable();
   AZIMUTH_disable();
 }
 
-void MAINTENANCE_enable(void) {
-  if (!EMERGENCY_STOP_active()) {
+void MAINTENANCE_enable(void)
+{
+  if (!EMERGENCY_STOP_active())
+  {
     maintenance_data[JSON_MAINTENANCE_ACTIVE] = true;
   }
-}
-
-/********************************************************************
- * REST API: read handler
+}/********************************************************************
+ * JSON string command handler
  *********************************************************************/
-void MAINTENANCE_rest_read(AsyncWebServerRequest *request) {
-  String str;
-  serializeJson(MAINTENANCE_json(), str);
-  request->send(200, "application/json", str.c_str());
-}
 
-void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-  (void)len;
-  (void)index;
-  (void)total;
-
+DeserializationError MAINTENANCE_command_handler(char *data)
+{
   JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, (char *)data);
-  if (error) {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.f_str());
-    request->send(204, "text/plain", "204, No content");
-    return;
-  }
+  DeserializationError error = deserializeJson(doc, data);
 
-#ifdef DEBUG_API
-  String str;
-  Serial.print(F("MAINETNACE REST API received: "));
-  serializeJson(doc, str);
-  Serial.println(str);
-#endif
+    #ifdef DEBUG_API
+    String str;
+    Serial.print(F("MAINETNACE COMMAND HANDLER received: "));
+    serializeJson(doc, str);
+    Serial.println(str);
+  #endif
 
-  /* Maintenance mode activate */
-  if (doc.containsKey(JSON_MAINTENANCE_ACTIVATE)) {
-    if (doc[JSON_MAINTENANCE_ACTIVATE].as<bool>() == true)
+  /* Maintenance mode active */
+  if (doc.containsKey(JSON_MAINTENANCE_ACTIVE))
+  {
+    if (doc[JSON_MAINTENANCE_ACTIVE].as<bool>() == true)
       MAINTENANCE_enable();
     else
       MAINTENANCE_disable();
   }
 
   /* Lift enable */
-  if (doc.containsKey(JSON_LIFT_ENABLE)) {
+  if (doc.containsKey(JSON_LIFT_ENABLE))
+  {
     if (doc[JSON_LIFT_ENABLE].as<bool>() == true)
       MAINTENANCE_lift_enable();
     else
@@ -246,25 +252,29 @@ void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size
   }
 
   /* Lift RETRACT */
-  if (doc.containsKey(JSON_LIFT_SENSOR_UP)) {
+  if (doc.containsKey(JSON_LIFT_SENSOR_UP))
+  {
     if (doc[JSON_LIFT_SENSOR_UP].as<bool>() == true)
       MAINTENANCE_lift_retract();
   }
 
   /* Lift EXTEND */
-  if (doc.containsKey(JSON_LIFT_SENSOR_DOWN)) {
+  if (doc.containsKey(JSON_LIFT_SENSOR_DOWN))
+  {
     if (doc[JSON_LIFT_SENSOR_DOWN].as<bool>() == true)
       MAINTENANCE_lift_extend();
   }
 
   /* Lift homing */
-  if (doc.containsKey(JSON_LIFT_HOMING)) {
+  if (doc.containsKey(JSON_LIFT_HOMING))
+  {
     if (doc[JSON_LIFT_HOMING].as<bool>() == true)
       MAINTENANCE_lift_homing();
   }
 
   /* DMC enable */
-  if (doc.containsKey(JSON_DMC_ENABLE)) {
+  if (doc.containsKey(JSON_DMC_ENABLE))
+  {
     if (doc[JSON_DMC_ENABLE].as<bool>() == true)
       MAINTENANCE_dmc_enable();
     else
@@ -272,7 +282,8 @@ void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size
   }
 
   /* Steering enable */
-  if (doc.containsKey(JSON_AZIMUTH_ENABLE)) {
+  if (doc.containsKey(JSON_AZIMUTH_ENABLE))
+  {
     if (doc[JSON_AZIMUTH_ENABLE].as<bool>() == true)
       MAINTENANCE_steering_enable();
     else
@@ -280,7 +291,8 @@ void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size
   }
 
   /* Steering analog output enable */
-  if (doc.containsKey(JSON_AZIMUTH_OUTPUT_ENABLE)) {
+  if (doc.containsKey(JSON_AZIMUTH_OUTPUT_ENABLE))
+  {
     if (doc[JSON_AZIMUTH_OUTPUT_ENABLE].as<bool>() == true)
       MAINTENANCE_azimuth_enable();
     else
@@ -288,24 +300,59 @@ void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size
   }
 
   /* Steering set LEFT voltage */
-  if (doc.containsKey(JSON_AZIMUTH_LEFT_V)) {
+  if (doc.containsKey(JSON_AZIMUTH_LEFT_V))
+  {
     AZIMTUH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
     maintenance_data[JSON_AZIMUTH_LEFT_V] = doc[JSON_AZIMUTH_LEFT_V].as<float>();
   }
 
   /* Steering set RIGHT voltage */
-  if (doc.containsKey(JSON_AZIMUTH_RIGHT_V)) {
+  if (doc.containsKey(JSON_AZIMUTH_RIGHT_V))
+  {
     AZIMTUH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
     maintenance_data[JSON_AZIMUTH_RIGHT_V] = doc[JSON_AZIMUTH_RIGHT_V].as<float>();
   }
 
   /* Steering manual control (%) */
-  if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
+  if (doc.containsKey(JSON_AZIMUTH_MANUAL))
+  {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
+  }
+
+  return error;
+}
+
+
+/********************************************************************
+ * REST API: read handler
+ *********************************************************************/
+void MAINTENANCE_rest_read(AsyncWebServerRequest *request)
+{
+  String str;
+  serializeJson(MAINTENANCE_json(), str);
+  request->send(200, "application/json", str.c_str());
+}
+
+void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+{
+  (void)len;
+  (void)index;
+  (void)total;
+
+  DeserializationError error = MAINTENANCE_command_handler((char *)data);
+
+  if (error)
+  {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    request->send(204, "text/plain", "204, No content");
+    return;
   }
 
   request->send(200, "text/plain", "200, OK");
 }
+
+
 
 static rest_api_t MAINTENANCE_api_handlers = {
     /* uri */ "/api/v1/maintenance",
@@ -320,12 +367,14 @@ static rest_api_t MAINTENANCE_api_handlers = {
 /********************************************************************
  * WebSocketsServer task
  *********************************************************************/
-static void MAINTENACE_websocket_task(void *parameter) {
+static void MAINTENACE_websocket_task(void *parameter)
+{
   (void)parameter;
   JsonDocument doc;
   String str;
 
-  while (true) {
+  while (true)
+  {
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
     MAINTENANCE_json_update();
@@ -341,16 +390,22 @@ static void MAINTENACE_websocket_task(void *parameter) {
 /********************************************************************
  * Maintenance parts
  *******************************************************************/
-void MAINTENANCE_dmc_control(void) {
-  if (MAINTENANCE_enabled()) {
+void MAINTENANCE_dmc_control(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     DMC_enable();
-  } else {
+  }
+  else
+  {
     DMC_disable();
   }
 }
 
-void MAINTENANCE_lift_control(void) {
-  if (!LIFT_enabled()) {
+void MAINTENANCE_lift_control(void)
+{
+  if (!LIFT_enabled())
+  {
     // TODO: LIFT control
     return;
   }
@@ -358,8 +413,10 @@ void MAINTENANCE_lift_control(void) {
   // TODO: LIFT control
 }
 
-void MAINTENANCE_steering_control(void) {
-  if (!MAINTENANCE_steering_enabled()) {
+void MAINTENANCE_steering_control(void)
+{
+  if (!MAINTENANCE_steering_enabled())
+  {
     // TODO: STEERING control
     return;
   }
@@ -367,8 +424,10 @@ void MAINTENANCE_steering_control(void) {
   // TODO: STEERING control
 }
 
-void MAINTENANCE_steering_output_control(void) {
-  if (!AZIMUTH_enabled()) {
+void MAINTENANCE_steering_output_control(void)
+{
+  if (!AZIMUTH_enabled())
+  {
     // TODO: STEERING output control
     return;
   }
@@ -379,20 +438,27 @@ void MAINTENANCE_steering_output_control(void) {
 /********************************************************************
  * Main task
  *******************************************************************/
-void MAINTENANCE_main(void *parameter) {
+void MAINTENANCE_main(void *parameter)
+{
   (void)parameter;
 
-  while (1) {
-    if (MAINTENANCE_activate()) {
+  while (1)
+  {
+    if (MAINTENANCE_enabled())
+    {
       MAINTENANCE_enable();
-    } else {
+    }
+    else
+    {
       MAINTENANCE_disable();
     }
 
     // Start maintenace mode
-    if (MAINTENANCE_enabled()) {
+    if (MAINTENANCE_enabled())
+    {
       // TODO: Conditions for actvating maintenance mode
-      if (EMERGENCY_STOP_active()) {
+      if (EMERGENCY_STOP_active())
+      {
         MAINTENANCE_disable();
         continue;
       }
@@ -415,14 +481,16 @@ void MAINTENANCE_main(void *parameter) {
  *  Initialize the debug tasks
  *
  *********************************************************************/
-static void MAINTENANCE_setup_tasks(void) {
+static void MAINTENANCE_setup_tasks(void)
+{
   xTaskCreate(MAINTENACE_websocket_task, "WwebSocketServer task", 8192, NULL, 15, NULL);
 }
 
 /********************************************************************
  * Setup
  *******************************************************************/
-void MAINTENANCE_setup(void) {
+void MAINTENANCE_setup(void)
+{
   maintenance_data = MAINTENANCE_defaults();
   setup_uri(&MAINTENANCE_api_handlers);
 
@@ -432,7 +500,8 @@ void MAINTENANCE_setup(void) {
 /********************************************************************
  * Start
  *******************************************************************/
-void MAINTENANCE_start(void) {
+void MAINTENANCE_start(void)
+{
   MAINTENANCE_disable();
   MAINTENANCE_setup_tasks();
 

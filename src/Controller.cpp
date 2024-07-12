@@ -393,7 +393,7 @@ static bool fnEmergencyStopToCalibrating() {
 }
 
 static bool fnAnyToMantenance() {
-  return MAINTENANCE_activate();
+  return MAINTENANCE_enabled();
 }
 
 /*******************************************************************

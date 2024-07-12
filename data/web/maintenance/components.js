@@ -1,17 +1,20 @@
 // Emergency stop
 const elm_id_maintenance_on = "maintenance_button_on"
 const elm_id_maintenance_off = "maintenance_button_off"
+const elm_id_maintenance_loading = "maintenance_button_loading"
 const json_key_maintenance = "maintenance_active"
 function INIT_maintenance_button() {
     const btn_on = document.querySelector(`#${elm_id_maintenance_on}`);
-    btn_on.addEventListener("click", () => {
-        set_maintenance_button(false);
-        sendCommand(JSON.stringify({ [json_key_maintenance]: false }));
-    })
     const btn_off = document.querySelector(`#${elm_id_maintenance_off}`);
+    btn_on.addEventListener("click", () => {
+        if (btn_on.disabled) return;
+        sendCommand(JSON.stringify({ [json_key_maintenance]: false }));
+        btn_on.disabled = true;
+    })
     btn_off.addEventListener("click", () => {
-        set_maintenance_button(true);
+        if (btn_off.disabled) return;
         sendCommand(JSON.stringify({ [json_key_maintenance]: true }));
+        btn_off.disabled = true;
     })
     addMessageHandler((data) => {
         set_maintenance_button(data[json_key_maintenance]);
@@ -20,8 +23,11 @@ function INIT_maintenance_button() {
 function set_maintenance_button(value) {
     const btn_on = document.querySelector(`#${elm_id_maintenance_on}`);
     const btn_off = document.querySelector(`#${elm_id_maintenance_off}`);
+    const btn_loading = document.querySelector(`#${elm_id_maintenance_off}`);
     (value ? btn_on : btn_off).classList.remove("hidden");
     (value ? btn_off : btn_on).classList.add("hidden");
+    btn_on.disabled = false;
+    btn_off.disabled = false;
 }
 
 // Emergency stop
@@ -56,7 +62,7 @@ const json_key_extend = "lift_motor_down"
 function INIT_extend_enable() {
     const elm = document.querySelector(`#${elm_id_extend}`);
     elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_extend]: e.target.value }));
+        sendCommand(JSON.stringify({ [json_key_extend]: e.target.checked }));
     });
     addMessageHandler((data) => {
         set_extending(data[json_key_extend]);
@@ -84,7 +90,7 @@ const json_key_retract = "lift_motor_up"
 function INIT_retract_enable() {
     const elm = document.querySelector(`#${elm_id_retract}`);
     elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_retract]: e.target.value }));
+        sendCommand(JSON.stringify({ [json_key_retract]: e.target.checked }));
     });
     addMessageHandler((data) => {
         set_retracting(data[json_key_retract]);
@@ -162,7 +168,7 @@ function steering_offset_left_set_value(value) {
 
 // Steering actual
 const elm_id_steering_actual = "steering_manual"
-const json_key_steering_actual = "steering_control_percentage"
+const json_key_steering_actual = "steering_output_volt"
 function INIT_steering_actual() {
     const elm = document.querySelector(`#${elm_id_steering_actual}`);
     addMessageHandler((data) => {
@@ -179,8 +185,11 @@ const json_key_steering = "steering_manual"
 function INIT_steering() {
     const elm = document.querySelector(`#${elm_id_steering}`);
     elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_offset_left]: e.target.value }));
+        sendCommand(JSON.stringify({ [json_key_steering]: e.target.value }));
     });
+    addMessageHandler((data) => {
+        steering_set_value(data[json_key_steering]);
+    })
 }
 function steering_set_value(value) {
     setValue(elm_id_steering, value)
