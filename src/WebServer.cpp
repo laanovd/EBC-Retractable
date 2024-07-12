@@ -196,20 +196,25 @@ static void WEBSERVER_main_task(void *parameter)
 /********************************************************************
  * WebSocketsServer update
  *********************************************************************/
-void WEBSOCKET_push(String key, String value) {
-  String msg = "{\"key\": \"" + key + "\", \"value\": \"" + value + "\"}";
+void WEBSOCKET_push(String key, String value)
+{
+  String msg = "{\"" + key + "\" : \"" + value + "\"}";
   web_socket_server.broadcastTXT(msg);
 }
 
-void WEBSocket_set(JsonDocument doc) {
-  for (JsonPair kv : doc.as<JsonObject>()) {
+void WEBSocket_set(JsonDocument doc)
+{
+  for (JsonPair kv : doc.as<JsonObject>())
+  {
     // New data
-    if (!WebSocket_JSON_data.containsKey(kv.key().c_str())) {
-      WebSocket_JSON_data[kv.key().c_str()] = "djdfjfjokhf;ihsd;kljfghsdrfkjghg";
+    if (!WebSocket_JSON_data.containsKey(kv.key().c_str()))
+    {
+      WebSocket_JSON_data[kv.key().c_str()] = NULL;
     }
 
     // Data changed ?
-    if (WebSocket_JSON_data[kv.key().c_str()].as<const char *>() != kv.value()) {
+    if (WebSocket_JSON_data[kv.key().c_str()] != kv.value())
+    {
       WebSocket_JSON_data[kv.key().c_str()] = kv.value();
       WEBSOCKET_push(kv.key().c_str(), kv.value());
     }
@@ -219,7 +224,8 @@ void WEBSocket_set(JsonDocument doc) {
 /********************************************************************
  * WebSocketsServer task
  *********************************************************************/
-static void WEBSOCKET_task(void *parameter) {
+static void WEBSOCKET_task(void *parameter)
+{
   (void)parameter;
   JsonDocument doc;
   String str;
@@ -229,8 +235,10 @@ static void WEBSOCKET_task(void *parameter) {
   doc["wifi_ssid"] = WiFi_ssid();
   WEBSocket_set(doc);
 
-  while (true) {
-    if (WebSocket_JSON_data_push) {
+  while (true)
+  {
+    if (WebSocket_JSON_data_push)
+    {
       serializeJson(WebSocket_JSON_data, str);
       web_socket_server.broadcastTXT(str);
       WebSocket_JSON_data_push = false;
@@ -304,15 +312,33 @@ static rest_api_t WEBSERVER_api_handlers = {
 /********************************************************************
  * WebSocketServer events
  *********************************************************************/
-void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) {
-  switch (type) {              // switch on the type of information sent
-    case WStype_DISCONNECTED:  // if a client is disconnected, then type == WStype_DISCONNECTED
-      break;
-    case WStype_CONNECTED:  // if a client is connected, then type == WStype_CONNECTED
-      WebSocket_JSON_data_push = true;
-      break;
-    case WStype_TEXT:  // if a client has sent data, then type == WStype_TEXT
-      break;
+void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length)
+{
+  switch (type)
+  {                         // switch on the type of information sent
+  case WStype_DISCONNECTED: // if a client is disconnected, then type == WStype_DISCONNECTED
+    break;
+  case WStype_CONNECTED: // if a client is connected, then type == WStype_CONNECTED
+    WebSocket_JSON_data_push = true;
+    break;
+  case WStype_TEXT: // if a client has sent data, then type == WStype_TEXT
+    for (int i = 0; i < length; i++)
+    { // print received data from client
+      Serial.print((char)payload[i]);
+    }
+    Serial.println("");
+
+    DeserializationError error = MAINTENANCE_command_handler((char *)payload);
+
+    if (error)
+    {
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(error.f_str());
+      // TODO: sent error
+      return;
+    }
+
+    break;
   }
 }
 
