@@ -21,7 +21,6 @@ socket.addEventListener("message", (event) => {
 
 function sendCommand(data) {
     socket.send(data)
-    console.log("Sending data")
     console.log(data)
 }
 

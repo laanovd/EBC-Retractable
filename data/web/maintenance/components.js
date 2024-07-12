@@ -129,9 +129,48 @@ function INIT_lift_enable() {
     elm.addEventListener("change", (e) => {
         sendCommand(JSON.stringify({ [json_key_lift_enable]: e.target.checked }));
     });
+    addSingleMessageHandler
 }
 function lift_enable_set_value(value) {
     setValue(elm_id_lift_enable, value)
+}
+
+// Steering Enable
+const elm_id_steering_enable = "steering_enable"
+const elm_id_steering_enabled = "steering_enabled"
+const json_key_steering_enable = "steering_enabled"
+function INIT_steering_enable() {
+    const elm = document.querySelector(`#${elm_id_steering_enable}`);
+    console.log(elm)
+    elm.addEventListener("change", (e) => {
+        sendCommand(JSON.stringify({ [json_key_steering_enable]: e.target.checked }));
+    });
+    addMessageHandler((data) => {
+        steering_enable_set_value(data[json_key_steering_enable]);
+    })
+}
+function steering_enable_set_value(value) {
+    setChecked(elm_id_steering_enable, value)
+    const elm = document.querySelector(`#${elm_id_steering_enabled}`);
+    elm.classList.add(value ? `bg-emerald-500` : "bg-slate-300")
+    elm.classList.remove(value ? "bg-slate-300" : `bg-emerald-500`)
+}
+
+// Output Enable
+const elm_id_output_enable = "output_enabled"
+const json_key_output_enable = "steering_analog_out_enabled"
+function INIT_output_enable() {
+    const elm = document.querySelector(`#${elm_id_output_enable}`);
+    console.log(elm)
+    elm.addEventListener("change", (e) => {
+        sendCommand(JSON.stringify({ [json_key_output_enable]: e.target.checked }));
+    });
+    addMessageHandler((data) => {
+        output_enable_set_value(data[json_key_output_enable]);
+    })
+}
+function output_enable_set_value(value) {
+    setChecked(elm_id_output_enable, value)
 }
 
 // Steering offset right
@@ -208,7 +247,9 @@ document.addEventListener('DOMContentLoaded', function () {
     INIT_steering_offset_right();
     INIT_steering_offset_left();
     INIT_steering_actual();
+    INIT_steering_enable();
     INIT_steering();
+    INIT_output_enable();
     INIT_dmc_enable();
 
     addSingleMessageHandler((data) => { document.querySelector("#loading_overlay").classList.add("hidden") });
