@@ -3,6 +3,7 @@
  *
  *******************************************************************/
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <ESPmDNS.h>
 #include <ElegantOTAPro.h>
 #include <FS.h>
@@ -44,6 +45,8 @@ static bool OTA_Ready = false;
 static String htmlString;
 
 static JsonDocument WebSocket_JSON_data;
+
+static bool WebSocket_JSON_data_push = false;
 
 /********************************************************************
  * Create initial JSON data
@@ -191,37 +194,48 @@ static void WEBSERVER_main_task(void *parameter)
 }
 
 /********************************************************************
- * WebSocketsServer broadcast
+ * WebSocketsServer update
  *********************************************************************/
-void WEBSocket_set(JsonDocument doc)
-{
-  for (JsonPair kv : doc.as<JsonObject>())
-  {
-    WebSocket_JSON_data[kv.key().c_str()] = kv.value();
+void WEBSOCKET_push(String key, String value) {
+  String msg = "{\"key\": \"" + key + "\", \"value\": \"" + value + "\"}";
+  web_socket_server.broadcastTXT(msg);
+}
+
+void WEBSocket_set(JsonDocument doc) {
+  for (JsonPair kv : doc.as<JsonObject>()) {
+    // New data
+    if (!WebSocket_JSON_data.containsKey(kv.key().c_str())) {
+      WebSocket_JSON_data[kv.key().c_str()] = "djdfjfjokhf;ihsd;kljfghsdrfkjghg";
+    }
+
+    // Data changed ?
+    if (WebSocket_JSON_data[kv.key().c_str()].as<const char *>() != kv.value()) {
+      WebSocket_JSON_data[kv.key().c_str()] = kv.value();
+      WEBSOCKET_push(kv.key().c_str(), kv.value());
+    }
   }
 }
 
 /********************************************************************
  * WebSocketsServer task
  *********************************************************************/
-static void WEBSOCKET_task(void *parameter)
-{
+static void WEBSOCKET_task(void *parameter) {
   (void)parameter;
   JsonDocument doc;
   String str;
 
-  while (true)
-  {
+  doc["program_name"] = ProgramName;
+  doc["chip_id"] = ChipIds();
+  doc["wifi_ssid"] = WiFi_ssid();
+  WEBSocket_set(doc);
+
+  while (true) {
+    if (WebSocket_JSON_data_push) {
+      serializeJson(WebSocket_JSON_data, str);
+      web_socket_server.broadcastTXT(str);
+      WebSocket_JSON_data_push = false;
+    }
     vTaskDelay(500 / portTICK_PERIOD_MS);
-
-    doc["program_name"] = ProgramName;
-    doc["chip_id"] = ChipIds();
-    doc["wifi_ssid"] = WiFi_ssid();
-
-    WEBSocket_set(doc);
-
-    serializeJson(WebSocket_JSON_data, str);
-    web_socket_server.broadcastTXT(str);
   }
 }
 
@@ -290,35 +304,15 @@ static rest_api_t WEBSERVER_api_handlers = {
 /********************************************************************
  * WebSocketServer events
  *********************************************************************/
-void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length)
-{
-  switch (type)
-  {                         // switch on the type of information sent
-  case WStype_DISCONNECTED: // if a client is disconnected, then type == WStype_DISCONNECTED
-    // Serial.println("Client " + String(num) + " disconnected");
-    break;
-  case WStype_CONNECTED: // if a client is connected, then type == WStype_CONNECTED
-    // Serial.println("Client " + String(num) + " connected");
-    // optionally you can add code here what to do when connected
-    break;
-  case WStype_TEXT: // if a client has sent data, then type == WStype_TEXT
-    for (int i = 0; i < length; i++)
-    { // print received data from client
-      Serial.print((char)payload[i]);
-    }
-    Serial.println("");
-
-    DeserializationError error = MAINTENANCE_command_handler((char *)payload);
-
-    if (error)
-    {
-      Serial.print(F("deserializeJson() failed: "));
-      Serial.println(error.f_str());
-      // TODO: sent error
-      return;
-    }
-
-    break;
+void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) {
+  switch (type) {              // switch on the type of information sent
+    case WStype_DISCONNECTED:  // if a client is disconnected, then type == WStype_DISCONNECTED
+      break;
+    case WStype_CONNECTED:  // if a client is connected, then type == WStype_CONNECTED
+      WebSocket_JSON_data_push = true;
+      break;
+    case WStype_TEXT:  // if a client has sent data, then type == WStype_TEXT
+      break;
   }
 }
 
