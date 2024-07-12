@@ -43,9 +43,10 @@ extern AsyncWebServer web_server;
 extern void setup_uri(rest_api_t *uri_hdl);
 
 /********************************************************************
- * Send data to web
+ * Send data to websocket
  *********************************************************************/
-extern void WEBSocket_set(JsonDocument value);
+extern void WEBSocket_set_pair(JsonPair kv);
+extern void WEBSocket_set_doc(JsonDocument doc);
 
 /********************************************************************
  * Setup webserver

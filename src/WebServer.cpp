@@ -196,28 +196,33 @@ static void WEBSERVER_main_task(void *parameter)
 /********************************************************************
  * WebSocketsServer update
  *********************************************************************/
-void WEBSOCKET_push(String key, String value)
-{
-  String msg = "{\"" + key + "\" : \"" + value + "\"}";
+static void WEBSOCKET_push_pair(JsonPair kv) {
+  String msg = "{\"" + String(kv.key().c_str()) + "\":\"" + String(kv.value().as<const char*>()) + "\"}";
+
   web_socket_server.broadcastTXT(msg);
 }
 
-void WEBSocket_set(JsonDocument doc)
-{
-  for (JsonPair kv : doc.as<JsonObject>())
-  {
-    // New data
-    if (!WebSocket_JSON_data.containsKey(kv.key().c_str()))
-    {
-      WebSocket_JSON_data[kv.key().c_str()] = NULL;
-    }
+static void WEBSOCKET_push_doc(JsonDocument doc) {
+    String str;
 
-    // Data changed ?
-    if (WebSocket_JSON_data[kv.key().c_str()] != kv.value())
-    {
-      WebSocket_JSON_data[kv.key().c_str()] = kv.value();
-      WEBSOCKET_push(kv.key().c_str(), kv.value());
-    }
+    serializeJson(WebSocket_JSON_data, str);
+    web_socket_server.broadcastTXT(str);
+}
+
+void WEBSocket_set_pair(JsonPair kv) {
+  if (!WebSocket_JSON_data.containsKey(kv.key().c_str())) {
+    WebSocket_JSON_data[kv.key().c_str()] = NULL;
+  }
+
+  if (WebSocket_JSON_data[kv.key().c_str()] != kv.value()) {
+    WebSocket_JSON_data[kv.key().c_str()] = kv.value();
+    WEBSOCKET_push_pair(kv);
+  }
+}
+
+void WEBSocket_set_doc(JsonDocument doc) {
+  for (JsonPair kv : doc.as<JsonObject>()) {
+    WEBSOCKET_push_pair(kv);
   }
 }
 
@@ -233,16 +238,14 @@ static void WEBSOCKET_task(void *parameter)
   doc["program_name"] = ProgramName;
   doc["chip_id"] = ChipIds();
   doc["wifi_ssid"] = WiFi_ssid();
-  WEBSocket_set(doc);
+  WEBSocket_set_doc(doc);
 
-  while (true)
-  {
-    if (WebSocket_JSON_data_push)
-    {
-      serializeJson(WebSocket_JSON_data, str);
-      web_socket_server.broadcastTXT(str);
+  while (true) {
+    if (WebSocket_JSON_data_push) {
+      WEBSOCKET_push_doc(WebSocket_JSON_data);
       WebSocket_JSON_data_push = false;
     }
+
     vTaskDelay(500 / portTICK_PERIOD_MS);
   }
 }

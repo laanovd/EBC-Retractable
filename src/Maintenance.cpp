@@ -379,7 +379,7 @@ static void MAINTENACE_websocket_task(void *parameter)
 
     MAINTENANCE_json_update();
 
-    WEBSocket_set(maintenance_data);
+    WEBSocket_set_doc(maintenance_data);
 
     // TODO: just for testing....
     maintenance_data[JSON_AZIMUTH_LEFT_V] = 0.3;
