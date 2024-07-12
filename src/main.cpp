@@ -100,7 +100,7 @@ void setup()
   CLI_setup();
   WiFi_setup();
   WEBSERVER_setup();
-  GPIO_setup();
+  // GPIO_setup();
   AZIMUTH_setup();
   LIFT_setup();
   DMC_setup();
@@ -113,7 +113,7 @@ void setup()
 
   /*--- STARTUP ---*/
   MAIN_CLI_handlers();
-  GPIO_start();
+  // GPIO_start();
   AZIMUTH_start();
   LIFT_start();
   DMC_start();

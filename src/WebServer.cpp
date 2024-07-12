@@ -48,14 +48,15 @@ static JsonDocument WebSocket_JSON_data;
 /********************************************************************
  * Create initial JSON data
  *******************************************************************/
-static JsonDocument WEBSERVER_json(void) {
+static JsonDocument WEBSERVER_json(void)
+{
   JsonDocument doc;
 
-  doc[JSON_WEBS_FLASH_SIZE] = (uint32_t)(ESP.getFlashChipSize() / 1024);  // kByte
-  doc[JSON_WEBS_FLASH_USED] = (uint32_t)(ESP.getSketchSize() / 1024);     // kByte
+  doc[JSON_WEBS_FLASH_SIZE] = (uint32_t)(ESP.getFlashChipSize() / 1024); // kByte
+  doc[JSON_WEBS_FLASH_USED] = (uint32_t)(ESP.getSketchSize() / 1024);    // kByte
 
-  doc[JSON_WEBS_HEAP_TOTAL] = (uint32_t)(ESP.getHeapSize() / 1024);  // kByte
-  doc[JSON_WEBS_HEAP_FREE] = (uint32_t)(ESP.getFreeHeap() / 1024);   // kByte
+  doc[JSON_WEBS_HEAP_TOTAL] = (uint32_t)(ESP.getHeapSize() / 1024); // kByte
+  doc[JSON_WEBS_HEAP_FREE] = (uint32_t)(ESP.getFreeHeap() / 1024);  // kByte
 
   doc[JSON_WEBS_CHIP_ID] = ChipIds();
 
@@ -65,7 +66,8 @@ static JsonDocument WEBSERVER_json(void) {
 /********************************************************************
  * Create BMS string
  *******************************************************************/
-String WEBSERVER_string(void) {
+String WEBSERVER_string(void)
+{
   JsonDocument doc = WEBSERVER_json();
 
   String text = "--- WEB-SERVER ---";
@@ -87,7 +89,8 @@ String WEBSERVER_string(void) {
 /*******************************************************************
  * Get Web page title
  *******************************************************************/
-String HTML_title(void) {
+String HTML_title(void)
+{
   char buf[64];
   snprintf(buf, sizeof(buf), "%s-%s", HTMLTitlePrefix, ChipIds().c_str());
   return String(buf);
@@ -96,26 +99,31 @@ String HTML_title(void) {
 /********************************************************************
  * Default HTTP handlers
  *********************************************************************/
-void default_on_create(AsyncWebServerRequest *request) {
+void default_on_create(AsyncWebServerRequest *request)
+{
   request->send(501, "text/plain", "501-Not Implemented");
 }
 
-void default_on_read(AsyncWebServerRequest *request) {
+void default_on_read(AsyncWebServerRequest *request)
+{
   request->send(501, "text/plain", "501-Not Implemented");
 }
 
-void default_on_update(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+void default_on_update(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+{
   request->send(501, "text/plain", "501-Not Implemented");
 }
 
-void default_on_delete(AsyncWebServerRequest *request) {
+void default_on_delete(AsyncWebServerRequest *request)
+{
   request->send(501, "text/plain", "501-Not Implemented");
 }
 
 /********************************************************************
  * Setup REST API handlers
  *********************************************************************/
-void setup_uri(rest_api_t *uri_hdl) {
+void setup_uri(rest_api_t *uri_hdl)
+{
   if (!uri_hdl->fn_create)
     uri_hdl->fn_create = default_on_create;
   web_server.on(uri_hdl->uri, HTTP_POST, uri_hdl->fn_create);
@@ -138,15 +146,18 @@ void setup_uri(rest_api_t *uri_hdl) {
 /********************************************************************
  * ElegantOTA Profesional Routines
  *********************************************************************/
-static void onOTAStart() {
+static void onOTAStart()
+{
   DEBUG_info("OTA update started!");
   OTA_Start = true;
   OTA_Ready = false;
 }
 
-static void onOTAProgress(size_t current, size_t final) {
+static void onOTAProgress(size_t current, size_t final)
+{
   static unsigned long ota_progress_millis = 0;
-  if (millis() - ota_progress_millis > 1000) {
+  if (millis() - ota_progress_millis > 1000)
+  {
     char msg[64];
     ota_progress_millis = millis();
     snprintf(msg, sizeof(msg), "OTA Progress Current: %u bytes, Final: %u bytes\n", (unsigned int)current, (unsigned int) final);
@@ -154,7 +165,8 @@ static void onOTAProgress(size_t current, size_t final) {
   }
 }
 
-static void onOTAEnd(bool success) {
+static void onOTAEnd(bool success)
+{
   // Log when OTA has finished
   if (success)
     DEBUG_info("OTA update finished successfully!");
@@ -166,10 +178,12 @@ static void onOTAEnd(bool success) {
 /********************************************************************
  * WebServer main task
  *********************************************************************/
-static void WEBSERVER_main_task(void *parameter) {
+static void WEBSERVER_main_task(void *parameter)
+{
   (void)parameter;
 
-  while (true) {
+  while (true)
+  {
     vTaskDelay(200 / portTICK_PERIOD_MS);
 
     web_socket_server.loop();
@@ -179,21 +193,25 @@ static void WEBSERVER_main_task(void *parameter) {
 /********************************************************************
  * WebSocketsServer broadcast
  *********************************************************************/
-void WEBSocket_set(JsonDocument doc) {
-  for (JsonPair kv : doc.as<JsonObject>()) {
-   WebSocket_JSON_data[kv.key().c_str()] = kv.value();  
+void WEBSocket_set(JsonDocument doc)
+{
+  for (JsonPair kv : doc.as<JsonObject>())
+  {
+    WebSocket_JSON_data[kv.key().c_str()] = kv.value();
   }
 }
 
 /********************************************************************
  * WebSocketsServer task
  *********************************************************************/
-static void WEBSOCKET_task(void *parameter) {
+static void WEBSOCKET_task(void *parameter)
+{
   (void)parameter;
   JsonDocument doc;
   String str;
 
-  while (true) {
+  while (true)
+  {
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
     doc["program_name"] = ProgramName;
@@ -210,7 +228,8 @@ static void WEBSOCKET_task(void *parameter) {
 /********************************************************************
  * REST API: read handler
  *********************************************************************/
-void WEBSERVER_rest_read(AsyncWebServerRequest *request) {
+void WEBSERVER_rest_read(AsyncWebServerRequest *request)
+{
   String json;
   serializeJson(WEBSERVER_json(), json);
   request->send(200, "application/json", json.c_str());
@@ -226,14 +245,16 @@ void WEBSERVER_rest_read(AsyncWebServerRequest *request) {
  *
  *
  *********************************************************************/
-void WEBSERVER_rest_update(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+void WEBSERVER_rest_update(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+{
   (void)len;
   (void)index;
   (void)total;
 
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, (char *)data);
-  if (error) {
+  if (error)
+  {
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.f_str());
     request->send(204, "text/plain", "204, No content");
@@ -269,36 +290,42 @@ static rest_api_t WEBSERVER_api_handlers = {
 /********************************************************************
  * WebSocketServer events
  *********************************************************************/
-void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) {
-  switch (type) {              // switch on the type of information sent
-    case WStype_DISCONNECTED:  // if a client is disconnected, then type == WStype_DISCONNECTED
-      // Serial.println("Client " + String(num) + " disconnected");
-      break;
-    case WStype_CONNECTED:  // if a client is connected, then type == WStype_CONNECTED
-      // Serial.println("Client " + String(num) + " connected");
-      // optionally you can add code here what to do when connected
-      break;
-    case WStype_TEXT:                     // if a client has sent data, then type == WStype_TEXT
-      for (int i = 0; i < length; i++) {  // print received data from client
-        Serial.print((char)payload[i]);
-      }
-      Serial.println("");
-      break;
+void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length)
+{
+  switch (type)
+  {                         // switch on the type of information sent
+  case WStype_DISCONNECTED: // if a client is disconnected, then type == WStype_DISCONNECTED
+    // Serial.println("Client " + String(num) + " disconnected");
+    break;
+  case WStype_CONNECTED: // if a client is connected, then type == WStype_CONNECTED
+    // Serial.println("Client " + String(num) + " connected");
+    // optionally you can add code here what to do when connected
+    break;
+  case WStype_TEXT: // if a client has sent data, then type == WStype_TEXT
+    for (int i = 0; i < length; i++)
+    { // print received data from client
+      Serial.print((char)payload[i]);
+    }
+    Serial.println("");
+    break;
   }
 }
 
 /********************************************************************
  * Read HTML from file
  *********************************************************************/
-static void Load_HTML_Page(fs::FS &fs, const char *path) {
+static void Load_HTML_Page(fs::FS &fs, const char *path)
+{
   File file = fs.open(path);
-  if (!file || file.isDirectory()) {
+  if (!file || file.isDirectory())
+  {
     Serial.println("- failed to read HTML page from file.");
     return;
   }
 
   htmlString = "";
-  while (file.available()) {
+  while (file.available())
+  {
     htmlString += file.readStringUntil(EOF);
   }
   file.close();
@@ -307,7 +334,8 @@ static void Load_HTML_Page(fs::FS &fs, const char *path) {
 /*******************************************************************
  *  Initialize the debug webserver
  *******************************************************************/
-static void Setup_HTML_Page_Title(void) {
+static void Setup_HTML_Page_Title(void)
+{
   int start, end;
   String title = HTML_title();
 
@@ -320,30 +348,38 @@ static void Setup_HTML_Page_Title(void) {
 /********************************************************************
  *  Initialize the debug webserver
  *********************************************************************/
-static void WEBSERVER_init(void) {
+static void WEBSERVER_init(void)
+{
   String title = HTML_title();
 
   Load_HTML_Page(LittleFS, DEFAULT_HTML_PAGE);
   Setup_HTML_Page_Title();
 
-  ElegantOTA.setID(ProgramName);            // Set Hardware ID
-  ElegantOTA.setFWVersion(ProgramVersion);  // Set Firmware Version
-  ElegantOTA.setTitle(title.c_str());       // Set OTA Webpage Title
+  ElegantOTA.setID(ProgramName);           // Set Hardware ID
+  ElegantOTA.setFWVersion(ProgramVersion); // Set Firmware Version
+  ElegantOTA.setTitle(title.c_str());      // Set OTA Webpage Title
 
-  ElegantOTA.begin(&web_server);  // Start ElegantOTA
+  ElegantOTA.begin(&web_server); // Start ElegantOTA
 
   // ElegantOTA callbacks
-  ElegantOTA.onStart(onOTAStart);        // ...
-  ElegantOTA.onProgress(onOTAProgress);  // ...
-  ElegantOTA.onEnd(onOTAEnd);            // ...
+  ElegantOTA.onStart(onOTAStart);       // ...
+  ElegantOTA.onProgress(onOTAProgress); // ...
+  ElegantOTA.onEnd(onOTAEnd);           // ...
 
   // WebSerial is accessible at "<IP Address>/webserial" in browser
   WebSerial.begin(&web_server);
   WebSerial.msgCallback(CLI_webserial_task);
 
-  web_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) { request->send(200, "text/html", htmlString); });
+  web_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+                { request->send(200, "text/html", htmlString); });
+                
+  web_server.on("/maintenance", HTTP_GET, [](AsyncWebServerRequest *request)
+                { 
+    String html = "/web" + request->url();
+    File file = LittleFS.open(html);
+    request->send(200, "text/html", file.readStringUntil(EOF)); });
 
-  web_server.begin();  // Start WebServer
+  web_server.begin(); // Start WebServer
 
   web_socket_server.begin();
   web_socket_server.onEvent(WebSocketsEvents);
@@ -352,18 +388,21 @@ static void WEBSERVER_init(void) {
 /********************************************************************
  *  CLI: List storage content
  *******************************************************************/
-static void clicb_list_web(cmd *c) {
+static void clicb_list_web(cmd *c)
+{
   Command cmd(c);
   Argument arg = cmd.getArg(0);
   String strArg = arg.getValue();
 
   /* List settings */
-  if (strArg.isEmpty()) {
+  if (strArg.isEmpty())
+  {
     CLI_println(WEBSERVER_string());
     return;
   }
 
-  if (strArg.equalsIgnoreCase("data")) {
+  if (strArg.equalsIgnoreCase("data"))
+  {
     serializeJson(WebSocket_JSON_data, strArg);
     CLI_println(strArg);
     return;
@@ -375,7 +414,8 @@ static void clicb_list_web(cmd *c) {
 /********************************************************************
  * Setup CommandLine handler(s)
  *******************************************************************/
-void WEBSERVER_cli_handlers(void) {
+void WEBSERVER_cli_handlers(void)
+{
   cli.addBoundlessCmd("web", clicb_list_web);
 }
 
@@ -383,7 +423,8 @@ void WEBSERVER_cli_handlers(void) {
  *  Initialize the debug tasks
  *
  *********************************************************************/
-static void WEBSERVER_setup_tasks(void) {
+static void WEBSERVER_setup_tasks(void)
+{
   xTaskCreate(WEBSERVER_main_task, "WebServer main task", 2048, NULL, 15, NULL);
   xTaskCreate(WEBSOCKET_task, "WebSocketsServer main task", 4096, NULL, 15, NULL);
 }
@@ -392,7 +433,8 @@ static void WEBSERVER_setup_tasks(void) {
  *  Setup webserver
  *
  *********************************************************************/
-void WEBSERVER_setup(void) {
+void WEBSERVER_setup(void)
+{
   WEBSERVER_init();
 
   WEBSERVER_setup_tasks();
