@@ -11,7 +11,7 @@
 
 #include "CLI.h"
 #include "Config.h"
-#include "EBC_IOlib.h"
+#include "EBC_IOLib.h"
 #include "GPIO.h"
 #include "Maintenance.h"
 #include "Storage.h"

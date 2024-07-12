@@ -16,7 +16,7 @@
 #include "Storage.h"
 #include "CLI.h"
 #include "GPIO.h"
-#include "EBC_IOlib.h" 
+#include "EBC_IOLib.h" 
 
 /*******************************************************************
  * Definitions
