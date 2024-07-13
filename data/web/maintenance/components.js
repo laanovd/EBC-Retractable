@@ -1,34 +1,29 @@
 // Emergency stop
+const elm_id_maintenance_enabled = "maintenance_enabled"
 const elm_id_maintenance_on = "maintenance_button_on"
 const elm_id_maintenance_off = "maintenance_button_off"
 const elm_id_maintenance_loading = "maintenance_button_loading"
-const json_key_maintenance = "maintenance_enabled"
+const json_key_maintenance_enabled = "maintenance_enabled"
 
 function INIT_maintenance_button() {
-    const btn_on = document.querySelector(`#${elm_id_maintenance_on}`);
-    const btn_off = document.querySelector(`#${elm_id_maintenance_off}`);
-    btn_on.addEventListener("click", () => {
-        if (btn_on.disabled) return;
-        sendCommand(JSON.stringify({ [json_key_maintenance]: false }));
-        btn_on.disabled = true;
+    const elm = document.querySelector(`#${elm_id_maintenance_enabled}`)
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elm.disabled = true;
+        sendCommand(JSON.stringify({ [json_key_maintenance_enabled]: e.target.checked }));
     })
-    btn_off.addEventListener("click", () => {
-        if (btn_off.disabled) return;
-        sendCommand(JSON.stringify({ [json_key_maintenance]: true }));
-        btn_off.disabled = true;
-    })
+
     addMessageHandler((data) => {
-        set_maintenance_button(data[json_key_maintenance]);
+        if (data.hasOwnProperty(json_key_maintenance_enabled)) {
+            set_maintenance_button(JSON.parse(data[json_key_maintenance_enabled]));
+        }
     })
 }
 function set_maintenance_button(value) {
-    const btn_on = document.querySelector(`#${elm_id_maintenance_on}`);
-    const btn_off = document.querySelector(`#${elm_id_maintenance_off}`);
-    const btn_loading = document.querySelector(`#${elm_id_maintenance_off}`);
-    (value ? btn_on : btn_off).classList.remove("hidden");
-    (value ? btn_off : btn_on).classList.add("hidden");
-    btn_on.disabled = false;
-    btn_off.disabled = false;
+    const elm = document.querySelector(`#${elm_id_maintenance_enabled}`)
+    elm.checked = value;
+    elm.disabled = false;
 }
 
 // Emergency stop
@@ -36,7 +31,8 @@ const elm_id_emergency_stop = "emergency_stop_indicator"
 const json_key_emergency_stop = "emergency_stop"
 function INIT_emergency_stop() {
     addMessageHandler((data) => {
-        set_emergency_stop(data[json_key_emergency_stop]);
+        if (data.hasOwnProperty(json_key_emergency_stop))
+            set_emergency_stop(data[json_key_emergency_stop]);
     })
 }
 function set_emergency_stop(value) {
@@ -50,7 +46,8 @@ const elm_id_extended = "extended_indicator"
 const json_key_extended = "lift_sensor_down"
 function INIT_extended_indicator() {
     addMessageHandler((data) => {
-        set_extended_indicator(data[json_key_extended]);
+        if (data.hasOwnProperty(json_key_extended))
+            set_extended_indicator(data[json_key_extended]);
     })
 }
 function set_extended_indicator(value) {
@@ -60,17 +57,23 @@ function set_extended_indicator(value) {
 }
 const elm_id_extend = "extend"
 const json_key_extend = "lift_motor_down"
-function INIT_extend_enable() {
+function INIT_extend_enabled() {
     const elm = document.querySelector(`#${elm_id_extend}`);
-    elm.addEventListener("change", (e) => {
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elm.disabled = true;
         sendCommand(JSON.stringify({ [json_key_extend]: e.target.checked }));
     });
     addMessageHandler((data) => {
-        set_extending(data[json_key_extend]);
+        if (data.hasOwnProperty(json_key_extend))
+            set_extending(JSON.parse(data[json_key_extend]));
     })
 }
 function set_extending(value) {
-    document.querySelector(`input#${elm_id_extend}`).checked = value;
+    const elm = document.querySelector(`input#${elm_id_extend}`);
+    elm.checked = value;
+    elm.disabled = false;
 }
 
 // Retracted
@@ -78,7 +81,8 @@ const elm_id_retracted = "extended_indicator"
 const json_key_retracted = "lift_sensor_up"
 function INIT_retracted_indicator() {
     addMessageHandler((data) => {
-        set_retracted_indicator(data[json_key_retract]);
+        if (data.hasOwnProperty(json_key_retract))
+            set_retracted_indicator(data[json_key_retract]);
     })
 }
 function set_retracted_indicator(value) {
@@ -90,100 +94,129 @@ const elm_id_retract = "retract"
 const json_key_retract = "lift_motor_up"
 function INIT_retract_enable() {
     const elm = document.querySelector(`#${elm_id_retract}`);
-    elm.addEventListener("change", (e) => {
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elm.disabled = true;
         sendCommand(JSON.stringify({ [json_key_retract]: e.target.checked }));
     });
     addMessageHandler((data) => {
-        set_retracting(data[json_key_retract]);
+        if (data.hasOwnProperty(json_key_retract))
+            set_retracting(JSON.parse(data[json_key_retract]));
     })
 }
 function set_retracting(value) {
-    document.querySelector(`input#${elm_id_retract}`).checked = value;
+    const elm = document.querySelector(`input#${elm_id_retract}`)
+    elm.checked = value;
+    elm.disabled = false;
 }
 
 // dmc enable
-const elm_id_dmc_enable_indicator = "dmc_enable_indicator"
-const elm_id_dmc_enable = "dmc_enable"
-const json_key_dmc_enable = "dmc_enable"
-function INIT_dmc_enable() {
-    const elm = document.querySelector(`#${elm_id_dmc_enable}`);
-    elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_dmc_enable]: e.target.checked }));
-        set_dmc_enabled(e.target.checked)
+const elm_id_dmc_enabled = "dmc_enabled"
+const json_key_dmc_enabled = "dmc_enabled"
+function INIT_dmc_enabled() {
+    const elm = document.querySelector(`#${elm_id_dmc_enabled}`);
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elm.disabled = true;
+        sendCommand(JSON.stringify({ [json_key_dmc_enabled]: e.target.checked }));
     });
     addMessageHandler((data) => {
-        set_dmc_enabled(data[json_key_dmc_enable]);
+        if (data.hasOwnProperty(json_key_dmc_enabled))
+            set_dmc_enabled(JSON.parse(data[json_key_dmc_enabled]));
     })
 }
 function set_dmc_enabled(value) {
-    setChecked(elm_id_dmc_enable, value)
-    const elm = document.querySelector(`#${elm_id_dmc_enable_indicator}`);
-    elm.classList.add(value ? `bg-emerald-500` : "bg-slate-300")
-    elm.classList.remove(value ? "bg-slate-300" : `bg-emerald-500`)
+    const elm = document.querySelector(`#${elm_id_dmc_enabled}`);
+    elm.checked = value;
+    elm.disabled = false;
 }
 
 // Lift Enable
-const elm_id_lift_enable = "lift_enable"
-const json_key_lift_enable = "lift_enabled"
+const elm_id_lift_enabled = "lift_enabled"
+const json_key_lift_enabled = "lift_enabled"
 function INIT_lift_enable() {
-    const elm = document.querySelector(`#${elm_id_lift_enable}`);
-    elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_lift_enable]: e.target.checked }));
+    const elm = document.querySelector(`#${elm_id_lift_enabled}`);
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elm.disabled = true;
+        sendCommand(JSON.stringify({ [json_key_lift_enabled]: e.target.checked }));
     });
-    addSingleMessageHandler
+    addMessageHandler((data) => {
+        if (data.hasOwnProperty(json_key_lift_enabled))
+            lift_enable_set_value(JSON.parse(data[json_key_lift_enabled]));
+    })
 }
 function lift_enable_set_value(value) {
-    setValue(elm_id_lift_enable, value)
+    const elm = document.querySelector(`#${elm_id_lift_enabled}`);
+    elm.checked = value;
+    elm.disabled = false;
 }
 
 // Steering Enable
-const elm_id_steering_enable = "steering_enable"
 const elm_id_steering_enabled = "steering_enabled"
-const json_key_steering_enable = "steering_enabled"
-function INIT_steering_enable() {
-    const elm = document.querySelector(`#${elm_id_steering_enable}`);
-    console.log(elm)
-    elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_steering_enable]: e.target.checked }));
+const json_key_steering_enabled = "steering_enabled"
+function INIT_steering_enabled() {
+    const elm = document.querySelector(`#${elm_id_steering_enabled}`);
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elm.disabled = true;
+        sendCommand(JSON.stringify({ [json_key_steering_enabled]: e.target.checked }));
     });
     addMessageHandler((data) => {
-        steering_enable_set_value(data[json_key_steering_enable]);
+        if (data.hasOwnProperty(json_key_steering_enabled))
+            steering_enabled_set_value(JSON.parse(data[json_key_steering_enabled]));
     })
 }
-function steering_enable_set_value(value) {
-    setChecked(elm_id_steering_enable, value)
-    const elm = document.querySelector(`#${elm_id_steering_enabled}`);
-    elm.classList.add(value ? `bg-emerald-500` : "bg-slate-300")
-    elm.classList.remove(value ? "bg-slate-300" : `bg-emerald-500`)
+function steering_enabled_set_value(value) {
+    const elm = document.querySelector(`#${elm_id_steering_enabled}`)
+    elm.checked = value;
+    elm.disabled = false;
 }
 
 // Output Enable
-const elm_id_output_enable = "output_enabled"
-const json_key_output_enable = "steering_analog_out_enabled"
-function INIT_output_enable() {
-    const elm = document.querySelector(`#${elm_id_output_enable}`);
-    console.log(elm)
-    elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_output_enable]: e.target.checked }));
+const elm_id_output_enabled = "output_enabled"
+const json_key_output_enabled = "steering_analog_out_enabled"
+function INIT_output_enabled() {
+    const elm = document.querySelector(`#${elm_id_output_enabled}`);
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        elm.disabled = true;
+        sendCommand(JSON.stringify({ [json_key_output_enabled]: e.target.checked }));
     });
     addMessageHandler((data) => {
-        output_enable_set_value(data[json_key_output_enable]);
+        if (data.hasOwnProperty(json_key_output_enabled))
+            output_enabled_set_value(JSON.parse(data[json_key_output_enabled]));
     })
 }
-function output_enable_set_value(value) {
-    setChecked(elm_id_output_enable, value)
+function output_enabled_set_value(value) {
+    const elm = document.querySelector(`#${elm_id_output_enabled}`);
+    elm.checked = value;
+    elm.disabled = false;
 }
 
 // Steering offset right
 const elm_id_offset_right = "offset_right"
-const json_key_ofsset_right = "steering_right_volt"
+const json_key_offset_right = "steering_right_volt"
+let offset_right_current_value = -1;
 function INIT_steering_offset_right() {
     const elm = document.querySelector(`#${elm_id_offset_right}`);
     elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_ofsset_right]: e.target.value }));
+        elm.value = offset_right_current_value;
+        const val = e.target.value;
+        if (val >= 0 && val <= 5 && val < offset_left_current_value)
+            sendCommand(JSON.stringify({ [json_key_offset_right]: e.target.value }));
     });
-    addSingleMessageHandler((data) => {
-        steering_offset_right_set_value(data[json_key_ofsset_right]);
+    addMessageHandler((data) => {
+        if (data.hasOwnProperty(json_key_offset_right)) {
+            const val = data[json_key_offset_right];
+            offset_right_current_value = val;
+            steering_offset_right_set_value(val);
+        }
     })
 }
 function steering_offset_right_set_value(value) {
@@ -193,13 +226,21 @@ function steering_offset_right_set_value(value) {
 // Steering offset left
 const elm_id_offset_left = "offset_left"
 const json_key_offset_left = "steering_left_volt"
+let offset_left_current_value = -1;
 function INIT_steering_offset_left() {
     const elm = document.querySelector(`#${elm_id_offset_left}`);
     elm.addEventListener("change", (e) => {
-        sendCommand(JSON.stringify({ [json_key_offset_left]: e.target.value }));
+        elm.value = offset_left_current_value;
+        const val = e.target.value;
+        if (val >= 0 && val <= 5 && val < offset_right_current_value)
+            sendCommand(JSON.stringify({ [json_key_offset_left]: e.target.value }));
     });
-    addSingleMessageHandler((data) => {
-        steering_offset_left_set_value(data[json_key_offset_left]);
+    addMessageHandler((data) => {
+        if (data.hasOwnProperty(json_key_offset_left)) {
+            const val = data[json_key_offset_left];
+            offset_val_current_value = val;
+            steering_offset_left_set_value(val);
+        }
     })
 }
 function steering_offset_left_set_value(value) {
@@ -212,7 +253,8 @@ const json_key_steering_actual = "steering_output_volt"
 function INIT_steering_actual() {
     const elm = document.querySelector(`#${elm_id_steering_actual}`);
     addMessageHandler((data) => {
-        steering_manual_set_value(data[json_key_steering_actual]);
+        if (data.hasOwnProperty(json_key_steering_actual))
+            steering_manual_set_value(data[json_key_steering_actual]);
     })
 }
 function steering_manual_set_value(value) {
@@ -228,7 +270,8 @@ function INIT_steering() {
         sendCommand(JSON.stringify({ [json_key_steering]: e.target.value }));
     });
     addMessageHandler((data) => {
-        steering_set_value(data[json_key_steering]);
+        if (data.hasOwnProperty(json_key_steering))
+            steering_set_value(data[json_key_steering]);
     })
 }
 function steering_set_value(value) {
@@ -242,16 +285,16 @@ document.addEventListener('DOMContentLoaded', function () {
     INIT_emergency_stop();
     INIT_extended_indicator();
     INIT_retracted_indicator();
-    INIT_extend_enable();
+    INIT_extend_enabled();
     INIT_retract_enable();
     INIT_lift_enable();
     INIT_steering_offset_right();
     INIT_steering_offset_left();
     INIT_steering_actual();
-    INIT_steering_enable();
+    INIT_steering_enabled();
     INIT_steering();
-    INIT_output_enable();
-    INIT_dmc_enable();
+    INIT_output_enabled();
+    INIT_dmc_enabled();
 
     addSingleMessageHandler((data) => { document.querySelector("#loading_overlay").classList.add("hidden") });
 }, false);

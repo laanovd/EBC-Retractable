@@ -35,14 +35,16 @@
 
         <div class="flex gap-4">
             <div class="flex-1 rounded bg-slate-100 w-full p-4 py-2 text-slate-500" id="terminal">
-                test
+
             </div>
-            <button class="flex items-center bg-slate-200 text-slate-500 rounded whitespace-nowrap px-4 hidden disabled:bg-slate-100 disabled:text-slate-300" id="maintenance_button_off">
-                Maintenance mode off
-            </button>
-            <button class="flex items-center bg-blue-500 text-white rounded whitespace-nowrap px-4 hidden disabled:bg-blue-200" id="maintenance_button_on">
-                Maintenance mode on
-            </button>
+            <div class="group flex">
+                <input type="checkbox" name="maintenance_enabled" id="maintenance_enabled" disabled class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="maintenance_enabled">
+                    <span>Maintenance Enable</span>
+                </label>
+            </div>
         </div>
 
         <hr>
@@ -58,24 +60,15 @@
 
         <div class="flex">
             <div class="flex-1">
-                <button class="rounded p-4 py-2 bg-slate-300">Homing</button>
+                <button class="rounded bg-slate-200 text-slate-500 p-2 px-4">Homing</button>
             </div>
-            <div class="flex-1 flex items-center gap-2">
-                <input type="checkbox" name="lift_enable" id="lift_enable">
-                <span>Lift enable</span>
-            </div>
-        </div>
-
-        <div class="flex">
-            <div class="flex-1 flex flex-row gap-2 items-center">
-                <span class="indicator w-5 h-5 rounded-full bg-slate-300" id="extended_indicator"></span>
-                <span>
-                    Extended
-                </span>
-            </div>
-            <div class="flex-1 flex items-center gap-2">
-                <input type="checkbox" name="extend" id="extend">
-                <span>Extend</span>
+            <div class="group flex-1 mt-2">
+                <input type="checkbox" name="lift_enabled" id="lift_enabled" class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="lift_enabled">
+                    <span>Lift enable</span>
+                </label>
             </div>
         </div>
 
@@ -86,26 +79,45 @@
                     Retracted
                 </span>
             </div>
-            <div class="flex-1 flex items-center gap-2">
-                <input type="checkbox" name="retract" id="retract">
-                <span>Retract</span>
+            <div class="group flex-1">
+                <input type="checkbox" name="retract" id="retract" class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="retract">
+                    <span>Up</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex">
+            <div class="flex-1 flex flex-row gap-2 items-center">
+                <span class="indicator w-5 h-5 rounded-full bg-slate-300" id="extended_indicator"></span>
+                <span>
+                    Extended
+                </span>
+            </div>
+            <div class="group flex-1">
+                <input type="checkbox" name="extend" id="extend" class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="extend">
+                    <span>Down</span>
+                </label>
             </div>
         </div>
 
         <hr>
 
-        
+
 
         <div class="flex">
-            <div class="flex-1 flex flex-row gap-2 items-center">
-                <span class="indicator w-5 h-5 rounded-full bg-slate-300" id="dmc_enable_indicator"></span>
-                <span>
-                    DMC Enabled
-                </span>
-            </div>
-            <div class="flex-1 flex items-center gap-2">
-                <input type="checkbox" name="dmc_enable" id="dmc_enable">
-                <span>DMC enable</span>
+            <div class="group flex-1">
+                <input type="checkbox" name="dmc_enabled" id="dmc_enabled" class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="dmc_enabled">
+                    <span>DMC Enable</span>
+                </label>
             </div>
         </div>
 
@@ -113,24 +125,26 @@
 
         <div class="flex">
             <div class="flex-1">
-                <button class="rounded p-4 py-2 bg-slate-300">Homing</button>
+                <button class="rounded bg-slate-200 text-slate-500 p-2 px-4">Homing</button>
             </div>
-            <div class="flex-1 flex items-center gap-2">
-                <input type="checkbox" name="steering_enable" id="steering_enable">
-                <span>Steering enable</span>
+            <div class="group flex-1">
+                <input type="checkbox" name="steering_enabled" id="steering_enabled" class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="steering_enabled">
+                    <span>Steering Enable</span>
+                </label>
             </div>
         </div>
 
         <div class="flex">
-            <div class="flex-1 flex flex-row gap-2 items-center">
-                <span class="indicator w-5 h-5 rounded-full bg-slate-300" id="steering_enabled"></span>
-                <span>
-                    Steering enabled
-                </span>
-            </div>
-            <div class="flex-1 flex items-center gap-2">
-                <input type="checkbox" name="output_enabled" id="output_enabled">
-                <span>Output enable</span>
+            <div class="group flex-1">
+                <input type="checkbox" name="output_enabled" id="output_enabled" class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="output_enabled">
+                    <span>Output Enable</span>
+                </label>
             </div>
         </div>
 
@@ -138,23 +152,22 @@
             <div class="flex-1 flex flex-col gap-2">
                 <div>
                     <input type="number" name="offset_left" id="offset_left" class="w-20 border border-gray-200 rounded"
-                        min="0" max="5" onchange="(e) => sendCommand({'steering_left_volt': e.targent.value})">
+                        min="0" max="5" value="0">
                     <span>0% (V)</span>
                 </div>
                 <div>
-                    <input type="number" name="offset_right" id="offset_right" min="0" max="5"
-                        onchange="(e) => sendCommand({'steering_right_volt': e.targent.value})"
+                    <input type="number" name="offset_right" id="offset_right" min="0" max="5" value="0"
                         class="w-20 border border-gray-200 rounded">
                     <span>100% (V)</span>
                 </div>
                 <div>
-                    <input type="number" name="steering_manual" id="steering_manual"
+                    <input type="number" name="steering_manual" id="steering_manual" value="0"
                         class="w-20 border border-gray-200 rounded" disabled>
                     <span>Steering actual (V)</span>
                 </div>
             </div>
             <div class="flex-1 flex items-center gap-2">
-                <input type="range" min="0" max="5" step="0.05" id="steering_value" class="w-full">
+                <input type="range" min="0" max="10" step="0.5" id="steering_value" class="w-full">
                 <span>Steering</span>
             </div>
         </div>
