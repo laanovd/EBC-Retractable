@@ -213,7 +213,7 @@ void errorCallback(cmd_error *e)
 }
 
 /*******************************************************************
- *  Initialize the debug tasks
+ *  Initialize tasks
  *
  *******************************************************************/
 static void CLI_setup_tasks(void)

@@ -71,10 +71,9 @@ static void clicb_system(cmd *c) {
   CLI_println(text);
 }
 
-/*******************************************************************
- *  Initialize the command line handlers
- *
- *******************************************************************/
+/********************************************************************
+ * Command Line handler(s)
+ *********************************************************************/
 static void MAIN_CLI_handlers(void) {
   cli.addCommand("?,help", clicb_help);
   cli.addCommand("!,system", clicb_system);

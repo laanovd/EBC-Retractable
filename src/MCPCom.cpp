@@ -383,9 +383,8 @@ static void clicb_list_mcp1(cmd* c) {
 }
 
 /********************************************************************
- *  Setup storage command handlers
- *
- *******************************************************************/
+ * Command Line handler(s)
+ *********************************************************************/
 void MCP1_cli_handlers(void) {
   cli.addCommand("mcp", clicb_list_mcp1);
 }

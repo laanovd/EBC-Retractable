@@ -121,8 +121,8 @@ static void clicb_handler(cmd *c)
 }
 
 /********************************************************************
- * Setup Command Line Handler (CLI)
- *******************************************************************/
+ * Command Line handler(s)
+ *********************************************************************/
 static void DMC_setup_cli(void) {
   cli.addCommand("dmc", clicb_handler);
 }

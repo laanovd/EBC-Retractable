@@ -355,8 +355,8 @@ static void clicb_list_twai(cmd *c)
 }
 
 /********************************************************************
- * Setup TWAI handlers
- *******************************************************************/
+ * Command Line handler(s)
+ *********************************************************************/
 static void TWAI_cli_handlers(void)
 {
     cli.addCommand("twai", clicb_list_twai);

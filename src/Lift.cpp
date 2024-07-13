@@ -398,8 +398,8 @@ static void clicb_handler(cmd *c)
 }
 
 /********************************************************************
- * Setup TWAI handlers
- *******************************************************************/
+ * Command Line handler(s)
+ *********************************************************************/
 static void LIFT_setup_cli(void) {
   cli.addCommand("lift", clicb_handler);
 }

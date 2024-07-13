@@ -466,7 +466,7 @@ void WEBSERVER_cli_handlers(void) {
 }
 
 /********************************************************************
- *  Initialize the debug tasks
+ *  Initialize tasks
  *
  *********************************************************************/
 static void WEBSERVER_setup_tasks(void) {

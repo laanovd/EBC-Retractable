@@ -209,7 +209,7 @@ static void DEBUG_main_task(void *parameter) {
 }
 
 /********************************************************************
- *  Initialize the debug tasks
+ *  Initialize tasks
  *   
  *********************************************************************/
 static void DEBUG_setup_tasks(void) {
@@ -225,8 +225,7 @@ static void DEBUG_setup_queue(void) {
 }
 
 /********************************************************************
- *  Initialize the command line handlers
- *   
+ * Command Line handler(s)
  *********************************************************************/
 static void CLI_handlers(void) {
   cli.addCommand("bus", clicb_toggle_bus);

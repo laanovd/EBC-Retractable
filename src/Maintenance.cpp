@@ -99,8 +99,52 @@ String MAINTENANCE_string(void) {
 
   String text = "--- MAINTENANCE ---";
 
-  text.concat("\r\nMAINTENANCE...: ");
-  text.concat(doc[JSON_MAINTENANCE_ENABLED].as<bool>() ? "ON" : "OFF");
+  text.concat("\r\nMAINTENANCE mode enabled: ");
+  text.concat(doc[JSON_MAINTENANCE_ENABLED].as<bool>() ? "YES" : "NO");
+
+  text.concat("\r\nEmergency stop: ");
+  text.concat(doc[JSON_MAINTENANCE_ENABLED].as<bool>() ? "OK" : "STOP");
+
+  text.concat("\r\nLift enabled: ");
+  text.concat(doc[JSON_LIFT_ENABLED].as<bool>() ? "YES" : "NO");
+  text.concat(", homing: ");
+  text.concat(doc[JSON_LIFT_HOMING].as<bool>() ? "YES" : "NO");
+
+  text.concat("\r\nLift UP: motor: ");
+  text.concat(doc[JSON_LIFT_MOTOR_UP].as<bool>() ? "ON" : "OFF");
+  text.concat(", sensor: ");
+  text.concat(doc[JSON_LIFT_SENSOR_UP].as<bool>() ? "ON" : "OFF");
+
+  text.concat("\r\nLift DOWN: motor: ");
+  text.concat(doc[JSON_LIFT_MOTOR_DOWN].as<bool>() ? "ON" : "OFF");
+  text.concat(", sensor: ");
+  text.concat(doc[JSON_LIFT_SENSOR_DOWN].as<bool>() ? "ON" : "OFF");
+
+  text.concat("\r\nDMC enabled: ");
+  text.concat(doc[JSON_DMC_ENABLED].as<bool>() ? "YES" : "NO");
+
+  text.concat("\r\nAZIMUTH enabled: ");
+  text.concat(doc[JSON_AZIMUTH_ENABLED].as<bool>() ? "YES" : "NO");
+  text.concat(", homing: ");
+  text.concat(doc[JSON_AZIMUTH_HOME].as<bool>() ? "YES" : "NO");
+
+  text.concat("\r\nAZIMUTH voltages: left: ");
+  text.concat(doc[JSON_AZIMUTH_LEFT_V].as<float>());
+  text.concat(", right: ");
+  text.concat(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
+  text.concat(", actual: ");
+  text.concat(doc[JSON_AZIMUTH_ACTUAL_V].as<float>());
+
+  text.concat("\r\nAZIMUTH steering: maunal: ");
+  text.concat(doc[JSON_AZIMUTH_MANUAL].as<int>());
+  text.concat(", calculated: ");
+  text.concat(doc[JSON_AZIMUTH_STEERING].as<int>());
+
+  text.concat("\r\nAZIMUTH output enabled:  ");
+  text.concat(doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() ? "YES" : "NO");
+
+  text.concat("\r\nAZIMUTH dela-to-the-middle:  ");
+  text.concat(doc[JSON_DELAY_TO_MIDDLE].as<int>());
 
   text.concat("\r\n");
   return text;
@@ -260,13 +304,11 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
   /* Steering set LEFT voltage */
   if (doc.containsKey(JSON_AZIMUTH_LEFT_V)) {
     AZIMTUH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
-    // maintenance_data[JSON_AZIMUTH_LEFT_V] = doc[JSON_AZIMUTH_LEFT_V].as<float>();
   }
 
   /* Steering set RIGHT voltage */
   if (doc.containsKey(JSON_AZIMUTH_RIGHT_V)) {
     AZIMTUH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
-    // maintenance_data[JSON_AZIMUTH_RIGHT_V] = doc[JSON_AZIMUTH_RIGHT_V].as<float>();
   }
 
   /* Steering manual control (%) */
@@ -400,7 +442,7 @@ void MAINTENANCE_main(void *parameter) {
 }
 
 /********************************************************************
- *  Initialize the debug tasks
+ *  Initialize tasks
  *
  *********************************************************************/
 static void MAINTENANCE_setup_tasks(void) {
@@ -408,10 +450,19 @@ static void MAINTENANCE_setup_tasks(void) {
 }
 
 /********************************************************************
+ * Command Line handler(s)
+ *********************************************************************/
+static void MAINTENANCE_cli_handlers(void) {
+  // cli.addCommand("maintenance", clicb_list_wifi);
+  // cli.addCommand("mtc", clicb_list_wifi);
+}
+
+/********************************************************************
  * Setup
  *******************************************************************/
 void MAINTENANCE_setup(void) {
   MAINTENANCE_json_init();
+  MAINTENANCE_cli_handlers();
   setup_uri(&MAINTENANCE_api_handlers);
 
   Serial.println("MAINTENANCE setup completed...");

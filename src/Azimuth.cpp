@@ -58,7 +58,7 @@ static JsonDocument AZIMUTH_json(void) {
 
   AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = AZIMUTH_to_the_middle_delay();
 
-  AZIMUTH_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_wheel(); // 0 ... 100%
+  AZIMUTH_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_wheel();  // 0 ... 100%
 
   AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = AZIMUTH_to_the_middle_delay();
 
@@ -235,7 +235,16 @@ void AZIMTUH_set_right(float value) {
 }
 
 float AZIMTUH_get_actual(void) {
-  return AZIMUTH_get_right_output();
+  int value = AZIMUTH_get_right_output();
+
+  float output = mapf(
+      (float)value,
+      ADC_MAX,
+      ADC_MAX,
+      0.0,
+      5.0);
+
+  return output;
 }
 
 int AZIMUTH_to_the_middle_delay(void) {
@@ -278,11 +287,11 @@ void AZIMUTH_set_steering(int value) {
   value = max(min(1024, value), 0);
 
   float output = mapf(
-    (float) value,
-    ADC_MAX,
-    ADC_MAX,
-    0.0,
-    5.0);
+      (float)value,
+      ADC_MAX,
+      ADC_MAX,
+      0.0,
+      5.0);
 
   AZIMUTH_set_right_output((int)round(output));
 #ifdef ENABLE_LEFT_OUTPUT
@@ -294,11 +303,11 @@ float AZIMUTH_get_steering(void) {
   int value = AZIMUTH_get_right_output();
 
   float output = mapf(
-    (float) value,
-    0.0,
-    1024.0,
-    0.0,
-    5.0);
+      (float)value,
+      0.0,
+      1024.0,
+      0.0,
+      5.0);
 
   return output;
 }
@@ -313,7 +322,7 @@ void AZIMUTH_update(void *parameter) {
   while (true) {
     if (AZIMUTH_enabled() && AZIMUTH_output_enabled()) {
       i = STEERING_WHEEL_read();  // 0...1024
-      AZIMUTH_set_steering(i); // 0...1024
+      AZIMUTH_set_steering(i);    // 0...1024
     }
 
     vTaskDelay(200 / portTICK_PERIOD_MS);
