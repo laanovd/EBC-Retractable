@@ -1,6 +1,6 @@
 // Load data
 const data_static = {
-    "maintenance_enable": false,
+    "maintenance_enabled": false,
     "emergency_stop": false,
     "lift_enabled": false,
     "lift_motor_up": false,
@@ -8,7 +8,7 @@ const data_static = {
     "lift_sensor_up": false,
     "lift_sensor_down": false,
     "lift_homing": false,
-    "dmc_enable": false,
+    "dmc_enabled": false,
     "steering_enabled": false,
     "steering_left_volt": 0,
     "steering_right_volt": 0,

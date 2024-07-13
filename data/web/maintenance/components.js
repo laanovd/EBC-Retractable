@@ -2,7 +2,7 @@
 const elm_id_maintenance_on = "maintenance_button_on"
 const elm_id_maintenance_off = "maintenance_button_off"
 const elm_id_maintenance_loading = "maintenance_button_loading"
-const json_key_maintenance = "maintenance_enable"
+const json_key_maintenance = "maintenance_enabled"
 
 function INIT_maintenance_button() {
     const btn_on = document.querySelector(`#${elm_id_maintenance_on}`);

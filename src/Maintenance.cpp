@@ -63,7 +63,7 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_ACTUAL_V] = 0.0;
   maintenance_data[JSON_AZIMUTH_MANUAL] = false;
   maintenance_data[JSON_AZIMUTH_STEERING] = 0;
-  maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLE] = false;
+  maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = false;
   maintenance_data[JSON_DELAY_TO_MIDDLE] = 0;
 
   WEBSOCKET_send_doc(maintenance_data);
@@ -250,8 +250,8 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
   }
 
   /* Steering analog output enable */
-  if (doc.containsKey(JSON_AZIMUTH_OUTPUT_ENABLE)) {
-    if (doc[JSON_AZIMUTH_OUTPUT_ENABLE].as<bool>() == true)
+  if (doc.containsKey(JSON_AZIMUTH_OUTPUT_ENABLED)) {
+    if (doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() == true)
       MAINTENANCE_azimuth_enable();
     else
       AZIMUTH_disable();
