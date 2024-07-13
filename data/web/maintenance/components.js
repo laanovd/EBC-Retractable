@@ -1,10 +1,10 @@
-// Emergency stop
+// Maintenance button
 const elm_id_maintenance_enabled = "maintenance_enabled"
 const elm_id_maintenance_on = "maintenance_button_on"
 const elm_id_maintenance_off = "maintenance_button_off"
 const elm_id_maintenance_loading = "maintenance_button_loading"
 const json_key_maintenance_enabled = "maintenance_enabled"
-
+let maintenance_mode = false;
 function INIT_maintenance_button() {
     const elm = document.querySelector(`#${elm_id_maintenance_enabled}`)
     elm.addEventListener("click", (e) => {
@@ -16,7 +16,8 @@ function INIT_maintenance_button() {
 
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_maintenance_enabled)) {
-            set_maintenance_button(JSON.parse(data[json_key_maintenance_enabled]));
+            maintenance_mode = JSON.parse(data[json_key_maintenance_enabled])
+            set_maintenance_button(maintenance_mode);
         }
     })
 }
@@ -62,8 +63,10 @@ function INIT_extend_enabled() {
     elm.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        elm.disabled = true;
-        sendCommand(JSON.stringify({ [json_key_extend]: e.target.checked }));
+        if (maintenance_mode) {
+            elm.disabled = true;
+            sendCommand(JSON.stringify({ [json_key_extend]: e.target.checked }));
+        }
     });
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_extend))
@@ -97,8 +100,10 @@ function INIT_retract_enable() {
     elm.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        elm.disabled = true;
-        sendCommand(JSON.stringify({ [json_key_retract]: e.target.checked }));
+        if (maintenance_mode) {
+            elm.disabled = true;
+            sendCommand(JSON.stringify({ [json_key_retract]: e.target.checked }));
+        }
     });
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_retract))
@@ -119,8 +124,10 @@ function INIT_dmc_enabled() {
     elm.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        elm.disabled = true;
-        sendCommand(JSON.stringify({ [json_key_dmc_enabled]: e.target.checked }));
+        if (maintenance_mode) {
+            elm.disabled = true;
+            sendCommand(JSON.stringify({ [json_key_dmc_enabled]: e.target.checked }));
+        }
     });
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_dmc_enabled))
@@ -133,6 +140,54 @@ function set_dmc_enabled(value) {
     elm.disabled = false;
 }
 
+// Lift homing
+const elm_id_lift_homing = "lift_homing"
+const json_key_lift_homing = "lift_homing"
+function INIT_lift_homing() {
+    const elm = document.querySelector(`#${elm_id_lift_homing}`);
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (maintenance_mode) {
+            elm.disabled = true;
+            sendCommand(JSON.stringify({ [json_key_lift_homing]: e.target.checked }));
+        }
+    });
+    addMessageHandler((data) => {
+        if (data.hasOwnProperty(json_key_lift_homing))
+            set_lift_homing(JSON.parse(data[json_key_lift_homing]));
+    })
+}
+function set_lift_homing(value) {
+    const elm = document.querySelector(`#${elm_id_lift_homing}`);
+    elm.checked = value;
+    elm.disabled = false;
+}
+
+// Azimuth homing
+const elm_id_azimuth_homing = "azimuth_homing"
+const json_key_azimuth_homing = "azimuth_homing"
+function INIT_azimuth_homing() {
+    const elm = document.querySelector(`#${elm_id_azimuth_homing}`);
+    elm.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (maintenance_mode) {
+            elm.disabled = true;
+            sendCommand(JSON.stringify({ [json_key_azimuth_homing]: e.target.checked }));
+        }
+    });
+    addMessageHandler((data) => {
+        if (data.hasOwnProperty(json_key_azimuth_homing))
+            set_azimuth_homing(JSON.parse(data[json_key_azimuth_homing]));
+    })
+}
+function set_azimuth_homing(value) {
+    const elm = document.querySelector(`#${elm_id_azimuth_homing}`);
+    elm.checked = value;
+    elm.disabled = false;
+}
+
 // Lift Enable
 const elm_id_lift_enabled = "lift_enabled"
 const json_key_lift_enabled = "lift_enabled"
@@ -141,8 +196,10 @@ function INIT_lift_enable() {
     elm.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        elm.disabled = true;
-        sendCommand(JSON.stringify({ [json_key_lift_enabled]: e.target.checked }));
+        if (maintenance_mode) {
+            elm.disabled = true;
+            sendCommand(JSON.stringify({ [json_key_lift_enabled]: e.target.checked }));
+        }
     });
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_lift_enabled))
@@ -163,8 +220,10 @@ function INIT_steering_enabled() {
     elm.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        elm.disabled = true;
-        sendCommand(JSON.stringify({ [json_key_steering_enabled]: e.target.checked }));
+        if (maintenance_mode) {
+            elm.disabled = true;
+            sendCommand(JSON.stringify({ [json_key_steering_enabled]: e.target.checked }));
+        }
     });
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_steering_enabled))
@@ -184,9 +243,11 @@ function INIT_output_enabled() {
     const elm = document.querySelector(`#${elm_id_output_enabled}`);
     elm.addEventListener("click", (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        elm.disabled = true;
-        sendCommand(JSON.stringify({ [json_key_output_enabled]: e.target.checked }));
+        if (maintenance_mode) {
+            e.stopPropagation();
+            elm.disabled = true;
+            sendCommand(JSON.stringify({ [json_key_output_enabled]: e.target.checked }));
+        }
     });
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_output_enabled))
@@ -206,10 +267,10 @@ let offset_right_current_value = 0;
 function INIT_steering_offset_right() {
     const elm = document.querySelector(`#${elm_id_offset_right}`);
     elm.addEventListener("change", (e) => {
-        elm.value = offset_right_current_value;
         const val = e.target.value;
-        if (val >= 0 && val <= 5 && val < offset_left_current_value)
-            sendCommand(JSON.stringify({ [json_key_offset_right]: e.target.value }));
+        elm.value = offset_right_current_value;
+        if (val >= 0 && val <= 5 && val > offset_left_current_value && maintenance_mode)
+            sendCommand(JSON.stringify({ [json_key_offset_right]: val }));
     });
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_offset_right)) {
@@ -230,10 +291,10 @@ let offset_left_current_value = 0;
 function INIT_steering_offset_left() {
     const elm = document.querySelector(`#${elm_id_offset_left}`);
     elm.addEventListener("change", (e) => {
-        elm.value = offset_left_current_value;
         const val = e.target.value;
-        if (val >= 0 && val <= 5 && val < offset_right_current_value)
-            sendCommand(JSON.stringify({ [json_key_offset_left]: e.target.value }));
+        elm.value = offset_left_current_value;
+        if (val >= 0 && val <= 5 && val < offset_right_current_value && maintenance_mode)
+            sendCommand(JSON.stringify({ [json_key_offset_left]: val }));
     });
     addMessageHandler((data) => {
         if (data.hasOwnProperty(json_key_offset_left)) {
@@ -295,6 +356,8 @@ document.addEventListener('DOMContentLoaded', function () {
     INIT_steering();
     INIT_output_enabled();
     INIT_dmc_enabled();
+    INIT_lift_homing();
+    INIT_azimuth_homing();
 
     addSingleMessageHandler((data) => { document.querySelector("#loading_overlay").classList.add("hidden") });
 }, false);

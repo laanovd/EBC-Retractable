@@ -59,10 +59,15 @@
         <hr>
 
         <div class="flex">
-            <div class="flex-1">
-                <button class="rounded bg-slate-200 text-slate-500 p-2 px-4">Homing</button>
+            <div class="group flex-1 flex">
+                <input type="checkbox" name="lift_homing" id="lift_homing" class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="lift_homing">
+                    <span>Homing (Lift)</span>
+                </label>
             </div>
-            <div class="group flex-1 mt-2">
+            <div class="group flex flex-1">
                 <input type="checkbox" name="lift_enabled" id="lift_enabled" class="hidden">
                 <label
                     class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -79,7 +84,7 @@
                     Retracted
                 </span>
             </div>
-            <div class="group flex-1">
+            <div class="group flex flex-1">
                 <input type="checkbox" name="retract" id="retract" class="hidden">
                 <label
                     class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -96,7 +101,7 @@
                     Extended
                 </span>
             </div>
-            <div class="group flex-1">
+            <div class="group flex-1 flex">
                 <input type="checkbox" name="extend" id="extend" class="hidden">
                 <label
                     class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -108,10 +113,8 @@
 
         <hr>
 
-
-
         <div class="flex">
-            <div class="group flex-1">
+            <div class="group flex-1 flex">
                 <input type="checkbox" name="dmc_enabled" id="dmc_enabled" class="hidden">
                 <label
                     class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -124,10 +127,15 @@
         <hr>
 
         <div class="flex">
-            <div class="flex-1">
-                <button class="rounded bg-slate-200 text-slate-500 p-2 px-4">Homing</button>
+            <div class="group flex-1 flex">
+                <input type="checkbox" name="azimuth_homing" id="azimuth_homing" class="hidden">
+                <label
+                    class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                    for="azimuth_homing">
+                    <span>Homing (Azimuth)</span>
+                </label>
             </div>
-            <div class="group flex-1">
+            <div class="group flex-1 flex">
                 <input type="checkbox" name="steering_enabled" id="steering_enabled" class="hidden">
                 <label
                     class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -138,7 +146,7 @@
         </div>
 
         <div class="flex">
-            <div class="group flex-1">
+            <div class="group flex-1 flex">
                 <input type="checkbox" name="output_enabled" id="output_enabled" class="hidden">
                 <label
                     class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
