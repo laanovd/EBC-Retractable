@@ -196,7 +196,7 @@ void AZIMUTH_start_homing() {
 }
 
 bool AZIMUTH_output_enabled() {
-  return digitalRead(AZIMUTH_ANALOG_ENABLE_PIN) == IO_ON;
+  return digitalRead(AZIMUTH_ANALOG_ENABLE_PIN) == HIGH;
 }
 
 void AZIMUTH_output_enable() {
@@ -205,6 +205,76 @@ void AZIMUTH_output_enable() {
 
 void AZIMUTH_output_disable() {
   digitalWrite(AZIMUTH_ANALOG_ENABLE_PIN, IO_OFF);
+}
+
+/*******************************************************************
+ * Get/Set steering
+ *******************************************************************/
+int AZIMUTH_get_wheel(void) {
+  /* Scale */
+  int position = map(
+      STEERING_WHEEL_read(),
+      ADC_MIN,
+      ADC_MAX,
+      0,
+      100);
+
+  return position;  // %
+}
+
+void AZIMUTH_set_steering(int value) {
+  value = max(min(1024, value), 0);
+
+  float output = mapf(
+      (float)value,
+      ADC_MIN,
+      ADC_MAX,
+      0.0,
+      5.0);
+
+  AZIMUTH_set_right_output((int)round(output));
+#ifdef ENABLE_LEFT_OUTPUT
+  AZIMUTH_set_left_output((int)round(output));
+#endif
+}
+
+static void AZIMUTH_set_output_manual(int value) {
+  value = max(min(100, value), 0);
+
+  int output = map(
+      value,
+      0, 
+      100,
+      DAC_MIN,
+      DAC_MAX);
+
+  AZIMUTH_set_steering(output);
+}
+
+float AZIMUTH_get_steering(void) {
+  int value = AZIMUTH_get_right_output();
+
+  float output = mapf(
+      (float)value,
+      0.0,
+      1024.0,
+      0.0,
+      5.0);
+
+  return output;
+}
+
+float AZIMTUH_get_actual(void) {
+  int value = AZIMUTH_get_right_output();
+
+  float output = mapf(
+      (float)value,
+      ADC_MAX,
+      ADC_MAX,
+      0.0,
+      5.0);
+
+  return output;
 }
 
 /*******************************************************************
@@ -234,17 +304,15 @@ void AZIMTUH_set_right(float value) {
   }
 }
 
-float AZIMTUH_get_actual(void) {
-  int value = AZIMUTH_get_right_output();
+void AZIMUTH_set_manual(int value) {
+  if ((value >= 0) && (value <= 100)) {
+    AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
+    AZIMUTH_set_output_manual(value);
+  }
+}
 
-  float output = mapf(
-      (float)value,
-      ADC_MAX,
-      ADC_MAX,
-      0.0,
-      5.0);
-
-  return output;
+int AZIMUTH_get_manual(void) {
+  return AZIMUTH_data[JSON_AZIMUTH_MANUAL];
 }
 
 int AZIMUTH_to_the_middle_delay(void) {
@@ -256,60 +324,6 @@ int AZIMUTH_to_the_middle_delay(void) {
 static void AZIMUTH_set_delay_to_the_middle(int value) {
   STORAGE_set_int(JSON_DELAY_TO_MIDDLE, value);
   AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = value;
-}
-
-void AZIMUTH_set_manual(int value) {
-  if ((value >= 0) && (value <= 100)) {
-    AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
-  }
-}
-
-int AZIMUTH_get_manual(void) {
-  return AZIMUTH_data[JSON_AZIMUTH_MANUAL];
-}
-
-/*******************************************************************
- * Set steering percentage
- *******************************************************************/
-int AZIMUTH_get_wheel(void) {
-  /* Scale */
-  int position = map(
-      STEERING_WHEEL_read(),
-      ADC_MIN,
-      ADC_MAX,
-      0,
-      100);
-
-  return position;  // %
-}
-
-void AZIMUTH_set_steering(int value) {
-  value = max(min(1024, value), 0);
-
-  float output = mapf(
-      (float)value,
-      ADC_MAX,
-      ADC_MAX,
-      0.0,
-      5.0);
-
-  AZIMUTH_set_right_output((int)round(output));
-#ifdef ENABLE_LEFT_OUTPUT
-  AZIMUTH_set_left_output((int)round(output));
-#endif
-}
-
-float AZIMUTH_get_steering(void) {
-  int value = AZIMUTH_get_right_output();
-
-  float output = mapf(
-      (float)value,
-      0.0,
-      1024.0,
-      0.0,
-      5.0);
-
-  return output;
 }
 
 /*******************************************************************

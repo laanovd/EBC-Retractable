@@ -149,7 +149,7 @@ String MAINTENANCE_string(void) {
   text.concat("\r\nAZIMUTH output enabled:  ");
   text.concat(doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() ? "YES" : "NO");
 
-  text.concat("\r\nAZIMUTH dela-to-the-middle:  ");
+  text.concat("\r\nAZIMUTH delay-to-the-middle:  ");
   text.concat(doc[JSON_DELAY_TO_MIDDLE].as<int>());
 
   text.concat("\r\n");
@@ -207,6 +207,12 @@ static void MAINTENANCE_azimuth_enable(void) {
   if (MAINTENANCE_enabled()) {
     AZIMUTH_enable();
     maintenance_data[JSON_AZIMUTH_ENABLED] = true;
+  }
+}
+
+static void MAINTENANCE_analog_enable(void) {
+  if (MAINTENANCE_enabled() && AZIMUTH_enabled()) {
+    AZIMUTH_output_enable();
   }
 }
 
@@ -348,9 +354,9 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Steering analog output enable */
   if (doc.containsKey(JSON_AZIMUTH_OUTPUT_ENABLED)) {
     if (doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() == true)
-      MAINTENANCE_azimuth_enable();
+      MAINTENANCE_analog_enable();
     else
-      AZIMUTH_disable();
+      AZIMUTH_output_disable();
     handeled++;
   }
 
