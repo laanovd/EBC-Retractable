@@ -16,6 +16,7 @@
 #include "Azimuth.h"
 #include "CLI.h"
 #include "Config.h"
+#include "Controller.h"
 #include "DMC.h"
 #include "Debug.h"
 #include "GPIO.h"
@@ -23,7 +24,6 @@
 #include "StateMachineLib.h"
 #include "Storage.h"
 #include "WebServer.h"
-#include "Controller.h"
 
 /*******************************************************************
  * Definitions
@@ -39,6 +39,8 @@
  * Local variables
  *******************************************************************/
 static JsonDocument maintenance_data;
+static int azimuth_homing_timer = 0;
+static int lift_homing_timer = 0;
 
 /********************************************************************
  * Internal JSON data
@@ -66,6 +68,8 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_STEERING] = 0;
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = false;
   maintenance_data[JSON_DELAY_TO_MIDDLE] = 0;
+  maintenance_data[JSON_AZIMUTH_HOME] = false;
+  maintenance_data[JSON_AZIMUTH_HOMING] = false;
 
   WEBSOCKET_send_doc(maintenance_data);
 }
@@ -88,6 +92,7 @@ static JsonDocument MAINTENANCE_json(void) {
   maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
   maintenance_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_wheel();
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_output_enabled();
+  maintenance_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
   return maintenance_data;
 }
@@ -126,7 +131,7 @@ String MAINTENANCE_string(void) {
 
   text.concat("\r\nAZIMUTH enabled: ");
   text.concat(doc[JSON_AZIMUTH_ENABLED].as<bool>() ? "YES" : "NO");
-  text.concat(", homing: ");
+  text.concat(", home: ");
   text.concat(doc[JSON_AZIMUTH_HOME].as<bool>() ? "YES" : "NO");
 
   text.concat("\r\nAZIMUTH voltages: left: ");
@@ -156,10 +161,10 @@ String MAINTENANCE_string(void) {
  *******************************************************************/
 /********************************************************************
  * Enables maintenance mode if the emergency stop is not active.
- * 
+ *
  * This function enables maintenance mode if the emergency stop is not active.
  * The maintenance mode allows performing maintenance tasks on the system.
- * 
+ *
  * @note If the emergency stop is active, the maintenance mode will not be enabled.
  *******************************************************************/
 void MAINTENANCE_enable(void) {
@@ -170,8 +175,8 @@ void MAINTENANCE_enable(void) {
 
 /********************************************************************
  * Disables the maintenance mode.
- * 
- * This function disables maintenance mode and disables 
+ *
+ * This function disables maintenance mode and disables
  * the DMC, LIFT, and AZIMUTH subsystems.
  *******************************************************************/
 void MAINTENANCE_disable(void) {
@@ -233,6 +238,9 @@ static void MAINTENANCE_lift_retract(void) {
 
 static void MAINTENANCE_lift_homing(void) {
   if (MAINTENANCE_enabled() && LIFT_enabled()) {
+    maintenance_data[JSON_LIFT_HOMING] = true;
+    LIFT_start_homing();
+    lift_homing_timer = 20;
   }
 }
 
@@ -250,13 +258,19 @@ static bool MAINTENANCE_steering_enabled(void) {
   return maintenance_data[JSON_AZIMUTH_ENABLED].as<bool>();
 }
 
+static void MAINTENANCE_steering_homing(void) {
+  maintenance_data[JSON_AZIMUTH_HOMING] = true;
+  AZIMUTH_start_homing();
+  azimuth_homing_timer = 20;
+}
+
 /********************************************************************
  * @brief Handles the maintenance commands received from the API.
- * 
+ *
  * This function parses the JSON data and performs the corresponding actions based on the received commands.
- * 
+ *
  * @param data The JSON data containing the maintenance commands.
- * 
+ *
  * @return DeserializationError The error status of the JSON deserialization process.
  *********************************************************************/
 int MAINTENANCE_command_handler(const char *data) {
@@ -265,7 +279,7 @@ int MAINTENANCE_command_handler(const char *data) {
 
   DeserializationError error = deserializeJson(doc, data);
   if (error != DeserializationError::Ok) {
-    return -1; // DeserializationError
+    return -1;  // DeserializationError
   }
 
 #ifdef DEBUG_API
@@ -360,12 +374,12 @@ int MAINTENANCE_command_handler(const char *data) {
 
   if (handeled == 0) {
 #ifdef DEBUG_WEBSOCKET
-    Serail.println(F("MAINTENANCE no commands handled"))    
+    Serail.println(F("MAINTENANCE no commands handled"))
 #endif
-    handeled  = -2; // no command found
+        handeled = -2;  // no command found
   }
-  
-  return handeled; // Ok is handeled > 0
+
+  return handeled;  // Ok is handeled > 0
 }
 
 /********************************************************************
@@ -411,6 +425,20 @@ static void MAINTENACE_websocket_task(void *parameter) {
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
     WEBSOCKET_update_doc(MAINTENANCE_json());
+
+    if (lift_homing_timer > 0) {
+      lift_homing_timer--;
+      if (LIFT_HOME_sensor() || lift_homing_timer == 0) {
+        maintenance_data[JSON_LIFT_HOMING] = false;
+      }
+    }
+
+    if (azimuth_homing_timer >= 0) {
+      azimuth_homing_timer--;
+      if (azimuth_homing_timer == 0) {
+        maintenance_data[JSON_AZIMUTH_HOMING] = false;
+      }
+    }
   }
 }
 
@@ -515,7 +543,7 @@ void MAINTENANCE_setup(void) {
 }
 
 /********************************************************************
- * Start 
+ * Start
  *******************************************************************/
 void MAINTENANCE_start(void) {
   MAINTENANCE_disable();

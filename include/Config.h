@@ -81,7 +81,7 @@ typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bo
  * LIFT PCF8574 pin numbers
  *******************************************************************/
 #define LIFT_ENABLE_PIN 0
-#define LIFT_HOMING_PIN 2
+#define LIFT_START_HOMING_PIN 2
 #define LIFT_MOTOR_UP_PIN 3
 #define LIFT_MOTOR_DOWN_PIN 1
 
@@ -93,6 +93,7 @@ typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bo
 
 #define LIFT_SENSOR_UP_PIN 36
 #define LIFT_SENSOR_DOWN_PIN 39
+#define LIFT_SENSOR_HOME_PIN 19
 
 #define LIFT_BUTTON_UP_PIN 23
 #define LIFT_BUTTON_DOWN_PIN 25

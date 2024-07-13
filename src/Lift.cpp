@@ -176,6 +176,13 @@ void LIFT_DOWN_off(void) {
 #endif
 }
 
+void LIFT_start_homing() {
+  PCF8574_write(PCF8574_address, LIFT_START_HOMING_PIN, IO_ON);
+  vTaskDelay(500 / portTICK_PERIOD_MS);
+  PCF8574_write(PCF8574_address, LIFT_START_HOMING_PIN, IO_ON);
+}
+
+
 /*******************************************************************
  * Lift position
  *******************************************************************/
@@ -188,7 +195,7 @@ bool LIFT_DOWN_sensor(void) {
 }
 
 bool LIFT_HOME_sensor(void) {
-  return digitalRead(LIFT_HOMING_PIN) == HIGH  ? true : false;
+  return digitalRead(LIFT_SENSOR_HOME_PIN) == HIGH  ? true : false;
 }
 
 static void LIFT_position_check(void) {

@@ -12,6 +12,7 @@
  *******************************************************************/
 #define JSON_LIFT_ENABLED "lift_enabled"
 #define JSON_LIFT_HOMING "lift_homing"
+#define JSON_LIFT_HOME "lift_home"
 #define JSON_LIFT_MOTOR_UP "lift_motor_up"
 #define JSON_LIFT_MOTOR_DOWN "lift_motor_down"
 #define JSON_LIFT_SENSOR_UP "lift_sensor_up"
@@ -38,6 +39,7 @@ extern void LIFT_DOWN_on(void);
 extern void LIFT_DOWN_off(void);
 extern bool LIFT_UP_moving(void);
 extern bool LIFT_DOWN_moving(void);
+extern void LIFT_start_homing();
 
 /*******************************************************************
  * Lift position
