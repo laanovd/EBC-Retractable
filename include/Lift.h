@@ -8,7 +8,7 @@
 #define EBC_LIFT_HEADER
 
 /*******************************************************************
- * RESTfull API keys
+ * JSON and Websocket keys
  *******************************************************************/
 #define JSON_LIFT_ENABLED "lift_enabled"
 #define JSON_LIFT_HOMING "lift_homing"

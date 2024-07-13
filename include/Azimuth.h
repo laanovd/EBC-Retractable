@@ -8,7 +8,7 @@
 #define AZIMUTH_HEADER
 
 /*******************************************************************
- * RESTfull API keys
+ * JSON and Websocket keys
  *******************************************************************/
 #define JSON_AZIMUTH_ENABLED "steering_enabled"
 #define JSON_AZIMUTH_HOME "steering_home"

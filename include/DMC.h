@@ -8,7 +8,7 @@
 #define DMC_HEADER
 
 /*******************************************************************
- * RESTfull API keys
+ * JSON and Websocket keys
  *******************************************************************/
 #define JSON_DMC_ENABLED "dmc_enabled"
 

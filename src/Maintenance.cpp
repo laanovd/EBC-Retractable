@@ -30,7 +30,7 @@
 #define DEBUG
 
 /*******************************************************************
- * RESTfull API keys
+ * JSON and Websocket keys
  *******************************************************************/
 #define JSON_MAINTENANCE_ENABLED "maintenance_enabled"
 

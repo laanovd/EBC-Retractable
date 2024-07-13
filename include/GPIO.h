@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 /*******************************************************************
- * RESTfull API keys
+ * JSON and Websocket keys
  *******************************************************************/
 #define JSON_EMERGENCY_STOP "emergency_stop"
 
