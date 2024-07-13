@@ -165,8 +165,8 @@ function set_lift_homing(value) {
 }
 
 // Azimuth homing
-const elm_id_azimuth_homing = "azimuth_homing"
-const json_key_azimuth_homing = "azimuth_homing"
+const elm_id_azimuth_homing = "steering_homing"
+const json_key_azimuth_homing = "steering_homing"
 function INIT_azimuth_homing() {
     const elm = document.querySelector(`#${elm_id_azimuth_homing}`);
     elm.addEventListener("click", (e) => {

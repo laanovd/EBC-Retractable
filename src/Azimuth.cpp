@@ -50,7 +50,7 @@ static JsonDocument AZIMUTH_json(void) {
   AZIMUTH_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
   AZIMUTH_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
-  AZIMUTH_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_output_enabled();
+  AZIMUTH_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
 
   AZIMUTH_data[JSON_AZIMUTH_LEFT_V] = AZIMTUH_get_left();
   AZIMUTH_data[JSON_AZIMUTH_RIGHT_V] = AZIMTUH_get_right();
@@ -195,16 +195,26 @@ void AZIMUTH_start_homing() {
   PCF8574_write(PCF8574_address, AZIMUTH_START_HOMING_PIN, IO_ON);
 }
 
-bool AZIMUTH_output_enabled() {
+bool AZIMUTH_analog_enabled() {
   return digitalRead(AZIMUTH_ANALOG_ENABLE_PIN) == HIGH;
 }
 
-void AZIMUTH_output_enable() {
-  digitalWrite(AZIMUTH_ANALOG_ENABLE_PIN, IO_ON);
+void AZIMUTH_analog_enable() {
+  if (AZIMUTH_enabled()) {
+    digitalWrite(AZIMUTH_ANALOG_ENABLE_PIN, IO_ON);
+
+#ifdef DEBUG_AZIMUTH
+    Serial.println("Azimuth output enable");
+#endif
+  }
 }
 
-void AZIMUTH_output_disable() {
+void AZIMUTH_analog_disable() {
   digitalWrite(AZIMUTH_ANALOG_ENABLE_PIN, IO_OFF);
+
+#ifdef DEBUG_AZIMUTH
+  Serial.println("Azimuth output disable");
+#endif
 }
 
 /*******************************************************************
@@ -238,12 +248,12 @@ void AZIMUTH_set_steering(int value) {
 #endif
 }
 
-static void AZIMUTH_set_output_manual(int value) {
+void AZIMUTH_set_output_manual(int value) {
   value = max(min(100, value), 0);
 
   int output = map(
       value,
-      0, 
+      0,
       100,
       DAC_MIN,
       DAC_MAX);
@@ -312,7 +322,7 @@ void AZIMUTH_set_manual(int value) {
 }
 
 int AZIMUTH_get_manual(void) {
-  return AZIMUTH_data[JSON_AZIMUTH_MANUAL];
+  return AZIMUTH_data[JSON_AZIMUTH_MANUAL].as<int>();
 }
 
 int AZIMUTH_to_the_middle_delay(void) {
@@ -334,7 +344,7 @@ void AZIMUTH_update(void *parameter) {
   int i;
 
   while (true) {
-    if (AZIMUTH_enabled() && AZIMUTH_output_enabled()) {
+    if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
       i = STEERING_WHEEL_read();  // 0...1024
       AZIMUTH_set_steering(i);    // 0...1024
     }

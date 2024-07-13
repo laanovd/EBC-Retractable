@@ -405,12 +405,7 @@ static bool fnEmergencyStopToCalibrating() {
     // TODO: Clear error not calibrated
     return true;
   }
-
   return false;
-}
-
-static bool fnAnyToMantenance() {
-  return CONTROLLER_maintenance_requested();
 }
 
 /*******************************************************************
@@ -418,7 +413,7 @@ static bool fnAnyToMantenance() {
  *******************************************************************/
 static void fnStateMaintenace() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State MAINTENACE enter.");
+  Serial.println("State MAINTENACE mode enter.");
 #endif
 
   DMC_disable();
@@ -431,12 +426,15 @@ static void fnStateMaintenace() {
 static bool fnMainenanceToNoPosition() {
   if (!MAINTENANCE_enabled())  {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State MAINTENACE leave.");
+  Serial.println("State MAINTENACE mode leave.");
 #endif
     return true;
   }
-
   return false;
+}
+
+static bool fnAnyToMantenance() {
+  return CONTROLLER_maintenance_requested();
 }
 
 /*******************************************************************

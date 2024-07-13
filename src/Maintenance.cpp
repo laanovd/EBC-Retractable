@@ -79,19 +79,22 @@ static JsonDocument MAINTENANCE_json(void) {
 
   // Lift
   maintenance_data[JSON_LIFT_ENABLED] = LIFT_enabled();
+  maintenance_data[JSON_LIFT_MOTOR_UP] = LIFT_UP_moving();
   maintenance_data[JSON_LIFT_SENSOR_UP] = LIFT_UP_sensor();
+  maintenance_data[JSON_LIFT_MOTOR_DOWN] = LIFT_DOWN_moving();
   maintenance_data[JSON_LIFT_SENSOR_DOWN] = LIFT_DOWN_sensor();
 
   // DMC
   maintenance_data[JSON_DMC_ENABLED] = DMC_enabled();
 
   // Steering
+  maintenance_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
+  maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
   maintenance_data[JSON_AZIMUTH_LEFT_V] = AZIMTUH_get_left();
   maintenance_data[JSON_AZIMUTH_RIGHT_V] = AZIMTUH_get_right();
   maintenance_data[JSON_AZIMUTH_ACTUAL_V] = AZIMTUH_get_actual();
   maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
   maintenance_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_wheel();
-  maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_output_enabled();
   maintenance_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
   return maintenance_data;
@@ -199,30 +202,44 @@ bool MAINTENANCE_enabled(void) {
 static void MAINTENANCE_dmc_enable(void) {
   if (MAINTENANCE_enabled()) {
     DMC_enable();
-    maintenance_data[JSON_DMC_ENABLED] = true;
   }
 }
 
 static void MAINTENANCE_azimuth_enable(void) {
   if (MAINTENANCE_enabled()) {
     AZIMUTH_enable();
-    maintenance_data[JSON_AZIMUTH_ENABLED] = true;
   }
 }
 
 static void MAINTENANCE_analog_enable(void) {
   if (MAINTENANCE_enabled() && AZIMUTH_enabled()) {
-    AZIMUTH_output_enable();
+    AZIMUTH_analog_enable();
   }
 }
 
-static void MAINTENANCE_lift_disable(void) {
-  LIFT_disable();
+static void MAINTENANCE_azimuth_homing(void) {
+  maintenance_data[JSON_AZIMUTH_HOMING] = true;
+  AZIMUTH_start_homing();
+  azimuth_homing_timer = 20;
 }
 
 static void MAINTENANCE_lift_enable(void) {
   if (MAINTENANCE_enabled()) {
     LIFT_enable();
+  }
+}
+
+static void MAINTENANCE_lift_motor_up(void) {
+  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+    LIFT_UP_on();
+    LIFT_DOWN_off();
+  }
+}
+
+static void MAINTENANCE_lift_motor_down(void) {
+  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+    LIFT_DOWN_on();
+    LIFT_UP_off();
   }
 }
 
@@ -250,26 +267,6 @@ static void MAINTENANCE_lift_homing(void) {
   }
 }
 
-static void MAINTENANCE_steering_disable(void) {
-  AZIMUTH_disable();
-}
-
-static void MAINTENANCE_steering_enable(void) {
-  if (MAINTENANCE_enabled()) {
-    maintenance_data[JSON_AZIMUTH_ENABLED] = true;
-  }
-}
-
-static bool MAINTENANCE_steering_enabled(void) {
-  return maintenance_data[JSON_AZIMUTH_ENABLED].as<bool>();
-}
-
-static void MAINTENANCE_steering_homing(void) {
-  maintenance_data[JSON_AZIMUTH_HOMING] = true;
-  AZIMUTH_start_homing();
-  azimuth_homing_timer = 20;
-}
-
 /********************************************************************
  * @brief Handles the maintenance commands received from the API.
  *
@@ -290,7 +287,7 @@ int MAINTENANCE_command_handler(const char *data) {
 
 #ifdef DEBUG_API
   String str;
-  Serial.print(F("MAINETNACE COMMAND HANDLER received: "));
+  Serial.print(F("MAINTENACE COMMAND HANDLER received: "));
   serializeJson(doc, str);
   Serial.println(str);
 #endif
@@ -309,14 +306,7 @@ int MAINTENANCE_command_handler(const char *data) {
     if (doc[JSON_LIFT_ENABLED].as<bool>() == true)
       MAINTENANCE_lift_enable();
     else
-      MAINTENANCE_lift_disable();
-    handeled++;
-  }
-
-  /* Lift RETRACT */
-  if (doc.containsKey(JSON_LIFT_SENSOR_UP)) {
-    if (doc[JSON_LIFT_SENSOR_UP].as<bool>() == true)
-      MAINTENANCE_lift_retract();
+      LIFT_disable();
     handeled++;
   }
 
@@ -333,6 +323,20 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
+  /* Lift UP */
+  if (doc.containsKey(JSON_LIFT_MOTOR_UP)) {
+    if (doc[JSON_LIFT_MOTOR_UP].as<bool>() == true) 
+    MAINTENANCE_lift_motor_up();
+    handeled++;
+  }
+
+  /* Lift DOWN */
+  if (doc.containsKey(JSON_LIFT_MOTOR_DOWN)) {
+    if (doc[JSON_LIFT_MOTOR_DOWN].as<bool>() == true) 
+    MAINTENANCE_lift_motor_down();
+    handeled++;
+  }
+
   /* DMC enable */
   if (doc.containsKey(JSON_DMC_ENABLED)) {
     if (doc[JSON_DMC_ENABLED].as<bool>() == true)
@@ -345,9 +349,9 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Steering enable */
   if (doc.containsKey(JSON_AZIMUTH_ENABLED)) {
     if (doc[JSON_AZIMUTH_ENABLED].as<bool>() == true)
-      MAINTENANCE_steering_enable();
+      MAINTENANCE_azimuth_enable();
     else
-      MAINTENANCE_steering_disable();
+      AZIMUTH_disable();
     handeled++;
   }
 
@@ -356,7 +360,7 @@ int MAINTENANCE_command_handler(const char *data) {
     if (doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() == true)
       MAINTENANCE_analog_enable();
     else
-      AZIMUTH_output_disable();
+      AZIMUTH_analog_disable();
     handeled++;
   }
 
@@ -372,6 +376,13 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
+  /* Steering start homing */
+  if (doc.containsKey(JSON_AZIMUTH_HOMING)) {
+    if (doc[JSON_AZIMUTH_HOMING].as<bool>() == true)
+      MAINTENANCE_azimuth_homing();
+    handeled++;
+  }
+
   /* Steering manual control (%) */
   if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
@@ -380,7 +391,7 @@ int MAINTENANCE_command_handler(const char *data) {
 
   if (handeled == 0) {
 #ifdef DEBUG_WEBSOCKET
-    Serail.println(F("MAINTENANCE no commands handled"))
+    Serail.println(F("MAINTENANCE mode no commands handled"))
 #endif
         handeled = -2;  // no command found
   }
@@ -432,13 +443,15 @@ static void MAINTENACE_websocket_task(void *parameter) {
 
     WEBSOCKET_update_doc(MAINTENANCE_json());
 
-    if (lift_homing_timer > 0) {
+    /* After countdown lift disable status homing */
+    if (lift_homing_timer >= 0) {
       lift_homing_timer--;
       if (LIFT_HOME_sensor() || lift_homing_timer == 0) {
         maintenance_data[JSON_LIFT_HOMING] = false;
       }
     }
 
+    /* After countdown azimuth disable status homing */
     if (azimuth_homing_timer >= 0) {
       azimuth_homing_timer--;
       if (azimuth_homing_timer == 0) {
@@ -460,7 +473,7 @@ void MAINTENANCE_dmc_control(void) {
 }
 
 void MAINTENANCE_lift_control(void) {
-  if (!LIFT_enabled()) {
+  if (LIFT_enabled()) {
     // TODO: LIFT control
     return;
   }
@@ -469,21 +482,17 @@ void MAINTENANCE_lift_control(void) {
 }
 
 void MAINTENANCE_steering_control(void) {
-  if (!MAINTENANCE_steering_enabled()) {
+  if (AZIMUTH_enabled()) {
     // TODO: STEERING control
     return;
   }
-
-  // TODO: STEERING control
 }
 
 void MAINTENANCE_steering_output_control(void) {
-  if (!AZIMUTH_enabled()) {
-    // TODO: STEERING output control
+  if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
+    AZIMUTH_set_output_manual(AZIMUTH_get_manual());
     return;
   }
-
-  // TODO: STEERING output control
 }
 
 /********************************************************************

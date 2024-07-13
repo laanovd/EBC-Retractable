@@ -19,7 +19,7 @@
 #define JSON_AZIMUTH_MANUAL "steering_manual"
 #define JSON_AZIMUTH_STEERING "steering_steer_wheel"
 #define JSON_AZIMUTH_OUTPUT_ENABLED "steering_analog_out_enabled"
-#define JSON_DELAY_TO_MIDDLE "azimuth_delay_to_the_middle"
+#define JSON_DELAY_TO_MIDDLE "steering_delay_to_the_middle"
 
 /*******************************************************************
  * Azimuth
@@ -35,6 +35,7 @@ extern void AZIMTUH_set_left(float value);
 extern float AZIMTUH_get_right(void);
 extern void AZIMTUH_set_right(float value);
 extern void AZIMUTH_set_steering(int value);
+extern void AZIMUTH_set_output_manual(int value);
 
 extern int AZIMUTH_read_steer(void);
 
@@ -48,9 +49,9 @@ extern int AZIMUTH_get_wheel(void);
 extern bool AZIMUTH_home();
 extern void AZIMUTH_start_homing();
 
-extern bool AZIMUTH_output_enabled();
-extern void AZIMUTH_output_enable();
-extern void AZIMUTH_output_disable();
+extern bool AZIMUTH_analog_enabled();
+extern void AZIMUTH_analog_enable();
+extern void AZIMUTH_analog_disable();
 
 extern void AZIMUTH_setup();
 extern void AZIMUTH_start();
