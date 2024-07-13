@@ -11,7 +11,6 @@
  * RESTfull API keys
  *******************************************************************/
 #define JSON_DMC_ENABLE "dmc_enable"
-#define JSON_DMC_ENABLED "dmc_enabled"
 
 /*******************************************************************
  * DMC enable

@@ -21,6 +21,11 @@
  *******************************************************************/
 #define DEBUG_AZIMUTH
 
+#define ADC_MIN 0
+#define ADC_MAX 4096
+#define DAC_MIN 0
+#define DAC_MAX 4996
+
 #undef ENABLE_LEFT_OUTPUT  // No left output use yet
 
 /*******************************************************************
@@ -42,7 +47,7 @@ static JsonDocument AZIMUTH_json(void) {
   float f;
   int i;
 
-  AZIMUTH_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
+  AZIMUTH_data[JSON_AZIMUTH_ENABLE] = AZIMUTH_enabled();
   AZIMUTH_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
   AZIMUTH_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_output_enabled();
@@ -69,7 +74,7 @@ String AZIMUTH_info(void) {
   String text = "--- Azimuth ---";
 
   text.concat("\r\nAzimuth enabled: ");
-  text.concat(doc[JSON_AZIMUTH_ENABLED].as<bool>());
+  text.concat(doc[JSON_AZIMUTH_ENABLE].as<bool>());
 
   text.concat("\r\nAzimuth left: ");
   text.concat(doc[JSON_AZIMUTH_LEFT_V].as<float>());
@@ -111,8 +116,8 @@ long mapl(long x, long in_min, long in_max, long out_min, long out_max) {
  * AZIMUTH analog
  *******************************************************************/
 static void AZIMUTH_set_right_output(int value) {
-  value = max(min(1024, value), 0);
-  MCP4725_write(MCP4725_R_address, value);
+  value = max(min(DAC_MIN, value), DAC_MAX);
+  MCP4725_write(MCP4725_R_address, (int)value);
 
 #ifdef DEBUG_AZIMUTH
   Serial.println("Azimuth set right analog out: " + String(value));
@@ -126,8 +131,8 @@ static int AZIMUTH_get_right_output(void) {
 
 #ifdef ENABLE_LEFT_OUTPUT
 static void AZIMUTH_set_left_output(int value) {
-  value = max(min(1024, value), 0);
-  MCP4725_write(MCP4725_L_address, value);
+  value = max(min(DAC_MIN, value), DAC_MAX);
+  MCP4725_write(MCP4725_L_address, (int)value);
 
 #ifdef DEBUG_AZIMUTH
   Serial.println("Azimuth set left analog out: " + String(value));
@@ -261,8 +266,8 @@ int AZIMUTH_get_wheel(void) {
   /* Scale */
   int position = map(
       STEERING_WHEEL_read(),
-      0,
-      1024,
+      ADC_MIN,
+      ADC_MAX,
       0,
       100);
 
@@ -274,14 +279,14 @@ void AZIMUTH_set_steering(int value) {
 
   float output = mapf(
     (float) value,
-    0.0,
-    1024.0,
+    ADC_MAX,
+    ADC_MAX,
     0.0,
     5.0);
 
-  AZIMUTH_set_right_output(output);
+  AZIMUTH_set_right_output((int)round(output));
 #ifdef ENABLE_LEFT_OUTPUT
-  AZIMUTH_set_left_output(output);
+  AZIMUTH_set_left_output((int)round(output));
 #endif
 }
 

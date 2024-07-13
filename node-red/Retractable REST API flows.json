@@ -587,9 +587,9 @@
         "rules": [
             {
                 "t": "set",
-                "p": "dmc_enabled",
+                "p": "dmc_enable",
                 "pt": "global",
-                "to": "payload.dmc_enabled",
+                "to": "payload.dmc_enable",
                 "tot": "msg"
             }
         ],
@@ -1182,7 +1182,7 @@
                 "t": "set",
                 "p": "payload",
                 "pt": "msg",
-                "to": "dmc_enabled",
+                "to": "dmc_enable",
                 "tot": "global"
             }
         ],

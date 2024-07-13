@@ -28,7 +28,7 @@
 /*******************************************************************
  * Storage keys and defaults
  *******************************************************************/
-#define JSON_LIFT_ENABLED "lift_enabled"
+#define JSON_LIFT_ENABLE "lift_enable"
 #define JSON_LIFT_MOTOR_UP "lift_motor_up"
 #define JSON_LIFT_MOTOR_DOWN "lift_motor_down"
 #define JSON_LIFT_SENSOR_UP "lift_sensor_up"
@@ -56,7 +56,7 @@ static int LIFT_error_mask = 0;
 static JsonDocument LIFT_json(void) {
   int value;
 
-  LIFT_data[JSON_LIFT_ENABLED] = LIFT_enabled();
+  LIFT_data[JSON_LIFT_ENABLE] = LIFT_enabled();
 
   LIFT_data[JSON_LIFT_MOTOR_UP] = LIFT_UP_moving();
   LIFT_data[JSON_LIFT_MOTOR_DOWN] = LIFT_DOWN_moving();
@@ -82,7 +82,7 @@ static String LIFT_info_str(void) {
   String text = "--- LIFT ---";
 
   text.concat("\r\nEnabled: ");
-  text.concat(doc[JSON_LIFT_ENABLED].as<boolean>());
+  text.concat(doc[JSON_LIFT_ENABLE].as<boolean>());
 
   text.concat("\r\nMoving UP: ");
   text.concat(doc[JSON_LIFT_MOTOR_UP].as<boolean>());

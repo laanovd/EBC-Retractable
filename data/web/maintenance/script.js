@@ -1,6 +1,6 @@
 // Load data
 const data_static = {
-    "maintenance_active": false,
+    "maintenance_enable": false,
     "emergency_stop": false,
     "lift_enabled": false,
     "lift_motor_up": false,
@@ -8,7 +8,7 @@ const data_static = {
     "lift_sensor_up": false,
     "lift_sensor_down": false,
     "lift_homing": false,
-    "dmc_enabled": false,
+    "dmc_enable": false,
     "steering_enabled": false,
     "steering_left_volt": 0,
     "steering_right_volt": 0,
@@ -55,7 +55,7 @@ function refreshData(data) {
     setIndicator("retracted", data['lift_sensor_up'])
     setIndicator("extended", data['lift_sensor_down'])
 
-    setIndicator("dmc_enabled", data['dmc_enabled'])
+    setIndicator("dmc_enable", data['dmc_enable'])
 
     setChecked("steering_enable", data["steering_enable"]);
     setIndicator("steering_enabled", data["steering_enabled"]);

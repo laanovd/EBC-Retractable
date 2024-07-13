@@ -1,4 +1,4 @@
-const socket = new WebSocket(`ws://192.168.1.131:81`);
+const socket = new WebSocket(`ws://192.168.1.125:81`);
 // const socket = new WebSocket(`ws://${window.location.host}:81`);
 
 const data = {};

@@ -40,7 +40,7 @@ static bool DMC_is_enabled = false;
  *******************************************************************/
 static JsonDocument DMC_json(void) {
 
-  DMC_data[JSON_DMC_ENABLED] = DMC_enabled();
+  DMC_data[JSON_DMC_ENABLE] = DMC_enabled();
 
   return DMC_data;
 }
@@ -54,7 +54,7 @@ static String DMC_info_str(void) {
   String text = "--- DMC ---";
 
   text.concat("\r\nEnabled: ");
-  text.concat(doc[JSON_DMC_ENABLED].as<boolean>());
+  text.concat(doc[JSON_DMC_ENABLE].as<boolean>());
 
   text.concat("\r\n");
   return text;
@@ -65,7 +65,6 @@ static String DMC_info_str(void) {
  *******************************************************************/
 void DMC_enable(void) {
   PCF8574_write(PCF8574_address, DMC_ENABLE_PIN, IO_ON);
-
 #ifdef DEBUG_DMC
   Serial.println("DMC enable");
 #endif

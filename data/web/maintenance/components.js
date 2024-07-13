@@ -2,7 +2,8 @@
 const elm_id_maintenance_on = "maintenance_button_on"
 const elm_id_maintenance_off = "maintenance_button_off"
 const elm_id_maintenance_loading = "maintenance_button_loading"
-const json_key_maintenance = "maintenance_active"
+const json_key_maintenance = "maintenance_enable"
+
 function INIT_maintenance_button() {
     const btn_on = document.querySelector(`#${elm_id_maintenance_on}`);
     const btn_off = document.querySelector(`#${elm_id_maintenance_off}`);
@@ -103,7 +104,7 @@ function set_retracting(value) {
 // dmc enable
 const elm_id_dmc_enable_indicator = "dmc_enable_indicator"
 const elm_id_dmc_enable = "dmc_enable"
-const json_key_dmc_enable = "dmc_enabled"
+const json_key_dmc_enable = "dmc_enable"
 function INIT_dmc_enable() {
     const elm = document.querySelector(`#${elm_id_dmc_enable}`);
     elm.addEventListener("change", (e) => {

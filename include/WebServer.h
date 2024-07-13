@@ -45,8 +45,8 @@ extern void setup_uri(rest_api_t *uri_hdl);
 /********************************************************************
  * Send data to websocket
  *********************************************************************/
-extern void WEBSocket_set_pair(JsonPair kv);
-extern void WEBSocket_set_doc(JsonDocument doc);
+extern void WEBSOCKET_set_pair(JsonPair kv);
+extern void WEBSOCKET_set_doc(JsonDocument doc);
 
 /********************************************************************
  * Setup webserver

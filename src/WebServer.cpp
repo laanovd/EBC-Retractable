@@ -29,6 +29,8 @@
 #define WEBSERVER_PORT 80
 #define WEBSOCKET_PORT 81
 
+#define  DEBUG_WEBSOCKET
+
 /********************************************************************
  * Type definitions
  *********************************************************************/
@@ -197,19 +199,35 @@ static void WEBSERVER_main_task(void *parameter)
  * WebSocketsServer update
  *********************************************************************/
 static void WEBSOCKET_push_pair(JsonPair kv) {
-  String msg = "{\"" + String(kv.key().c_str()) + "\":\"" + String(kv.value().as<const char*>()) + "\"}";
+  String value;
 
+  if (kv.value().is<const char*>()) {
+    value= String(kv.value().is<const char*>());
+  }
+  else if (kv.value().is<int>()) {
+    value= String(kv.value().as<int>());
+  }
+  else if (kv.value().is<float>()) {
+    value= String(kv.value().as<float>());
+  }
+  else if (kv.value().is<bool>()) {
+    value= kv.value().as<bool>() ? String("true") : String("false");
+  }
+  else {
+    value= "<invalid type>";
+  }
+
+  String msg = "{\"" + String(kv.key().c_str()) + "\":\"" + value + "\"}";
   web_socket_server.broadcastTXT(msg);
 }
 
 static void WEBSOCKET_push_doc(JsonDocument doc) {
-    String str;
-
-    serializeJson(WebSocket_JSON_data, str);
-    web_socket_server.broadcastTXT(str);
+    String msg;
+    serializeJson(doc, msg);
+    web_socket_server.broadcastTXT(msg);
 }
 
-void WEBSocket_set_pair(JsonPair kv) {
+void WEBSOCKET_set_pair(JsonPair kv) {
   if (!WebSocket_JSON_data.containsKey(kv.key().c_str())) {
     WebSocket_JSON_data[kv.key().c_str()] = NULL;
   }
@@ -220,9 +238,9 @@ void WEBSocket_set_pair(JsonPair kv) {
   }
 }
 
-void WEBSocket_set_doc(JsonDocument doc) {
+void WEBSOCKET_set_doc(JsonDocument doc) {
   for (JsonPair kv : doc.as<JsonObject>()) {
-    WEBSOCKET_push_pair(kv);
+    WEBSOCKET_set_pair(kv);
   }
 }
 
@@ -238,7 +256,7 @@ static void WEBSOCKET_task(void *parameter)
   doc["program_name"] = ProgramName;
   doc["chip_id"] = ChipIds();
   doc["wifi_ssid"] = WiFi_ssid();
-  WEBSocket_set_doc(doc);
+  WEBSOCKET_set_doc(doc);
 
   while (true) {
     if (WebSocket_JSON_data_push) {
