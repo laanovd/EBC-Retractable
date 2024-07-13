@@ -10,7 +10,7 @@
 /*******************************************************************
  * RESTfull API keys
  *******************************************************************/
-#define JSON_AZIMUTH_ENABLE "steering_enable"
+#define JSON_AZIMUTH_ENABLED "steering_enabled"
 #define JSON_AZIMUTH_HOME "steering_home"
 #define JSON_AZIMUTH_LEFT_V "steering_left_volt"
 #define JSON_AZIMUTH_RIGHT_V "steering_right_volt"

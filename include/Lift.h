@@ -10,7 +10,7 @@
 /*******************************************************************
  * RESTfull API keys
  *******************************************************************/
-#define JSON_LIFT_ENABLED "lift_enable"
+#define JSON_LIFT_ENABLED "lift_enabled"
 #define JSON_LIFT_HOMING "lift_homing"
 #define JSON_LIFT_MOTOR_UP "lift_motor_up"
 #define JSON_LIFT_MOTOR_DOWN "lift_motor_down"

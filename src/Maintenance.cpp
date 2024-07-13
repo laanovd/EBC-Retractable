@@ -32,7 +32,7 @@
 /*******************************************************************
  * RESTfull API keys
  *******************************************************************/
-#define JSON_MAINTENANCE_ENABLE "maintenance_active"
+#define JSON_MAINTENANCE_ENABLED "maintenance_enabled"
 
 /*******************************************************************
  * Local variables
@@ -43,7 +43,7 @@ static JsonDocument maintenance_data;
  * Internal JSON data
  *******************************************************************/
 static void MAINTENANCE_json_init(void) {
-  maintenance_data[JSON_MAINTENANCE_ENABLE] = false;
+  maintenance_data[JSON_MAINTENANCE_ENABLED] = false;
 
   maintenance_data[JSON_EMERGENCY_STOP] = true;
 
@@ -54,9 +54,9 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_LIFT_SENSOR_DOWN] = false;
   maintenance_data[JSON_LIFT_HOMING] = false;
 
-  maintenance_data[JSON_DMC_ENABLE] = false;
+  maintenance_data[JSON_DMC_ENABLED] = false;
 
-  maintenance_data[JSON_AZIMUTH_ENABLE] = false;
+  maintenance_data[JSON_AZIMUTH_ENABLED] = false;
   maintenance_data[JSON_AZIMUTH_HOME] = false;
   maintenance_data[JSON_AZIMUTH_LEFT_V] = 0.0;
   maintenance_data[JSON_AZIMUTH_RIGHT_V] = 0.0;
@@ -78,7 +78,7 @@ static JsonDocument MAINTENANCE_json(void) {
   maintenance_data[JSON_LIFT_SENSOR_DOWN] = LIFT_DOWN_sensor();
 
   // DMC
-  maintenance_data[JSON_DMC_ENABLE] = DMC_enabled();
+  maintenance_data[JSON_DMC_ENABLED] = DMC_enabled();
 
   // Steering
   maintenance_data[JSON_AZIMUTH_LEFT_V] = AZIMTUH_get_left();
@@ -100,7 +100,7 @@ String MAINTENANCE_string(void) {
   String text = "--- MAINTENANCE ---";
 
   text.concat("\r\nMAINTENANCE...: ");
-  text.concat(doc[JSON_MAINTENANCE_ENABLE].as<bool>() ? "ON" : "OFF");
+  text.concat(doc[JSON_MAINTENANCE_ENABLED].as<bool>() ? "ON" : "OFF");
 
   text.concat("\r\n");
   return text;
@@ -110,20 +110,20 @@ String MAINTENANCE_string(void) {
  * Getters and setters
  *******************************************************************/
 bool MAINTENANCE_enabled(void) {
-  return maintenance_data[JSON_MAINTENANCE_ENABLE].as<bool>();
+  return maintenance_data[JSON_MAINTENANCE_ENABLED].as<bool>();
 }
 
 static void MAINTENANCE_dmc_enable(void) {
   if (MAINTENANCE_enabled()) {
     DMC_enable();
-    maintenance_data[JSON_DMC_ENABLE] = true;
+    maintenance_data[JSON_DMC_ENABLED] = true;
   }
 }
 
 static void MAINTENANCE_azimuth_enable(void) {
   if (MAINTENANCE_enabled()) {
     AZIMUTH_enable();
-    maintenance_data[JSON_AZIMUTH_ENABLE] = true;
+    maintenance_data[JSON_AZIMUTH_ENABLED] = true;
   }
 }
 
@@ -164,16 +164,16 @@ static void MAINTENANCE_steering_disable(void) {
 
 static void MAINTENANCE_steering_enable(void) {
   if (MAINTENANCE_enabled()) {
-    maintenance_data[JSON_AZIMUTH_ENABLE] = true;
+    maintenance_data[JSON_AZIMUTH_ENABLED] = true;
   }
 }
 
 static bool MAINTENANCE_steering_enabled(void) {
-  return maintenance_data[JSON_AZIMUTH_ENABLE].as<bool>();
+  return maintenance_data[JSON_AZIMUTH_ENABLED].as<bool>();
 }
 
 void MAINTENANCE_disable(void) {
-  maintenance_data[JSON_MAINTENANCE_ENABLE] = false;
+  maintenance_data[JSON_MAINTENANCE_ENABLED] = false;
   DMC_disable();
   LIFT_disable();
   AZIMUTH_disable();
@@ -181,7 +181,7 @@ void MAINTENANCE_disable(void) {
 
 void MAINTENANCE_enable(void) {
   if (!EMERGENCY_STOP_active()) {
-    maintenance_data[JSON_MAINTENANCE_ENABLE] = true;
+    maintenance_data[JSON_MAINTENANCE_ENABLED] = true;
   }
 }
 
@@ -200,8 +200,8 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
 #endif
 
   /* Maintenance mode active */
-  if (doc.containsKey(JSON_MAINTENANCE_ENABLE)) {
-    if (doc[JSON_MAINTENANCE_ENABLE].as<bool>() == true)
+  if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
+    if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true)
       MAINTENANCE_enable();
     else
       MAINTENANCE_disable();
@@ -234,16 +234,16 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
   }
 
   /* DMC enable */
-  if (doc.containsKey(JSON_DMC_ENABLE)) {
-    if (doc[JSON_DMC_ENABLE].as<bool>() == true)
+  if (doc.containsKey(JSON_DMC_ENABLED)) {
+    if (doc[JSON_DMC_ENABLED].as<bool>() == true)
       MAINTENANCE_dmc_enable();
     else
       DMC_disable();
   }
 
   /* Steering enable */
-  if (doc.containsKey(JSON_AZIMUTH_ENABLE)) {
-    if (doc[JSON_AZIMUTH_ENABLE].as<bool>() == true)
+  if (doc.containsKey(JSON_AZIMUTH_ENABLED)) {
+    if (doc[JSON_AZIMUTH_ENABLED].as<bool>() == true)
       MAINTENANCE_steering_enable();
     else
       MAINTENANCE_steering_disable();

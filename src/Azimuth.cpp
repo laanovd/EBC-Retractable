@@ -47,7 +47,7 @@ static JsonDocument AZIMUTH_json(void) {
   float f;
   int i;
 
-  AZIMUTH_data[JSON_AZIMUTH_ENABLE] = AZIMUTH_enabled();
+  AZIMUTH_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
   AZIMUTH_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
   AZIMUTH_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_output_enabled();
@@ -74,7 +74,7 @@ String AZIMUTH_info(void) {
   String text = "--- Azimuth ---";
 
   text.concat("\r\nAzimuth enabled: ");
-  text.concat(doc[JSON_AZIMUTH_ENABLE].as<bool>());
+  text.concat(doc[JSON_AZIMUTH_ENABLED].as<bool>());
 
   text.concat("\r\nAzimuth left: ");
   text.concat(doc[JSON_AZIMUTH_LEFT_V].as<float>());
