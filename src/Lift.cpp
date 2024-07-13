@@ -180,15 +180,15 @@ void LIFT_DOWN_off(void) {
  * Lift position
  *******************************************************************/
 bool LIFT_UP_sensor(void) {
-  return digitalRead(LIFT_SENSOR_UP_PIN) == HIGH;
+  return digitalRead(LIFT_SENSOR_UP_PIN) == HIGH ? true : false;
 }
 
 bool LIFT_DOWN_sensor(void) {
-  return digitalRead(LIFT_SENSOR_DOWN_PIN) == HIGH;
+  return digitalRead(LIFT_SENSOR_DOWN_PIN) == HIGH  ? true : false;
 }
 
 bool LIFT_HOME_sensor(void) {
-  return digitalRead(LIFT_HOMING_PIN) == HIGH;
+  return digitalRead(LIFT_HOMING_PIN) == HIGH  ? true : false;
 }
 
 static void LIFT_position_check(void) {

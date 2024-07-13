@@ -23,6 +23,7 @@
 #include "StateMachineLib.h"
 #include "Storage.h"
 #include "WebServer.h"
+#include "Controller.h"
 
 /*******************************************************************
  * Definitions
@@ -153,6 +154,39 @@ String MAINTENANCE_string(void) {
 /********************************************************************
  * Getters and setters
  *******************************************************************/
+/********************************************************************
+ * Enables maintenance mode if the emergency stop is not active.
+ * 
+ * This function enables maintenance mode if the emergency stop is not active.
+ * The maintenance mode allows performing maintenance tasks on the system.
+ * 
+ * @note If the emergency stop is active, the maintenance mode will not be enabled.
+ *******************************************************************/
+void MAINTENANCE_enable(void) {
+  if (!EMERGENCY_STOP_active()) {
+    maintenance_data[JSON_MAINTENANCE_ENABLED] = true;
+  }
+}
+
+/********************************************************************
+ * Disables the maintenance mode.
+ * 
+ * This function disables maintenance mode and disables 
+ * the DMC, LIFT, and AZIMUTH subsystems.
+ *******************************************************************/
+void MAINTENANCE_disable(void) {
+  maintenance_data[JSON_MAINTENANCE_ENABLED] = false;
+
+  DMC_disable();
+  LIFT_disable();
+  AZIMUTH_disable();
+}
+
+/********************************************************************
+ * Check if maintenance mode is enabled.
+ *
+ * @return true if maintenance mode is enabled, false otherwise.
+ *******************************************************************/
 bool MAINTENANCE_enabled(void) {
   return maintenance_data[JSON_MAINTENANCE_ENABLED].as<bool>();
 }
@@ -216,25 +250,23 @@ static bool MAINTENANCE_steering_enabled(void) {
   return maintenance_data[JSON_AZIMUTH_ENABLED].as<bool>();
 }
 
-void MAINTENANCE_disable(void) {
-  maintenance_data[JSON_MAINTENANCE_ENABLED] = false;
-  DMC_disable();
-  LIFT_disable();
-  AZIMUTH_disable();
-}
-
-void MAINTENANCE_enable(void) {
-  if (!EMERGENCY_STOP_active()) {
-    maintenance_data[JSON_MAINTENANCE_ENABLED] = true;
-  }
-}
-
 /********************************************************************
- * JSON string command handler
+ * @brief Handles the maintenance commands received from the API.
+ * 
+ * This function parses the JSON data and performs the corresponding actions based on the received commands.
+ * 
+ * @param data The JSON data containing the maintenance commands.
+ * 
+ * @return DeserializationError The error status of the JSON deserialization process.
  *********************************************************************/
-DeserializationError MAINTENANCE_command_handler(char *data) {
+int MAINTENANCE_command_handler(const char *data) {
   JsonDocument doc;
+  int handeled = 0;
+
   DeserializationError error = deserializeJson(doc, data);
+  if (error != DeserializationError::Ok) {
+    return -1; // DeserializationError
+  }
 
 #ifdef DEBUG_API
   String str;
@@ -246,9 +278,10 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
   /* Maintenance mode active */
   if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
     if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true)
-      MAINTENANCE_enable();
+      CONTROLLER_request_maintenance();
     else
       MAINTENANCE_disable();
+    handeled++;
   }
 
   /* Lift enable */
@@ -257,12 +290,14 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
       MAINTENANCE_lift_enable();
     else
       MAINTENANCE_lift_disable();
+    handeled++;
   }
 
   /* Lift RETRACT */
   if (doc.containsKey(JSON_LIFT_SENSOR_UP)) {
     if (doc[JSON_LIFT_SENSOR_UP].as<bool>() == true)
       MAINTENANCE_lift_retract();
+    handeled++;
   }
 
   /* Lift EXTEND */
@@ -275,6 +310,7 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
   if (doc.containsKey(JSON_LIFT_HOMING)) {
     if (doc[JSON_LIFT_HOMING].as<bool>() == true)
       MAINTENANCE_lift_homing();
+    handeled++;
   }
 
   /* DMC enable */
@@ -283,6 +319,7 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
       MAINTENANCE_dmc_enable();
     else
       DMC_disable();
+    handeled++;
   }
 
   /* Steering enable */
@@ -291,6 +328,7 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
       MAINTENANCE_steering_enable();
     else
       MAINTENANCE_steering_disable();
+    handeled++;
   }
 
   /* Steering analog output enable */
@@ -299,24 +337,35 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
       MAINTENANCE_azimuth_enable();
     else
       AZIMUTH_disable();
+    handeled++;
   }
 
   /* Steering set LEFT voltage */
   if (doc.containsKey(JSON_AZIMUTH_LEFT_V)) {
     AZIMTUH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
+    handeled++;
   }
 
   /* Steering set RIGHT voltage */
   if (doc.containsKey(JSON_AZIMUTH_RIGHT_V)) {
     AZIMTUH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
+    handeled++;
   }
 
   /* Steering manual control (%) */
   if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
+    handeled++;
   }
 
-  return error;
+  if (handeled == 0) {
+#ifdef DEBUG_WEBSOCKET
+    Serail.println(F("MAINTENANCE no commands handled"))    
+#endif
+    handeled  = -2; // no command found
+  }
+  
+  return handeled; // Ok is handeled > 0
 }
 
 /********************************************************************
@@ -333,11 +382,8 @@ void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size
   (void)index;
   (void)total;
 
-  DeserializationError error = MAINTENANCE_command_handler((char *)data);
-
-  if (error) {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.f_str());
+  if (MAINTENANCE_command_handler((const char *)data) < 0) {
+    Serial.print(F("MAINTENANCE_command_handler failed: "));
     request->send(204, "text/plain", "204, No content");
     return;
   }
@@ -469,7 +515,7 @@ void MAINTENANCE_setup(void) {
 }
 
 /********************************************************************
- * Start
+ * Start 
  *******************************************************************/
 void MAINTENANCE_start(void) {
   MAINTENANCE_disable();

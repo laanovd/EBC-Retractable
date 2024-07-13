@@ -16,7 +16,7 @@
 #define JSON_AZIMUTH_RIGHT_V "steering_right_volt"
 #define JSON_AZIMUTH_ACTUAL_V "steering_output_volt"
 #define JSON_AZIMUTH_MANUAL "steering_manual"
-#define JSON_AZIMUTH_STEERING "steering_steer"
+#define JSON_AZIMUTH_STEERING "steering_steer_wheel"
 #define JSON_AZIMUTH_OUTPUT_ENABLED "steering_analog_out_enabled"
 #define JSON_DELAY_TO_MIDDLE "azimuth_delay_to_the_middle"
 

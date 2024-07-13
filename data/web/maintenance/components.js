@@ -202,7 +202,7 @@ function output_enabled_set_value(value) {
 // Steering offset right
 const elm_id_offset_right = "offset_right"
 const json_key_offset_right = "steering_right_volt"
-let offset_right_current_value = -1;
+let offset_right_current_value = 0;
 function INIT_steering_offset_right() {
     const elm = document.querySelector(`#${elm_id_offset_right}`);
     elm.addEventListener("change", (e) => {
@@ -226,7 +226,7 @@ function steering_offset_right_set_value(value) {
 // Steering offset left
 const elm_id_offset_left = "offset_left"
 const json_key_offset_left = "steering_left_volt"
-let offset_left_current_value = -1;
+let offset_left_current_value = 0;
 function INIT_steering_offset_left() {
     const elm = document.querySelector(`#${elm_id_offset_left}`);
     elm.addEventListener("change", (e) => {
