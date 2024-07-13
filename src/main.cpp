@@ -94,13 +94,14 @@ void loop()
 void setup()
 {
   Serial.begin(115200);
+  sleep(2); // Startup delay for terminal
   
   /*--- SETUP ---*/
   STORAGE_setup();
   CLI_setup();
   WiFi_setup();
   WEBSERVER_setup();
-  // GPIO_setup();
+  GPIO_setup();
   AZIMUTH_setup();
   LIFT_setup();
   DMC_setup();
@@ -109,11 +110,11 @@ void setup()
   // MAIN_setup();
 
   Serial.println(F("Main setup completed."));
-  vTaskDelay(1000 / portTICK_PERIOD_MS); // Wait one second for LED's
+  vTaskDelay(1000 / portTICK_PERIOD_MS); // Wait one second for LED's to finish
 
   /*--- STARTUP ---*/
   MAIN_CLI_handlers();
-  // GPIO_start();
+  GPIO_start();
   AZIMUTH_start();
   LIFT_start();
   DMC_start();

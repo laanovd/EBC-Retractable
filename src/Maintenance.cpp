@@ -47,7 +47,7 @@ static void MAINTENANCE_json_init(void) {
 
   maintenance_data[JSON_EMERGENCY_STOP] = true;
 
-  maintenance_data[JSON_LIFT_ENABLE] = false;
+  maintenance_data[JSON_LIFT_ENABLED] = false;
   maintenance_data[JSON_LIFT_MOTOR_UP] = false;
   maintenance_data[JSON_LIFT_MOTOR_DOWN] = false;
   maintenance_data[JSON_LIFT_SENSOR_UP] = false;
@@ -66,14 +66,14 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLE] = false;
   maintenance_data[JSON_DELAY_TO_MIDDLE] = 0;
 
-  WEBSOCKET_set_doc(maintenance_data);
+  WEBSOCKET_send_doc(maintenance_data);
 }
 
 static JsonDocument MAINTENANCE_json(void) {
   maintenance_data[JSON_EMERGENCY_STOP] = EMERGENCY_STOP_active();
 
   // Lift
-  maintenance_data[JSON_LIFT_ENABLE] = LIFT_enabled();
+  maintenance_data[JSON_LIFT_ENABLED] = LIFT_enabled();
   maintenance_data[JSON_LIFT_SENSOR_UP] = LIFT_UP_sensor();
   maintenance_data[JSON_LIFT_SENSOR_DOWN] = LIFT_DOWN_sensor();
 
@@ -208,8 +208,8 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
   }
 
   /* Lift enable */
-  if (doc.containsKey(JSON_LIFT_ENABLE)) {
-    if (doc[JSON_LIFT_ENABLE].as<bool>() == true)
+  if (doc.containsKey(JSON_LIFT_ENABLED)) {
+    if (doc[JSON_LIFT_ENABLED].as<bool>() == true)
       MAINTENANCE_lift_enable();
     else
       MAINTENANCE_lift_disable();
@@ -274,7 +274,6 @@ DeserializationError MAINTENANCE_command_handler(char *data) {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
   }
 
-  // WEBSOCKET_set_doc(maintenance_data); // Send al changed values
   return error;
 }
 
@@ -322,7 +321,8 @@ static void MAINTENACE_websocket_task(void *parameter) {
 
   while (true) {
     vTaskDelay(500 / portTICK_PERIOD_MS);
-    // TODO: Pereiodic actions
+
+    WEBSOCKET_update_doc(MAINTENANCE_json());
   }
 }
 

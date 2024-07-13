@@ -43,10 +43,27 @@ extern AsyncWebServer web_server;
 extern void setup_uri(rest_api_t *uri_hdl);
 
 /********************************************************************
- * Send data to websocket
+ * Updates the WebSocket JSON data with the given key-value pair.
+ * If the key does not exist in the WebSocket JSON data, it is added with a null value.
+ * Then, the key-value pair is stored and sent via WebSocket.
+ *
+ * @param kv The key-value pair to update.
  *********************************************************************/
-extern void WEBSOCKET_set_pair(JsonPair kv);
-extern void WEBSOCKET_set_doc(JsonDocument doc);
+extern void WEBSOCKET_update_pair(JsonPair kv);
+
+/********************************************************************
+ * Updates the WebSocket with the values from the given JSON document.
+ * 
+ * @param doc The JSON document containing the values to update.
+ *********************************************************************/
+extern void WEBSOCKET_update_doc(JsonDocument doc);
+
+/********************************************************************
+ * Sends a JSON document over a WebSocket connection.
+ * 
+ * @param doc The JSON document to send.
+ *********************************************************************/
+extern void WEBSOCKET_send_doc(JsonDocument doc);
 
 /********************************************************************
  * Setup webserver
