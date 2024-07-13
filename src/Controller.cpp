@@ -63,6 +63,8 @@ static unsigned long extending_timer = 0;
 static unsigned long precalibrating_timer = 0;
 static unsigned long calibrating_timer = 0;
 
+static bool request_maintenance_enable = false;
+
 /*******************************************************************
  * Timers
  *******************************************************************/
@@ -77,6 +79,21 @@ static void TIMER_stop(unsigned long &timer) {
 static bool TIMER_finished(unsigned long &timer) {
   if (timer && (millis() >= timer)) {
     TIMER_stop(timer);
+    return true;
+  }
+  return false;
+}
+
+/*******************************************************************
+ * Maintenance mode
+ *******************************************************************/
+void CONTROLLER_request_maintenance(void) {
+  request_maintenance_enable = true;
+}
+
+static bool CONTROLLER_maintenance_requested(void) {
+  if (request_maintenance_enable) {
+    request_maintenance_enable = false;
     return true;
   }
   return false;
@@ -393,7 +410,7 @@ static bool fnEmergencyStopToCalibrating() {
 }
 
 static bool fnAnyToMantenance() {
-  return MAINTENANCE_enabled();
+  return CONTROLLER_maintenance_requested();
 }
 
 /*******************************************************************
@@ -404,13 +421,11 @@ static void fnStateMaintenace() {
   Serial.println("State MAINTENACE enter.");
 #endif
 
-  // Disable everything at start maintenance mode
   DMC_disable();
   LIFT_disable();
   AZIMUTH_disable();
-  MAINTENANCE_enable(); // Start maintenance mode
 
-  // TODO: Start maintenance mode
+  MAINTENANCE_enable(); // Start maintenance mode
 }
 
 static bool fnMainenanceToNoPosition() {

@@ -188,7 +188,7 @@ static void WEBSOCKET_send_pair(JsonPair kv) {
   String value;
 
   if (kv.value().is<const char *>()) {
-    value = String(kv.value().is<const char *>());
+    value = "\"" + String(kv.value().is<const char *>()) + "\"";
   } else if (kv.value().is<int>()) {
     value = String(kv.value().as<int>());
   } else if (kv.value().is<float>()) {
@@ -199,7 +199,7 @@ static void WEBSOCKET_send_pair(JsonPair kv) {
     value = "<invalid type>";
   }
 
-  String msg = "{\"" + String(kv.key().c_str()) + "\":\"" + value + "\"}";
+  String msg = "{\"" + String(kv.key().c_str()) + "\":" + value + "}";
   web_socket_server.broadcastTXT(msg);
 }
 
@@ -230,7 +230,7 @@ void WEBSOCKET_update_pair(JsonPair kv) {
 
 /********************************************************************
  * Updates the WebSocket with the values from the given JSON document.
- * 
+ *
  * @param doc The JSON document containing the values to update.
  *********************************************************************/
 void WEBSOCKET_update_doc(JsonDocument doc) {
@@ -241,7 +241,7 @@ void WEBSOCKET_update_doc(JsonDocument doc) {
 
 /********************************************************************
  * Sends a JSON document over a WebSocket connection.
- * 
+ *
  * @param doc The JSON document to send.
  *********************************************************************/
 void WEBSOCKET_send_doc(JsonDocument doc) {
@@ -349,18 +349,16 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
     case WStype_CONNECTED:  // if a client is connected, then type == WStype_CONNECTED
       WebSocket_JSON_data_push = true;
       break;
-    case WStype_TEXT:                     // if a client has sent data, then type == WStype_TEXT
+    case WStype_TEXT:  // if a client has sent data, then type == WStype_TEXT
+#ifdef DEBUG_WEBSOCKET
       for (int i = 0; i < length; i++) {  // print received data from client
         Serial.print((char)payload[i]);
       }
       Serial.println("");
+#endif
 
-      DeserializationError error = MAINTENANCE_command_handler((char *)payload);
-
-      if (error) {
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.f_str());
-        // TODO: sent error
+      if (MAINTENANCE_command_handler((const char *)payload) < 0) {
+        Serial.print(F("MAINTENANCE command handler failed!"));
         return;
       }
 

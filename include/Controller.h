@@ -8,7 +8,15 @@
 #include <StateMachineLib.h>
 
 /*******************************************************************
- *  Storage keys and defaults
+ * Requests maintenance mode for the controller.
+ * 
+ * This function is used to initiate a maintenance request for 
+ * the controller statemachine. 
+ *******************************************************************/
+extern void CONTROLLER_request_maintenance(void);
+
+/*******************************************************************
+ * Setup and start
  *******************************************************************/
 extern void CONTROLLER_setup();
 extern void CONTROLLER_start();
