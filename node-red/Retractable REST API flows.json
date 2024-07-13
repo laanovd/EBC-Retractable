@@ -432,9 +432,9 @@
         "rules": [
             {
                 "t": "set",
-                "p": "maintenance_active",
+                "p": "maintenance_enabled",
                 "pt": "global",
-                "to": "payload.maintenance_active",
+                "to": "payload.maintenance_enabled",
                 "tot": "msg"
             },
             {
@@ -496,7 +496,7 @@
                 "t": "set",
                 "p": "payload",
                 "pt": "msg",
-                "to": "maintenance_active",
+                "to": "maintenance_enabled",
                 "tot": "global"
             }
         ],
