@@ -90,9 +90,9 @@ static JsonDocument MAINTENANCE_json(void) {
   // Steering
   maintenance_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
-  maintenance_data[JSON_AZIMUTH_LEFT_V] = AZIMTUH_get_left();
-  maintenance_data[JSON_AZIMUTH_RIGHT_V] = AZIMTUH_get_right();
-  maintenance_data[JSON_AZIMUTH_ACTUAL_V] = AZIMTUH_get_actual();
+  maintenance_data[JSON_AZIMUTH_LEFT_V] = AZIMUTH_get_left();
+  maintenance_data[JSON_AZIMUTH_RIGHT_V] = AZIMUTH_get_right();
+  maintenance_data[JSON_AZIMUTH_ACTUAL_V] = AZIMUTH_get_actual();
   maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
   maintenance_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_steerwheel();
   maintenance_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
@@ -173,6 +173,11 @@ String MAINTENANCE_string(void) {
 void MAINTENANCE_enable(void) {
   if (!EMERGENCY_STOP_active()) {
     maintenance_data[JSON_MAINTENANCE_ENABLED] = true;
+
+    DMC_disable();
+    LIFT_disable();
+    AZIMUTH_disable();
+    AZIMUTH_analog_disable();
   }
 }
 
@@ -188,6 +193,7 @@ void MAINTENANCE_disable(void) {
   DMC_disable();
   LIFT_disable();
   AZIMUTH_disable();
+  AZIMUTH_analog_disable();
 }
 
 /********************************************************************
@@ -199,12 +205,18 @@ bool MAINTENANCE_enabled(void) {
   return maintenance_data[JSON_MAINTENANCE_ENABLED].as<bool>();
 }
 
+/********************************************************************
+ * DMC
+ *******************************************************************/
 static void MAINTENANCE_dmc_enable(void) {
   if (MAINTENANCE_enabled()) {
     DMC_enable();
   }
 }
 
+/********************************************************************
+ * AZIMUTH
+ *******************************************************************/
 static void MAINTENANCE_azimuth_enable(void) {
   if (MAINTENANCE_enabled()) {
     AZIMUTH_enable();
@@ -223,6 +235,9 @@ static void MAINTENANCE_azimuth_homing(void) {
   azimuth_homing_timer = 20;
 }
 
+/********************************************************************
+ * LIFT
+ *******************************************************************/
 static void MAINTENANCE_lift_enable(void) {
   if (MAINTENANCE_enabled()) {
     LIFT_enable();
@@ -366,13 +381,13 @@ int MAINTENANCE_command_handler(const char *data) {
 
   /* Steering set LEFT voltage */
   if (doc.containsKey(JSON_AZIMUTH_LEFT_V)) {
-    AZIMTUH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
+    AZIMUTH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
     handeled++;
   }
 
   /* Steering set RIGHT voltage */
   if (doc.containsKey(JSON_AZIMUTH_RIGHT_V)) {
-    AZIMTUH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
+    AZIMUTH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
     handeled++;
   }
 
@@ -490,7 +505,6 @@ void MAINTENANCE_main_task(void *parameter) {
   while (true) {
     // Start maintenace mode
     if (MAINTENANCE_enabled()) {
-      
       // Stop maintenance mode on emergency stop
       if (!EMERGENCY_STOP_active()) {
         MAINTENANCE_disable();
@@ -502,7 +516,7 @@ void MAINTENANCE_main_task(void *parameter) {
       MAINTENANCE_steering_update();
 
       vTaskDelay(250 / portTICK_PERIOD_MS);
-      continue; // taks 4 x/sec.
+      continue;  // taks 4 x/sec.
     }
 
     /* Maintenance mode not active */

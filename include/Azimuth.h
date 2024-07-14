@@ -29,11 +29,11 @@ extern void AZIMUTH_enable();
 extern void AZIMUTH_disable();
 extern bool AZIMUTH_enabled();
 
-extern float AZIMTUH_get_actual(void);
-extern float AZIMTUH_get_left(void);
-extern void AZIMTUH_set_left(float value);
-extern float AZIMTUH_get_right(void);
-extern void AZIMTUH_set_right(float value);
+extern float AZIMUTH_get_actual(void);
+extern float AZIMUTH_get_left(void);
+extern void AZIMUTH_set_left(float value);
+extern float AZIMUTH_get_right(void);
+extern void AZIMUTH_set_right(float value);
 extern void AZIMUTH_set_steering(int value);
 extern void AZIMUTH_set_output_manual(int value);
 

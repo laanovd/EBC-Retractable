@@ -52,9 +52,9 @@ static JsonDocument AZIMUTH_json(void) {
 
   AZIMUTH_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
 
-  AZIMUTH_data[JSON_AZIMUTH_LEFT_V] = AZIMTUH_get_left();
-  AZIMUTH_data[JSON_AZIMUTH_RIGHT_V] = AZIMTUH_get_right();
-  AZIMUTH_data[JSON_AZIMUTH_ACTUAL_V] = AZIMTUH_get_actual();
+  AZIMUTH_data[JSON_AZIMUTH_LEFT_V] = AZIMUTH_get_left();
+  AZIMUTH_data[JSON_AZIMUTH_RIGHT_V] = AZIMUTH_get_right();
+  AZIMUTH_data[JSON_AZIMUTH_ACTUAL_V] = AZIMUTH_get_actual();
 
   AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = AZIMUTH_to_the_middle_delay();
 
@@ -214,13 +214,7 @@ void AZIMUTH_analog_disable() {
  * Get/Set steering
  *******************************************************************/
 int AZIMUTH_get_steerwheel(void) {
-#ifdef DEBUG_AZIMUTH
-  int i = analogRead(STEER_WHEEL_ANALOG_CHANNEL);
-  Serial.printf("Steering wheel read: %d\n", i);
-  return i;
-#else
   return analogRead(STEER_WHEEL_ANALOG_CHANNEL);
-#endif
 }
 
 void AZIMUTH_set_steering(int value) {
@@ -231,32 +225,47 @@ void AZIMUTH_set_steering(int value) {
 #endif
 }
 
-float AZIMTUH_get_actual(void) {
+float AZIMUTH_get_actual(void) {
   return AZIMUTH_get_right_output();
+}
+
+static bool AZIMUTH_steeringwheel_in_middle(void) {
+  int position = AZIMUTH_get_steerwheel();
+
+#ifdef DEBUG_AZIMUTH
+  static int memo = -1;
+  if (abs(position - memo) > 10) {
+    memo = position;
+    Serial.printf("Steer wheel position: %d\n", position);
+  }
+#endif
+
+  // TODO: Check if steer wheel in the middle
+  return ((position >= 1600) && (position <= 1700));
 }
 
 /*******************************************************************
  * Output settings
  *******************************************************************/
-float AZIMTUH_get_left(void) {
+float AZIMUTH_get_left(void) {
   float value;
   STORAGE_get_float(JSON_AZIMUTH_LEFT_V, value);
   return value;
 }
 
-void AZIMTUH_set_left(float value) {
+void AZIMUTH_set_left(float value) {
   if ((value >= 0.0) && (value <= 5.0)) {
     STORAGE_set_float(JSON_AZIMUTH_LEFT_V, value);
   }
 }
 
-float AZIMTUH_get_right(void) {
+float AZIMUTH_get_right(void) {
   float value;
   STORAGE_get_float(JSON_AZIMUTH_RIGHT_V, value);
   return value;
 }
 
-void AZIMTUH_set_right(float value) {
+void AZIMUTH_set_right(float value) {
   if ((value >= 0.0) && (value <= 5.0)) {
     STORAGE_set_float(JSON_AZIMUTH_RIGHT_V, value);
   }
@@ -340,13 +349,25 @@ static void cli_setup(void) {
 }
 
 /********************************************************************
+ * Update LED status
+ *********************************************************************/
+static void AZIMUTH_led_update(void) {
+  if (AZIMUTH_steeringwheel_in_middle()) {
+    digitalWrite(LED_TWAI_PIN, HIGH);
+  } else {
+    digitalWrite(LED_TWAI_PIN, LOW);
+  }
+}
+
+/********************************************************************
  * Main task
  *********************************************************************/
 static void AZIMUTH_main_task(void *parameter) {
   (void)parameter;
 
   while (true) {
-    // AZIMUTH update
+    AZIMUTH_led_update();
+
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
@@ -363,6 +384,7 @@ static void AZIMUTH_setup_tasks(void) {
  *******************************************************************/
 static void AZIMUTH_setup_gpio(void) {
   pinMode(AZIMUTH_ANALOG_ENABLE_PIN, OUTPUT);
+  pinMode(LED_TWAI_PIN, OUTPUT);
   pinMode(STEER_WHEEL_ANALOG_CHANNEL, INPUT);
 }
 

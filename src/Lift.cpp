@@ -118,14 +118,14 @@ void LIFT_enable(void) {
   PCF8574_write(PCF8574_address, LIFT_ENABLE_PIN, IO_ON);
 
 #ifdef DEBUG_LIFT
-  Serial.println("Up-down ENABLE");
+  Serial.println("LIFT enable");
 #endif
 }
 void LIFT_disable(void) {
   PCF8574_write(PCF8574_address, LIFT_ENABLE_PIN, IO_OFF);
 
 #ifdef DEBUG_LIFT
-  Serial.println("Up-down DISABLE");
+  Serial.println("LIFT disable");
 #endif
 }
 

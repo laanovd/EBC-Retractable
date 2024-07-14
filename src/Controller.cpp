@@ -12,13 +12,13 @@
 #include <endian.h>
 #include <esp_err.h>
 
-#include "Storage.h"
+#include "Azimuth.h"
 #include "CLI.h"
 #include "DMC.h"
 #include "GPIO.h"
 #include "Lift.h"
-#include "Azimuth.h"
 #include "Maintenance.h"
+#include "Storage.h"
 
 /*******************************************************************
  * Constants
@@ -100,17 +100,29 @@ static bool CONTROLLER_maintenance_requested(void) {
 }
 
 /*******************************************************************
+ * Disable dmc and azimuth
+ *******************************************************************/
+static void CONTROLLER_disable_propulsion(void) {
+  DMC_disable();
+  AZIMUTH_disable();
+  AZIMUTH_analog_disable();
+}
+
+static void CONTROLLER_disable_lift(void) {
+  LIFT_disable();
+  LIFT_UP_off();
+  LIFT_DOWN_off();
+}
+
+/*******************************************************************
  * Controller Initializiation State
  *******************************************************************/
 static void fnStateInit() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State INIT enter.");
+  Serial.println("Enter state: INIT.");
 #endif
-  DMC_disable();
-  LIFT_disable();
-  LIFT_UP_off();
-  LIFT_DOWN_off();
-  AZIMUTH_disable();
+  CONTROLLER_disable_propulsion();
+  CONTROLLER_disable_lift();
 }
 
 static bool fnInitToCalibrating() {
@@ -122,16 +134,16 @@ static bool fnInitToCalibrating() {
  *******************************************************************/
 static void fnStateRetracted() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State RETRACTED");
+  Serial.println("Enter state: RETRACTED");
 #endif
-  LIFT_UP_off();
-  LIFT_extended_increment();
+  CONTROLLER_disable_propulsion();
+  CONTROLLER_disable_lift();
 }
 
 static bool fnRetractedToExtending() {
-  if (LIFT_UP_button())
+  if (LIFT_UP_button()) {
     return true;
-
+  }
   return false;
 }
 
@@ -139,7 +151,6 @@ static bool fnRetractedToNoPosition() {
   if (!LIFT_UP_sensor()) {
     return true;
   }
-
   return false;
 }
 
@@ -148,8 +159,10 @@ static bool fnRetractedToNoPosition() {
  *******************************************************************/
 static void fnStatePreretracting() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State PRERETRACTING");
+  Serial.println("Enter state: PRERETRACTING");
 #endif
+  CONTROLLER_disable_propulsion();
+  CONTROLLER_disable_lift();
 
   TIMER_start(preretracting_timer, AZIMUTH_to_the_middle_delay());
 }
@@ -158,13 +171,17 @@ static bool fnPreretractingToNoPosition() {
   if (LIFT_UP_button() || LIFT_DOWN_button())
     return true;
 
+  if (TIMER_finished(preretracting_timer))
+    return true;
+
   return false;
 }
 
 static bool fnPreretractingToRetracting() {
-  if (TIMER_finished(preretracting_timer))
+  if (AZIMUTH_home()) {
+    TIMER_stop(preretracting_timer);
     return true;
-
+  }
   return false;
 }
 
@@ -173,9 +190,12 @@ static bool fnPreretractingToRetracting() {
  *******************************************************************/
 static void fnStateRetracting() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State RETRACTING");
+  Serial.println("Enter state: RETRACTING");
 #endif
+  CONTROLLER_disable_propulsion();
+
   LIFT_enable();
+  LIFT_UP_off();
   LIFT_DOWN_on();
 
   TIMER_start(retracting_timer, LIFT_move_timeout());
@@ -187,9 +207,10 @@ static bool fnRetractingToNoPosition() {
     return true;
   }
 
-  if (TIMER_finished(retracting_timer))
+  /* LIFT not UP in time */
+  if (TIMER_finished(retracting_timer)) {
     return true;
-
+  }
   return false;
 }
 
@@ -199,7 +220,6 @@ static bool fnRetractingToRetracted() {
     TIMER_stop(retracting_timer);
     return true;
   }
-
   return false;
 }
 
@@ -208,10 +228,15 @@ static bool fnRetractingToRetracted() {
  *******************************************************************/
 static void fnStateExtended() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State EXTENDED");
+  Serial.println("Enter state: EXTENDED");
 #endif
+  LIFT_UP_off();
   LIFT_DOWN_off();
+
   DMC_enable();
+
+  AZIMUTH_analog_enable();
+  vTaskDelay(500 / portTICK_PERIOD_MS);
   AZIMUTH_enable();
 
   LIFT_retected_increment();
@@ -219,28 +244,22 @@ static void fnStateExtended() {
 
 static bool fnExtendedToPrecalibrating() {
   if (LIFT_UP_button() && LIFT_DOWN_button()) {
-    AZIMUTH_disable();
-    DMC_disable();
     return true;
   }
-
   return false;
 }
 
 static bool fnExtendedToRetracting() {
   if (LIFT_UP_button() && !LIFT_DOWN_button()) {
-    DMC_disable();
-    AZIMUTH_disable();
     return true;
   }
-
   return false;
 }
 
 static bool fnExtendedToNoPosition() {
-  if (!LIFT_DOWN_sensor()) 
+  if (!LIFT_DOWN_sensor()) {
     return true;
-
+  }
   return false;
 }
 
@@ -249,9 +268,12 @@ static bool fnExtendedToNoPosition() {
  *******************************************************************/
 static void fnStateExtending() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State EXTENDING");
+  Serial.println("Enter state: EXTENDING");
 #endif
+  CONTROLLER_disable_propulsion();
+
   LIFT_enable();
+  LIFT_UP_on();
   LIFT_DOWN_on();
 
   TIMER_start(extending_timer, LIFT_move_timeout());
@@ -263,19 +285,18 @@ static bool fnExtendingToNoPosition() {
     return true;
   }
 
-  if (TIMER_finished(extending_timer))
+  /* LIFT not down in time */
+  if (TIMER_finished(extending_timer)) {
     return true;
-
+  }
   return false;
 }
 
 static bool fnExtendingToExtended() {
   if (LIFT_DOWN_sensor()) {
-    LIFT_DOWN_off();
     TIMER_stop(extending_timer);
     return true;
   }
-
   return false;
 }
 
@@ -284,10 +305,10 @@ static bool fnExtendingToExtended() {
  *******************************************************************/
 static void fnStatePrecalibrating() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State PRECALIBRATING");
+  Serial.println("Enter state: PRECALIBRATING");
 #endif
-  DMC_disable();
-  LIFT_disable();
+  CONTROLLER_disable_propulsion();
+  CONTROLLER_disable_lift();
 
   TIMER_start(precalibrating_timer, 5);
 }
@@ -297,14 +318,13 @@ static bool fnPrecalibratingToExtended() {
     TIMER_stop(precalibrating_timer);
     return true;
   }
-
   return false;
 }
 
 static bool fnPrecalibratingToCalibrating() {
-  if (TIMER_finished(precalibrating_timer))
+  if (TIMER_finished(precalibrating_timer)) {
     return true;
-
+  }
   return false;
 }
 
@@ -313,10 +333,10 @@ static bool fnPrecalibratingToCalibrating() {
  *******************************************************************/
 static void fnStateCalibrating() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State CALIBRATING");
+  Serial.println("Enter state: CALIBRATING");
 #endif
-  DMC_disable();
-  LIFT_disable();
+  CONTROLLER_disable_propulsion();
+  CONTROLLER_disable_lift();
 
   set_calibrating(true);
   TIMER_start(calibrating_timer, 3);
@@ -342,14 +362,15 @@ static bool fnCalibratingToNoPosition() {
  *******************************************************************/
 static void fnStateNoPosition() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State NO POSITION");
+  Serial.println("Enter state: NO-POSITION");
 #endif
   LIFT_UP_off();
   LIFT_DOWN_off();
-  AZIMUTH_disable();
-  DMC_disable();
 
-  // TODO: Set error
+  /* If lift not down the block DMC and AZIMUTH */
+  if (!LIFT_DOWN_sensor()) {
+    CONTROLLER_disable_propulsion();
+  }
 }
 
 static bool fnNoPositionToExtended() {
@@ -385,13 +406,10 @@ static bool fnNoPositionToRetracting() {
  *******************************************************************/
 static void fnStateEmergencyStop() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State EMERGENCY STOP");
+  Serial.println("Enter state: EMERGENCY-STOP");
 #endif
-  DMC_disable();
-  LIFT_disable();
-  LIFT_UP_off();
-  LIFT_DOWN_off();
-  AZIMUTH_disable();
+  CONTROLLER_disable_propulsion();
+  CONTROLLER_disable_lift();
 
   // TODO: Set error emergency stop
 }
@@ -413,22 +431,16 @@ static bool fnEmergencyStopToCalibrating() {
  *******************************************************************/
 static void fnStateMaintenace() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("State MAINTENACE mode enter.");
+  Serial.println("Enter state: MAINTENANCE-MODE");
 #endif
+  CONTROLLER_disable_propulsion();
+  CONTROLLER_disable_lift();
 
-  DMC_disable();
-  LIFT_disable();
-  AZIMUTH_disable();
-  AZIMUTH_analog_disable();
-
-  MAINTENANCE_enable(); // Start maintenance mode
+  MAINTENANCE_enable();  // Start maintenance mode
 }
 
-static bool fnMainenanceToNoPosition() {
-  if (!MAINTENANCE_enabled())  {
-#ifdef DEBUG_CONTROLLER
-  Serial.println("State MAINTENACE mode leave.");
-#endif
+static bool fnMaintenanceToNoPosition() {
+  if (!MAINTENANCE_enabled()) {
     return true;
   }
   return false;
@@ -523,7 +535,7 @@ static void CONTROLLER_setup_statemachine() {
   stateMachine.AddTransition(CONTROLLER_emergency_stop, CONTROLLER_calibrating, fnEmergencyStopToCalibrating);
   stateMachine.SetOnEntering(CONTROLLER_emergency_stop, fnStateEmergencyStop);
 
-  stateMachine.AddTransition(CONTROLLER_maintenance, CONTROLLER_no_position, fnMainenanceToNoPosition);
+  stateMachine.AddTransition(CONTROLLER_maintenance, CONTROLLER_no_position, fnMaintenanceToNoPosition);
   stateMachine.SetOnEntering(CONTROLLER_maintenance, fnStateMaintenace);
 
   // Initial state
