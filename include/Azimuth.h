@@ -44,7 +44,7 @@ extern int AZIMUTH_to_the_middle_delay(void);
 extern void AZIMUTH_set_manual(int value);
 extern int AZIMUTH_get_manual(void);
 
-extern int AZIMUTH_get_wheel(void);
+extern int AZIMUTH_get_steering(void);
 
 extern bool AZIMUTH_home();
 extern void AZIMUTH_start_homing();
@@ -55,5 +55,7 @@ extern void AZIMUTH_analog_disable();
 
 extern void AZIMUTH_setup();
 extern void AZIMUTH_start();
+
+extern int STEERING_WHEEL_read(void);
 
 #endif

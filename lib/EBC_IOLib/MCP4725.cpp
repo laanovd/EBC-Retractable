@@ -109,6 +109,7 @@ int MCP4725_write(uint8_t address, uint16_t value) {
         }
       }
     }
+    return 0; // Ok
   }
 
   return -1;  // Write failed

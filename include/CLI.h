@@ -42,7 +42,7 @@ extern void CLI_print(String txt);
 extern void CLI_println(String txt);
 
 /*******************************************************************
- * System reboot
+ * Restarts the system after a delay of 3 seconds.
  *******************************************************************/
 extern void system_restart(void);
 

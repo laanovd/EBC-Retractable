@@ -419,7 +419,8 @@ static void fnStateMaintenace() {
   DMC_disable();
   LIFT_disable();
   AZIMUTH_disable();
-
+  AZIMUTH_analog_disable();
+  
   MAINTENANCE_enable(); // Start maintenance mode
 }
 

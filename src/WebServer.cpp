@@ -161,7 +161,7 @@ static void onOTAEnd(bool success) {
   else
     DEBUG_info("There was an error during OTA update!");
 
-  ota_restart_countdown = 12;
+  ota_restart_countdown = 12;  // Short delay in main-task-cycles
   Serial.println("OTA update finished, system will restart after short delay...");
 }
 
@@ -177,6 +177,8 @@ static void WEBSERVER_task(void *parameter) {
     if (ota_restart_countdown > 0) {
       ota_restart_countdown--;
       if (ota_restart_countdown == 0) {
+        Serial.println("Restarting system after OTA update...");
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
         ESP.restart();
       }
     }
@@ -266,14 +268,14 @@ void WEBSOCKET_send_doc(JsonDocument doc) {
  *********************************************************************/
 static void WEBSOCKET_on_connect(void) {
   WEBSOCKET_send_doc(WebSocket_JSON_data);
-    JsonDocument doc;
+  JsonDocument doc;
 
-    doc["program_name"] = ProgramName;
-    doc["chip_id"] = ChipIds();
-    doc["wifi_ssid"] = WiFi_ssid();
-    WEBSOCKET_update_doc(doc);
+  //  General program data
+  doc["program_name"] = ProgramName;
+  doc["chip_id"] = ChipIds();
+  doc["wifi_ssid"] = WiFi_ssid();
 
-    WEBSOCKET_send_doc(WebSocket_JSON_data);
+  WEBSOCKET_send_doc(doc);
 }
 
 /********************************************************************
@@ -344,7 +346,9 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
       break;
 
     case WStype_CONNECTED:  // if a client is connected, then type == WStype_CONNECTED
-      Serial.println("Websocket client connected.");	
+#ifdef DEBUG_WEBSOCKET
+      Serial.println("Websocket client connected.");
+#endif
       WEBSOCKET_on_connect();
       break;
 
