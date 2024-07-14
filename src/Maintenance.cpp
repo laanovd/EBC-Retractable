@@ -45,7 +45,8 @@ static int lift_homing_timer = 0;
 /********************************************************************
  * Internal JSON data
  *******************************************************************/
-static void MAINTENANCE_json_init(void) {
+static void MAINTENANCE_json_init(void)
+{
   maintenance_data[JSON_MAINTENANCE_ENABLED] = false;
 
   maintenance_data[JSON_EMERGENCY_STOP] = true;
@@ -64,7 +65,7 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_LEFT_V] = 0.0;
   maintenance_data[JSON_AZIMUTH_RIGHT_V] = 0.0;
   maintenance_data[JSON_AZIMUTH_ACTUAL_V] = 0.0;
-  maintenance_data[JSON_AZIMUTH_MANUAL] = false;
+  maintenance_data[JSON_AZIMUTH_MANUAL] = 0;
   maintenance_data[JSON_AZIMUTH_STEERING] = 0;
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = false;
   maintenance_data[JSON_DELAY_TO_MIDDLE] = 0;
@@ -74,7 +75,8 @@ static void MAINTENANCE_json_init(void) {
   WEBSOCKET_send_doc(maintenance_data);
 }
 
-static JsonDocument MAINTENANCE_json(void) {
+static JsonDocument MAINTENANCE_json(void)
+{
   maintenance_data[JSON_EMERGENCY_STOP] = EMERGENCY_STOP_active();
 
   // Lift
@@ -103,7 +105,8 @@ static JsonDocument MAINTENANCE_json(void) {
 /********************************************************************
  * Create string
  *******************************************************************/
-String MAINTENANCE_string(void) {
+String MAINTENANCE_string(void)
+{
   JsonDocument doc = MAINTENANCE_json();
 
   String text = "--- MAINTENANCE ---";
@@ -170,8 +173,10 @@ String MAINTENANCE_string(void) {
  *
  * @note If the emergency stop is active, the maintenance mode will not be enabled.
  *******************************************************************/
-void MAINTENANCE_enable(void) {
-  if (!EMERGENCY_STOP_active()) {
+void MAINTENANCE_enable(void)
+{
+  if (!EMERGENCY_STOP_active())
+  {
     maintenance_data[JSON_MAINTENANCE_ENABLED] = true;
   }
 }
@@ -182,7 +187,8 @@ void MAINTENANCE_enable(void) {
  * This function disables maintenance mode and disables
  * the DMC, LIFT, and AZIMUTH subsystems.
  *******************************************************************/
-void MAINTENANCE_disable(void) {
+void MAINTENANCE_disable(void)
+{
   maintenance_data[JSON_MAINTENANCE_ENABLED] = false;
 
   DMC_disable();
@@ -195,72 +201,92 @@ void MAINTENANCE_disable(void) {
  *
  * @return true if maintenance mode is enabled, false otherwise.
  *******************************************************************/
-bool MAINTENANCE_enabled(void) {
+bool MAINTENANCE_enabled(void)
+{
   return maintenance_data[JSON_MAINTENANCE_ENABLED].as<bool>();
 }
 
-static void MAINTENANCE_dmc_enable(void) {
-  if (MAINTENANCE_enabled()) {
+static void MAINTENANCE_dmc_enable(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     DMC_enable();
   }
 }
 
-static void MAINTENANCE_azimuth_enable(void) {
-  if (MAINTENANCE_enabled()) {
+static void MAINTENANCE_azimuth_enable(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     AZIMUTH_enable();
   }
 }
 
-static void MAINTENANCE_analog_enable(void) {
-  if (MAINTENANCE_enabled() && AZIMUTH_enabled()) {
+static void MAINTENANCE_analog_enable(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     AZIMUTH_analog_enable();
   }
 }
 
-static void MAINTENANCE_azimuth_homing(void) {
+static void MAINTENANCE_azimuth_homing(void)
+{
   maintenance_data[JSON_AZIMUTH_HOMING] = true;
   AZIMUTH_start_homing();
   azimuth_homing_timer = 20;
 }
 
-static void MAINTENANCE_lift_enable(void) {
-  if (MAINTENANCE_enabled()) {
+static void MAINTENANCE_lift_enable(void)
+{
+  if (MAINTENANCE_enabled())
+  {
     LIFT_enable();
   }
 }
 
-static void MAINTENANCE_lift_motor_up(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+static void MAINTENANCE_lift_motor_up(void)
+{
+  if (MAINTENANCE_enabled() && LIFT_enabled())
+  {
     LIFT_UP_on();
     LIFT_DOWN_off();
   }
 }
 
-static void MAINTENANCE_lift_motor_down(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+static void MAINTENANCE_lift_motor_down(void)
+{
+  if (MAINTENANCE_enabled() && LIFT_enabled())
+  {
     LIFT_DOWN_on();
     LIFT_UP_off();
   }
 }
 
-static void MAINTENANCE_lift_extend(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+static void MAINTENANCE_lift_extend(void)
+{
+  if (MAINTENANCE_enabled() && LIFT_enabled())
+  {
     LIFT_UP_off();
-    vTaskDelay(500 / portTICK_PERIOD_MS);  // Wait 0.5s
+    vTaskDelay(500 / portTICK_PERIOD_MS); // Wait 0.5s
     LIFT_DOWN_on();
   }
 }
 
-static void MAINTENANCE_lift_retract(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+static void MAINTENANCE_lift_retract(void)
+{
+  if (MAINTENANCE_enabled() && LIFT_enabled())
+  {
     LIFT_DOWN_off();
-    vTaskDelay(500 / portTICK_PERIOD_MS);  // Wait 0.5s
+    vTaskDelay(500 / portTICK_PERIOD_MS); // Wait 0.5s
     LIFT_UP_on();
   }
 }
 
-static void MAINTENANCE_lift_homing(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+static void MAINTENANCE_lift_homing(void)
+{
+  if (MAINTENANCE_enabled() && LIFT_enabled())
+  {
     maintenance_data[JSON_LIFT_HOMING] = true;
     LIFT_start_homing();
     lift_homing_timer = 20;
@@ -276,13 +302,15 @@ static void MAINTENANCE_lift_homing(void) {
  *
  * @return DeserializationError The error status of the JSON deserialization process.
  *********************************************************************/
-int MAINTENANCE_command_handler(const char *data) {
+int MAINTENANCE_command_handler(const char *data)
+{
   JsonDocument doc;
   int handeled = 0;
 
   DeserializationError error = deserializeJson(doc, data);
-  if (error != DeserializationError::Ok) {
-    return -1;  // DeserializationError
+  if (error != DeserializationError::Ok)
+  {
+    return -1; // DeserializationError
   }
 
 #ifdef DEBUG_API
@@ -293,7 +321,8 @@ int MAINTENANCE_command_handler(const char *data) {
 #endif
 
   /* Maintenance mode active */
-  if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
+  if (doc.containsKey(JSON_MAINTENANCE_ENABLED))
+  {
     if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true)
       CONTROLLER_request_maintenance();
     else
@@ -302,7 +331,8 @@ int MAINTENANCE_command_handler(const char *data) {
   }
 
   /* Lift enable */
-  if (doc.containsKey(JSON_LIFT_ENABLED)) {
+  if (doc.containsKey(JSON_LIFT_ENABLED))
+  {
     if (doc[JSON_LIFT_ENABLED].as<bool>() == true)
       MAINTENANCE_lift_enable();
     else
@@ -311,34 +341,39 @@ int MAINTENANCE_command_handler(const char *data) {
   }
 
   /* Lift EXTEND */
-  if (doc.containsKey(JSON_LIFT_SENSOR_DOWN)) {
+  if (doc.containsKey(JSON_LIFT_SENSOR_DOWN))
+  {
     if (doc[JSON_LIFT_SENSOR_DOWN].as<bool>() == true)
       MAINTENANCE_lift_extend();
   }
 
   /* Lift homing */
-  if (doc.containsKey(JSON_LIFT_HOMING)) {
+  if (doc.containsKey(JSON_LIFT_HOMING))
+  {
     if (doc[JSON_LIFT_HOMING].as<bool>() == true)
       MAINTENANCE_lift_homing();
     handeled++;
   }
 
   /* Lift UP */
-  if (doc.containsKey(JSON_LIFT_MOTOR_UP)) {
-    if (doc[JSON_LIFT_MOTOR_UP].as<bool>() == true) 
-    MAINTENANCE_lift_motor_up();
+  if (doc.containsKey(JSON_LIFT_MOTOR_UP))
+  {
+    if (doc[JSON_LIFT_MOTOR_UP].as<bool>() == true)
+      MAINTENANCE_lift_motor_up();
     handeled++;
   }
 
   /* Lift DOWN */
-  if (doc.containsKey(JSON_LIFT_MOTOR_DOWN)) {
-    if (doc[JSON_LIFT_MOTOR_DOWN].as<bool>() == true) 
-    MAINTENANCE_lift_motor_down();
+  if (doc.containsKey(JSON_LIFT_MOTOR_DOWN))
+  {
+    if (doc[JSON_LIFT_MOTOR_DOWN].as<bool>() == true)
+      MAINTENANCE_lift_motor_down();
     handeled++;
   }
 
   /* DMC enable */
-  if (doc.containsKey(JSON_DMC_ENABLED)) {
+  if (doc.containsKey(JSON_DMC_ENABLED))
+  {
     if (doc[JSON_DMC_ENABLED].as<bool>() == true)
       MAINTENANCE_dmc_enable();
     else
@@ -347,7 +382,8 @@ int MAINTENANCE_command_handler(const char *data) {
   }
 
   /* Steering enable */
-  if (doc.containsKey(JSON_AZIMUTH_ENABLED)) {
+  if (doc.containsKey(JSON_AZIMUTH_ENABLED))
+  {
     if (doc[JSON_AZIMUTH_ENABLED].as<bool>() == true)
       MAINTENANCE_azimuth_enable();
     else
@@ -356,7 +392,8 @@ int MAINTENANCE_command_handler(const char *data) {
   }
 
   /* Steering analog output enable */
-  if (doc.containsKey(JSON_AZIMUTH_OUTPUT_ENABLED)) {
+  if (doc.containsKey(JSON_AZIMUTH_OUTPUT_ENABLED))
+  {
     if (doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() == true)
       MAINTENANCE_analog_enable();
     else
@@ -365,55 +402,63 @@ int MAINTENANCE_command_handler(const char *data) {
   }
 
   /* Steering set LEFT voltage */
-  if (doc.containsKey(JSON_AZIMUTH_LEFT_V)) {
+  if (doc.containsKey(JSON_AZIMUTH_LEFT_V))
+  {
     AZIMTUH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
     handeled++;
   }
 
   /* Steering set RIGHT voltage */
-  if (doc.containsKey(JSON_AZIMUTH_RIGHT_V)) {
+  if (doc.containsKey(JSON_AZIMUTH_RIGHT_V))
+  {
     AZIMTUH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
     handeled++;
   }
 
   /* Steering start homing */
-  if (doc.containsKey(JSON_AZIMUTH_HOMING)) {
+  if (doc.containsKey(JSON_AZIMUTH_HOMING))
+  {
     if (doc[JSON_AZIMUTH_HOMING].as<bool>() == true)
       MAINTENANCE_azimuth_homing();
     handeled++;
   }
 
   /* Steering manual control (%) */
-  if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
+  if (doc.containsKey(JSON_AZIMUTH_MANUAL))
+  {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
     handeled++;
   }
 
-  if (handeled == 0) {
+  if (handeled == 0)
+  {
 #ifdef DEBUG_WEBSOCKET
     Serail.println(F("MAINTENANCE mode no commands handled"))
 #endif
-        handeled = -2;  // no command found
+        handeled = -2; // no command found
   }
 
-  return handeled;  // Ok is handeled > 0
+  return handeled; // Ok is handeled > 0
 }
 
 /********************************************************************
  * REST API: read handler
  *********************************************************************/
-void MAINTENANCE_rest_read(AsyncWebServerRequest *request) {
+void MAINTENANCE_rest_read(AsyncWebServerRequest *request)
+{
   String str;
   serializeJson(MAINTENANCE_json(), str);
   request->send(200, "application/json", str.c_str());
 }
 
-void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+void MAINTENANCE_rest_update(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+{
   (void)len;
   (void)index;
   (void)total;
 
-  if (MAINTENANCE_command_handler((const char *)data) < 0) {
+  if (MAINTENANCE_command_handler((const char *)data) < 0)
+  {
     Serial.print(F("MAINTENANCE_command_handler failed: "));
     request->send(204, "text/plain", "204, No content");
     return;
@@ -435,26 +480,32 @@ static rest_api_t MAINTENANCE_api_handlers = {
 /********************************************************************
  * WebSocketsServer task
  *********************************************************************/
-static void MAINTENACE_websocket_task(void *parameter) {
+static void MAINTENACE_websocket_task(void *parameter)
+{
   (void)parameter;
 
-  while (true) {
+  while (true)
+  {
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
     WEBSOCKET_update_doc(MAINTENANCE_json());
 
     /* After countdown lift disable status homing */
-    if (lift_homing_timer >= 0) {
+    if (lift_homing_timer >= 0)
+    {
       lift_homing_timer--;
-      if (LIFT_HOME_sensor() || lift_homing_timer == 0) {
+      if (LIFT_HOME_sensor() || lift_homing_timer == 0)
+      {
         maintenance_data[JSON_LIFT_HOMING] = false;
       }
     }
 
     /* After countdown azimuth disable status homing */
-    if (azimuth_homing_timer >= 0) {
+    if (azimuth_homing_timer >= 0)
+    {
       azimuth_homing_timer--;
-      if (azimuth_homing_timer == 0) {
+      if (azimuth_homing_timer == 0)
+      {
         maintenance_data[JSON_AZIMUTH_HOMING] = false;
       }
     }
@@ -464,16 +515,22 @@ static void MAINTENACE_websocket_task(void *parameter) {
 /********************************************************************
  * Maintenance parts
  *******************************************************************/
-void MAINTENANCE_dmc_control(void) {
-  if (MAINTENANCE_enabled()) {
-    DMC_enable();
-  } else {
-    DMC_disable();
-  }
+void MAINTENANCE_dmc_control(void)
+{
+  // if (MAINTENANCE_enabled())
+  // {
+  //   DMC_enable();
+  // }
+  // else
+  // {
+  //   DMC_disable();
+  // }
 }
 
-void MAINTENANCE_lift_control(void) {
-  if (LIFT_enabled()) {
+void MAINTENANCE_lift_control(void)
+{
+  if (LIFT_enabled())
+  {
     // TODO: LIFT control
     return;
   }
@@ -481,37 +538,42 @@ void MAINTENANCE_lift_control(void) {
   // TODO: LIFT control
 }
 
-void MAINTENANCE_steering_control(void) {
-  if (AZIMUTH_enabled()) {
+void MAINTENANCE_steering_control(void)
+{
+  if (AZIMUTH_enabled())
+  {
     // TODO: STEERING control
     return;
   }
 }
 
-void MAINTENANCE_steering_output_control(void) {
-  if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
-    AZIMUTH_set_output_manual(AZIMUTH_get_manual());
-    return;
-  }
+void MAINTENANCE_steering_output_control(void)
+{
+  // if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
+  int value = AZIMUTH_get_manual();
+  Serial.printf("Aimtuh manual %s\n", value);
+  AZIMUTH_set_output_manual(value);
+  return;
+  // }
 }
 
 /********************************************************************
  * Main task
  *******************************************************************/
-void MAINTENANCE_main(void *parameter) {
+void MAINTENANCE_main(void *parameter)
+{
   (void)parameter;
 
-  while (1) {
-    if (MAINTENANCE_enabled()) {
-      MAINTENANCE_enable();
-    } else {
-      MAINTENANCE_disable();
-    }
-
+  while (1)
+  {
+    Serial.println("First in while loop");
     // Start maintenace mode
-    if (MAINTENANCE_enabled()) {
+    if (MAINTENANCE_enabled())
+    {
+      Serial.println("First in while loop if maintenance");
       // TODO: Conditions for actvating maintenance mode
-      if (EMERGENCY_STOP_active()) {
+      if (EMERGENCY_STOP_active())
+      {
         MAINTENANCE_disable();
         continue;
       }
@@ -522,7 +584,6 @@ void MAINTENANCE_main(void *parameter) {
       MAINTENANCE_steering_output_control();
 
       vTaskDelay(100 / portTICK_PERIOD_MS);
-      continue;
     }
 
     /* Maintenance mode not active */
@@ -534,14 +595,17 @@ void MAINTENANCE_main(void *parameter) {
  *  Initialize tasks
  *
  *********************************************************************/
-static void MAINTENANCE_setup_tasks(void) {
-  xTaskCreate(MAINTENACE_websocket_task, "WwebSocketServer task", 8192, NULL, 15, NULL);
+static void MAINTENANCE_setup_tasks(void)
+{
+  xTaskCreate(MAINTENACE_websocket_task, "WebSocketServer task", 8192, NULL, 15, NULL);
+  xTaskCreate(MAINTENANCE_main, "Maintenance main", 16000, NULL, 15, NULL);
 }
 
 /********************************************************************
  * Command Line handler(s)
  *********************************************************************/
-static void MAINTENANCE_cli_handlers(void) {
+static void MAINTENANCE_cli_handlers(void)
+{
   // cli.addCommand("maintenance", clicb_list_wifi);
   // cli.addCommand("mtc", clicb_list_wifi);
 }
@@ -549,7 +613,8 @@ static void MAINTENANCE_cli_handlers(void) {
 /********************************************************************
  * Setup
  *******************************************************************/
-void MAINTENANCE_setup(void) {
+void MAINTENANCE_setup(void)
+{
   MAINTENANCE_json_init();
   MAINTENANCE_cli_handlers();
   setup_uri(&MAINTENANCE_api_handlers);
@@ -560,7 +625,8 @@ void MAINTENANCE_setup(void) {
 /********************************************************************
  * Start
  *******************************************************************/
-void MAINTENANCE_start(void) {
+void MAINTENANCE_start(void)
+{
   MAINTENANCE_disable();
   MAINTENANCE_setup_tasks();
   Serial.println("MAINTENANCE started...");

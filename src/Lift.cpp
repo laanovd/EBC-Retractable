@@ -179,7 +179,7 @@ void LIFT_DOWN_off(void) {
 void LIFT_start_homing() {
   PCF8574_write(PCF8574_address, LIFT_START_HOMING_PIN, IO_ON);
   vTaskDelay(500 / portTICK_PERIOD_MS);
-  PCF8574_write(PCF8574_address, LIFT_START_HOMING_PIN, IO_ON);
+  PCF8574_write(PCF8574_address, LIFT_START_HOMING_PIN, IO_OFF);
 }
 
 
