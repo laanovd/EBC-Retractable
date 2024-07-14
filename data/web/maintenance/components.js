@@ -1,397 +1,60 @@
-// Maintenance button
-const elm_id_maintenance_enabled = "maintenance_enabled";
-const elm_id_maintenance_on = "maintenance_button_on";
-const elm_id_maintenance_off = "maintenance_button_off";
-const elm_id_maintenance_loading = "maintenance_button_loading";
-const json_key_maintenance_enabled = "maintenance_enabled";
-let maintenance_mode = false;
-function INIT_maintenance_button() {
-  const elm = document.querySelector(`#${elm_id_maintenance_enabled}`);
+// Indicator
+function INIT_indicator(
+  elm_id,
+  json_key,
+  disabled_color = "bg-slate-300",
+  enabled_color = "bg-emerald-500"
+) {
+  const elm = document.querySelector(`#${elm_id}`);
+  addMessageHandler((data) => {
+    if (data.hasOwnProperty(json_key)) {
+      const value = JSON.parse(data[json_key]);
+      elm.classList.add(value ? enabled_color : disabled_color);
+      elm.classList.remove(value ? disabled_color : enabled_color);
+    }
+  });
+}
+
+// Toggle
+function INIT_toggle(elm_id, json_key) {
+  const elm = document.querySelector(`#${elm_id}`);
   elm.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     elm.disabled = true;
-    sendCommand(
-      JSON.stringify({ [json_key_maintenance_enabled]: e.target.checked })
-    );
+    sendCommand(JSON.stringify({ [json_key]: e.target.checked }));
+    setTimeout(() => {
+      elm.disabled = false;
+    }, 5000);
   });
-
   addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_maintenance_enabled)) {
-      maintenance_mode = JSON.parse(data[json_key_maintenance_enabled]);
-      set_maintenance_button(maintenance_mode);
+    if (data.hasOwnProperty(json_key)) {
+      console.log(`${json_key}: ${data[json_key]}`);
+      elm.checked = JSON.parse(data[json_key]);
+      elm.disabled = false;
     }
   });
 }
-function set_maintenance_button(value) {
-  const elm = document.querySelector(`#${elm_id_maintenance_enabled}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
 
-// Emergency stop
-const elm_id_emergency_stop = "emergency_stop_indicator";
-const json_key_emergency_stop = "emergency_stop";
-function INIT_emergency_stop() {
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_emergency_stop))
-      set_emergency_stop(data[json_key_emergency_stop]);
-  });
-}
-function set_emergency_stop(value) {
-  const elm = document.querySelector(`#${elm_id_emergency_stop}`);
-  elm.classList.add(value ? `bg-rose-500` : "bg-emerald-300");
-  elm.classList.remove(value ? "bg-emerald-300" : `bg-rose-500`);
-}
-
-// Extended
-const elm_id_extended = "extended_indicator";
-const json_key_extended = "lift_sensor_down";
-function INIT_extended_indicator() {
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_extended))
-      set_extended_indicator(data[json_key_extended]);
-  });
-}
-function set_extended_indicator(value) {
-  const elm = document.querySelector(`#${elm_id_extended}`);
-  elm.classList.add(value ? `bg-emerald-500` : "bg-slate-300");
-  elm.classList.remove(value ? "bg-slate-300" : `bg-emerald-500`);
-}
-const elm_id_extend = "extend";
-const json_key_extend = "lift_motor_down";
-function INIT_extend_enabled() {
-  const elm = document.querySelector(`#${elm_id_extend}`);
-  elm.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (maintenance_mode) {
-      elm.disabled = true;
-      sendCommand(JSON.stringify({ [json_key_extend]: e.target.checked }));
-    }
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_extend))
-      set_extending(JSON.parse(data[json_key_extend]));
-  });
-}
-function set_extending(value) {
-  const elm = document.querySelector(`input#${elm_id_extend}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
-
-// Retracted
-const elm_id_retracted = "extended_indicator";
-const json_key_retracted = "lift_sensor_up";
-function INIT_retracted_indicator() {
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_retract))
-      set_retracted_indicator(data[json_key_retract]);
-  });
-}
-function set_retracted_indicator(value) {
-  const elm = document.querySelector(`#${elm_id_extended}`);
-  elm.classList.add(value ? `bg-emerald-500` : "bg-slate-300");
-  elm.classList.remove(value ? "bg-slate-300" : `bg-emerald-500`);
-}
-const elm_id_retract = "retract";
-const json_key_retract = "lift_motor_up";
-function INIT_retract_enable() {
-  const elm = document.querySelector(`#${elm_id_retract}`);
-  elm.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (maintenance_mode) {
-      elm.disabled = true;
-      sendCommand(JSON.stringify({ [json_key_retract]: e.target.checked }));
-    }
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_retract))
-      set_retracting(JSON.parse(data[json_key_retract]));
-  });
-}
-function set_retracting(value) {
-  const elm = document.querySelector(`input#${elm_id_retract}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
-
-// dmc enable
-const elm_id_dmc_enabled = "dmc_enabled";
-const json_key_dmc_enabled = "dmc_enabled";
-function INIT_dmc_enabled() {
-  const elm = document.querySelector(`#${elm_id_dmc_enabled}`);
-  elm.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (maintenance_mode) {
-      elm.disabled = true;
-      sendCommand(JSON.stringify({ [json_key_dmc_enabled]: e.target.checked }));
-    }
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_dmc_enabled))
-      set_dmc_enabled(JSON.parse(data[json_key_dmc_enabled]));
-  });
-}
-function set_dmc_enabled(value) {
-  const elm = document.querySelector(`#${elm_id_dmc_enabled}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
-
-// Lift homing
-const elm_id_lift_homing = "lift_homing";
-const json_key_lift_homing = "lift_homing";
-function INIT_lift_homing() {
-  const elm = document.querySelector(`#${elm_id_lift_homing}`);
-  elm.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (maintenance_mode) {
-      elm.disabled = true;
-      sendCommand(JSON.stringify({ [json_key_lift_homing]: e.target.checked }));
-    }
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_lift_homing))
-      set_lift_homing(JSON.parse(data[json_key_lift_homing]));
-  });
-}
-function set_lift_homing(value) {
-  const elm = document.querySelector(`#${elm_id_lift_homing}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
-
-// Azimuth homing
-const elm_id_azimuth_homing = "steering_homing";
-const json_key_azimuth_homing = "steering_homing";
-function INIT_azimuth_homing() {
-  const elm = document.querySelector(`#${elm_id_azimuth_homing}`);
-  elm.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (maintenance_mode) {
-      elm.disabled = true;
-      sendCommand(
-        JSON.stringify({ [json_key_azimuth_homing]: e.target.checked })
-      );
-    }
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_azimuth_homing))
-      set_azimuth_homing(JSON.parse(data[json_key_azimuth_homing]));
-  });
-}
-function set_azimuth_homing(value) {
-  const elm = document.querySelector(`#${elm_id_azimuth_homing}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
-
-// Lift Enable
-const elm_id_lift_enabled = "lift_enabled";
-const json_key_lift_enabled = "lift_enabled";
-function INIT_lift_enable() {
-  const elm = document.querySelector(`#${elm_id_lift_enabled}`);
-  elm.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (maintenance_mode) {
-      elm.disabled = true;
-      sendCommand(
-        JSON.stringify({ [json_key_lift_enabled]: e.target.checked })
-      );
-    }
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_lift_enabled))
-      lift_enable_set_value(JSON.parse(data[json_key_lift_enabled]));
-  });
-}
-function lift_enable_set_value(value) {
-  const elm = document.querySelector(`#${elm_id_lift_enabled}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
-
-// Steering Enable
-const elm_id_steering_enabled = "steering_enabled";
-const json_key_steering_enabled = "steering_enabled";
-function INIT_steering_enabled() {
-  const elm = document.querySelector(`#${elm_id_steering_enabled}`);
-  elm.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (maintenance_mode) {
-      elm.disabled = true;
-      sendCommand(
-        JSON.stringify({ [json_key_steering_enabled]: e.target.checked })
-      );
-    }
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_steering_enabled))
-      steering_enabled_set_value(JSON.parse(data[json_key_steering_enabled]));
-  });
-}
-function steering_enabled_set_value(value) {
-  const elm = document.querySelector(`#${elm_id_steering_enabled}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
-
-// Output Enable
-const elm_id_output_enabled = "output_enabled";
-const json_key_output_enabled = "steering_analog_out_enabled";
-function INIT_output_enabled() {
-  const elm = document.querySelector(`#${elm_id_output_enabled}`);
-  elm.addEventListener("click", (e) => {
-    e.preventDefault();
-    if (maintenance_mode) {
-      e.stopPropagation();
-      elm.disabled = true;
-      sendCommand(
-        JSON.stringify({ [json_key_output_enabled]: e.target.checked })
-      );
-    }
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_output_enabled))
-      output_enabled_set_value(JSON.parse(data[json_key_output_enabled]));
-  });
-}
-function output_enabled_set_value(value) {
-  const elm = document.querySelector(`#${elm_id_output_enabled}`);
-  elm.checked = value;
-  elm.disabled = false;
-}
-
-// Azimuth offset right
-const elm_id_azimuth_offset_right = "azimuth_offset_right";
-const json_key_azimuth_offset_right = "steering_right_volt";
-let azimuth_offset_right_current_value = 0;
-function INIT_azimuth_offset_right() {
-  const elm = document.querySelector(`#${elm_id_azimuth_offset_right}`);
+// Number input
+let values = {};
+function INIT_number_input(elm_id, json_key) {
+  values[json_key] = 0;
+  const elm = document.querySelector(`#${elm_id}`);
   elm.addEventListener("change", (e) => {
     const val = e.target.value;
-    elm.value = azimuth_offset_right_current_value;
+    elm.value = values[json_key];
     sendCommand(JSON.stringify({ [json_key_azimuth_offset_right]: val }));
   });
   addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_azimuth_offset_right)) {
-      const val = data[json_key_azimuth_offset_right];
-      azimuth_offset_right_current_value = val;
-      azimuth_offset_right_set_value(val);
+    if (data.hasOwnProperty(json_key)) {
+      elm.value = JSON.parse(data[json_key]);
     }
   });
-}
-function azimuth_offset_right_set_value(value) {
-  setValue(elm_id_azimuth_offset_right, value);
-}
-
-// Azimuth offset left
-const elm_id_azimuth_offset_left = "azimuth_offset_left";
-const json_key_azimuth_offset_left = "steering_left_volt";
-let azimuth_offset_left_current_value = 0;
-function INIT_azimuth_offset_left() {
-  const elm = document.querySelector(`#${elm_id_azimuth_offset_left}`);
-  elm.addEventListener("change", (e) => {
-    const val = e.target.value;
-    elm.value = azimuth_offset_left_current_value;
-    sendCommand(JSON.stringify({ [json_key_azimuth_offset_left]: val }));
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_azimuth_offset_left)) {
-      const val = data[json_key_azimuth_offset_left];
-      azimuth_offset_left_current_value = val;
-      steering_offset_left_set_value(val);
-    }
-  });
-}
-function azimuth_offset_left_set_value(value) {
-  setValue(elm_id_azimuth_offset_left, value);
-}
-
-// Azimuth actual
-const elm_id_azimuth_actual = "azimuth_actual";
-const json_key_azimuth_actual = "steering_output_volt";
-function INIT_azimuth_actual() {
-  const elm = document.querySelector(`#${elm_id_azimuth_actual}`);
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_azimuth_actual))
-      azimuth_actual_set_value(data[json_key_azimuth_actual]);
-  });
-}
-function azimuth_actual_set_value(value) {
-  setValue(elm_id_azimuth_actual, value);
-}
-
-// Steering right
-const elm_id_steering_right = "steering_right";
-const json_key_steering_right = "steering_right_volt";
-let steering_right_current_value = 0;
-function INIT_steering_right() {
-  const elm = document.querySelector(`#${elm_id_steering_right}`);
-  elm.addEventListener("change", (e) => {
-    const val = e.target.value;
-    elm.value = steering_right_current_value;
-    sendCommand(JSON.stringify({ [json_key_steering_right]: val }));
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_steering_right)) {
-      const val = data[json_key_steering_right];
-      steering_right_current_value = val;
-      steering_right_set_value(val);
-    }
-  });
-}
-function steering_right_set_value(value) {
-  setValue(elm_id_steering_right, value);
-}
-
-// Steering  left
-const elm_id_steering_left = "steering_left";
-const json_key_steering_left = "steering_left_volt";
-let steering_left_current_value = 0;
-function INIT_steering_left() {
-  const elm = document.querySelector(`#${elm_id_steering_left}`);
-  elm.addEventListener("change", (e) => {
-    const val = e.target.value;
-    elm.value = steering_left_current_value;
-    sendCommand(JSON.stringify({ [json_key_steering_left]: val }));
-  });
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_steering_left)) {
-      const val = data[json_key_steering_left];
-      steering_left_current_value = val;
-      steering_left_set_value(val);
-    }
-  });
-}
-function steering_left_set_value(value) {
-  setValue(elm_id_steering_left, value);
-}
-
-// Steering actual
-const elm_id_steering_actual = "steering_actual";
-const json_key_steering_actual = "steering_output_volt";
-function INIT_steering_actual() {
-  const elm = document.querySelector(`#${elm_id_steering_actual}`);
-  addMessageHandler((data) => {
-    if (data.hasOwnProperty(json_key_steering_actual))
-      steering_actual_set_value(data[json_key_steering_actual]);
-  });
-}
-function steering_actual_set_value(value) {
-  setValue(elm_id_steering_actual, value);
 }
 
 // Steering
-const elm_id_steering = "steering_value";
+const elm_id_steering = "steering_manual";
 const elm_id_steering_label = "steering_percentage";
 const json_key_steering = "steering_manual";
 function INIT_steering() {
@@ -415,22 +78,34 @@ function steering_set_value(value) {
 document.addEventListener(
   "DOMContentLoaded",
   function () {
-    INIT_maintenance_button();
-    INIT_emergency_stop();
-    INIT_extended_indicator();
-    INIT_retracted_indicator();
-    INIT_extend_enabled();
-    INIT_retract_enable();
-    INIT_lift_enable();
-    INIT_steering_offset_right();
-    INIT_azimuth_offset_left();
-    INIT_azimuth_actual();
-    INIT_steering_enabled();
-    INIT_steering();
-    INIT_output_enabled();
-    INIT_dmc_enabled();
-    INIT_lift_homing();
-    INIT_azimuth_homing();
+    INIT_toggle("maintenance_enabled", "maintenance_enabled");
+    INIT_toggle("lift_homing", "lift_homing");
+    INIT_toggle("lift_enabled", "lift_enabled");
+    INIT_toggle("retract_enabled", "lift_motor_up");
+    INIT_toggle("extend_enabled", "lift_motor_down");
+    INIT_toggle("dmc_enabled", "dmc_enabled");
+    INIT_toggle("azimuth_homing", "steering_homing");
+    INIT_toggle("steering_enabled", "steering_enabled");
+    INIT_toggle("output_enabled", "steering_analog_out_enabled"); // TODO
+
+    INIT_indicator(
+      "emergency_stop_indicator",
+      "emergency_stop",
+      "bg-emerald-500",
+      "bg-rose-500"
+    );
+    INIT_indicator("retracted_indicator", "lift_sensor_up");
+    INIT_indicator("extended_indicator", "lift_sensor_down");
+
+    INIT_number_input("azimuth_left", "steering_left_volt");
+    INIT_number_input("azimuth_right", "steering_right_volt");
+    INIT_number_input("azimuth_actual", "no_key"); // TODO
+    INIT_number_input("azimuth_delay", "steering_delay_to_the_middle");
+    INIT_number_input("wheel_left", "no_key"); // TODO
+    INIT_number_input("wheel_right", "no_key"); // TODO
+    INIT_number_input("wheel_middle", "no_key"); // TODO
+    INIT_number_input("wheel_actual", "steering_steer_wheel");
+
 
     addSingleMessageHandler((data) => {
       document.querySelector("#loading_overlay").classList.add("hidden");

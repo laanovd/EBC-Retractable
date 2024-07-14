@@ -70,7 +70,7 @@
           class="indicator w-5 h-5 rounded-full bg-slate-300"
           id="emergency_stop_indicator"
         ></span>
-        <span> Emergency stop </span>
+        <span>Emergency stop</span>
       </div>
 
       <hr />
@@ -115,10 +115,10 @@
           <span> Up </span>
         </div>
         <div class="group flex flex-1">
-          <input type="checkbox" name="retract" id="retract" class="hidden" />
+          <input type="checkbox" name="retract_enabled" id="retract_enabled" class="hidden" />
           <label
             class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="retract"
+            for="retract_enabled"
           >
             <span>Up</span>
           </label>
@@ -134,10 +134,10 @@
           <span> Down </span>
         </div>
         <div class="group flex-1 flex">
-          <input type="checkbox" name="extend" id="extend" class="hidden" />
+          <input type="checkbox" name="extend_enabled" id="extend_enabled" class="hidden" />
           <label
             class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="extend"
+            for="extend_enabled"
           >
             <span>Down</span>
           </label>
@@ -170,13 +170,13 @@
         <div class="group flex-1 flex">
           <input
             type="checkbox"
-            name="steering_homing"
-            id="steering_homing"
+            name="azimuth_homing"
+            id="azimuth_homing"
             class="hidden"
           />
           <label
             class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="steering_homing"
+            for="azimuth_homing"
           >
             <span>Homing (Azimuth)</span>
           </label>
@@ -220,8 +220,8 @@
           <div>
             <input
               type="number"
-              name="azimuth_offset_left"
-              id="azimuth_offset_left"
+              name="azimuth_left"
+              id="azimuth_left"
               step="1"
               class="w-20 border border-gray-200 rounded"
               min="0"
@@ -233,15 +233,28 @@
           <div>
             <input
               type="number"
-              name="azimuth_offset_right"
-              id="azimuth_offset_right"
+              name="azimuth_right"
+              id="azimuth_right"
               min="0"
               max="4095"
               step="1"
               value="0"
               class="w-20 border border-gray-200 rounded"
             />
-            <span>Azimuth (counts)</span>
+            <span>Azimuth right (counts)</span>
+          </div>
+          <div>
+            <input
+              type="number"
+              name="azimuth_delay"
+              id="azimuth_delay"
+              min="10"
+              max="120"
+              step="1"
+              value="0"
+              class="w-20 border border-gray-200 rounded"
+            />
+            <span>Azimuth delay (seconds)</span>
           </div>
           <div>
             <input
@@ -296,8 +309,8 @@
           <div>
             <input
               type="number"
-              name="steering_actual"
-              id="steering_actual"
+              name="wheel_actual"
+              id="wheel_actual"
               value="0"
               class="w-20 border border-gray-200 rounded"
               disabled
@@ -309,12 +322,13 @@
           <input
             type="range"
             min="0"
-            max="100"
+            max="4095"
             step="1"
-            id="steering_value"
+            value="0"
+            id="steering_manual"
             class="w-full"
           />
-          <span>Steering (<span id="steering_percentage"></span>)%</span>
+          <span class="whitespace-nowrap">Steering (<span id="steering_percentage">0</span>%)</span>
         </div>
       </div>
     </main>
