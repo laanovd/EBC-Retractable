@@ -420,7 +420,7 @@ static void fnStateMaintenace() {
   LIFT_disable();
   AZIMUTH_disable();
   AZIMUTH_analog_disable();
-  
+
   MAINTENANCE_enable(); // Start maintenance mode
 }
 
@@ -439,12 +439,24 @@ static bool fnAnyToMantenance() {
 }
 
 /*******************************************************************
+ * Update steering
+ *******************************************************************/
+static void CONTROLLER_update_steering() {
+  if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
+    int value = AZIMUTH_get_steerwheel();
+    AZIMUTH_set_steering(value);
+  }
+}
+
+/*******************************************************************
  * Controller main task
  *******************************************************************/
 static void CONTROLLER_main_task(void *parameter) {
   (void)parameter;
   while (true) {
     stateMachine.Update();
+
+    CONTROLLER_update_steering();
 
     vTaskDelay(100 / portTICK_PERIOD_MS);
   }

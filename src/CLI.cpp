@@ -144,7 +144,7 @@ static void CLI_serial_task(void *parameter)
   static uint8_t inChar = 0;
   (void)parameter;
 
-  while (1)
+  while (true)
   {
     vTaskDelay(200 / portTICK_PERIOD_MS);
 

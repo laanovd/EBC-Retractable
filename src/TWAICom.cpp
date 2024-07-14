@@ -201,7 +201,7 @@ void TWAI_transmit_task(void *parameter)
     int error;
     (void)parameter;
 
-    while (1)
+    while (true)
     {
         if (xQueueReceive(TWAI_TX_QUEUE, &frame, 0) == pdPASS)
         {
@@ -247,7 +247,7 @@ void TWAI_main_task(void *parameter)
     twai_message_t frame;
     (void)parameter;
 
-    while (1)
+    while (true)
     {
         if (xQueueReceive(TWAI_RX_QUEUE, &frame, 0) == pdPASS)
         {
