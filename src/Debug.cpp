@@ -181,7 +181,7 @@ static void DEBUG_main_task(void *parameter) {
 
   vTaskDelay(1500 / portTICK_PERIOD_MS); // Startup delay
 
-  while (1) {
+  while (true) {
     // Throttle debugging via WebSerial
     vTaskDelay(DEBUG_THROTTLE_MS / portTICK_PERIOD_MS);
 

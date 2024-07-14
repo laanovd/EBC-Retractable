@@ -94,7 +94,7 @@ static JsonDocument MAINTENANCE_json(void) {
   maintenance_data[JSON_AZIMUTH_RIGHT_V] = AZIMTUH_get_right();
   maintenance_data[JSON_AZIMUTH_ACTUAL_V] = AZIMTUH_get_actual();
   maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
-  maintenance_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_steering();
+  maintenance_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_steerwheel();
   maintenance_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
   return maintenance_data;
@@ -466,61 +466,43 @@ static void MAINTENACE_websocket_task(void *parameter) {
 /********************************************************************
  * Maintenance parts
  *******************************************************************/
-void MAINTENANCE_dmc_control(void) {
-  // if (MAINTENANCE_enabled())
-  // {
-  //   DMC_enable();
-  // }
-  // else
-  // {
-  //   DMC_disable();
-  // }
+static void MAINTENANCE_dmc_update(void) {
+  // TOD: DMC update
 }
 
-void MAINTENANCE_lift_control(void) {
-  if (LIFT_enabled()) {
-    // TODO: LIFT control
-    return;
-  }
-
-  // TODO: LIFT control
+static void MAINTENANCE_lift_update(void) {
+  // TOD: LIFT update
 }
 
-void MAINTENANCE_steering_control(void) {
-  if (AZIMUTH_enabled()) {
-    // TODO: STEERING control
-    return;
-  }
-}
-
-void MAINTENANCE_steering_output_control(void) {
+static void MAINTENANCE_steering_update(void) {
   if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
     int value = AZIMUTH_get_manual();
-    AZIMUTH_set_output_manual(value);
+    AZIMUTH_set_steering(value);
   }
 }
 
 /********************************************************************
  * Main task
  *******************************************************************/
-void MAINTENANCE_main(void *parameter) {
+void MAINTENANCE_main_task(void *parameter) {
   (void)parameter;
 
-  while (1) {
+  while (true) {
     // Start maintenace mode
     if (MAINTENANCE_enabled()) {
-      // TODO: Conditions for actvating maintenance mode
-      if (EMERGENCY_STOP_active()) {
+      
+      // Stop maintenance mode on emergency stop
+      if (!EMERGENCY_STOP_active()) {
         MAINTENANCE_disable();
         continue;
       }
 
-      MAINTENANCE_dmc_control();
-      MAINTENANCE_lift_control();
-      MAINTENANCE_steering_control();
-      MAINTENANCE_steering_output_control();
+      MAINTENANCE_dmc_update();
+      MAINTENANCE_lift_update();
+      MAINTENANCE_steering_update();
 
-      vTaskDelay(100 / portTICK_PERIOD_MS);
+      vTaskDelay(250 / portTICK_PERIOD_MS);
+      continue; // taks 4 x/sec.
     }
 
     /* Maintenance mode not active */
@@ -534,7 +516,7 @@ void MAINTENANCE_main(void *parameter) {
  *********************************************************************/
 static void MAINTENANCE_setup_tasks(void) {
   xTaskCreate(MAINTENACE_websocket_task, "WebSocketServer task", 8192, NULL, 15, NULL);
-  xTaskCreate(MAINTENANCE_main, "Maintenance main", 16000, NULL, 15, NULL);
+  xTaskCreate(MAINTENANCE_main_task, "Maintenance main", 16000, NULL, 15, NULL);
 }
 
 /********************************************************************

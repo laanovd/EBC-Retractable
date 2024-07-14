@@ -58,7 +58,7 @@ static JsonDocument AZIMUTH_json(void) {
 
   AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = AZIMUTH_to_the_middle_delay();
 
-  AZIMUTH_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_steering();  // 0 ... 100%
+  AZIMUTH_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_steerwheel();  
 
   AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = AZIMUTH_to_the_middle_delay();
 
@@ -144,6 +144,7 @@ static void AZIMUTH_set_left_output(int value) {
 #ifdef DEBUG_AZIMUTH
     Serial.printf("Azimuth set left analog out: %d\n", memo);
 #endif
+  }
 }
 #endif
 
@@ -153,13 +154,6 @@ static int AZIMUTH_get_left_output(void) {
   return (value != DAC_READ_ERROR) ? value : 0;
 }
 #endif
-
-/*******************************************************************
-    Steering wheel
- *******************************************************************/
-int STEERING_WHEEL_read(void) {
-  return analogRead(STEER_WHEEL_ANALOG_CHANNEL);
-}
 
 /*******************************************************************
  * Azimuth enable/disable
@@ -219,16 +213,14 @@ void AZIMUTH_analog_disable() {
 /*******************************************************************
  * Get/Set steering
  *******************************************************************/
-int AZIMUTH_get_steering(void) {
-  /* Scale */
-  int position = map(
-      STEERING_WHEEL_read(),
-      ADC_MIN,
-      ADC_MAX,
-      0,
-      100);
-
-  return position;  // %
+int AZIMUTH_get_steerwheel(void) {
+#ifdef DEBUG_AZIMUTH
+  int i = analogRead(STEER_WHEEL_ANALOG_CHANNEL);
+  Serial.printf("Steering wheel read: %d\n", i);
+  return i;
+#else
+  return analogRead(STEER_WHEEL_ANALOG_CHANNEL);
+#endif
 }
 
 void AZIMUTH_set_steering(int value) {
@@ -239,30 +231,8 @@ void AZIMUTH_set_steering(int value) {
 #endif
 }
 
-void AZIMUTH_set_output_manual(int value) {
-  value = max(min(100, value), 0);
-
-  int output = map(
-      value,
-      0,
-      100,
-      0,
-      4095);
-
-  AZIMUTH_set_steering(output);
-}
-
 float AZIMTUH_get_actual(void) {
-  int value = AZIMUTH_get_right_output();
-
-  float output = mapf(
-      (float)value,
-      ADC_MAX,
-      ADC_MAX,
-      0.0,
-      5.0);
-
-  return output;
+  return AZIMUTH_get_right_output();
 }
 
 /*******************************************************************
@@ -293,9 +263,9 @@ void AZIMTUH_set_right(float value) {
 }
 
 void AZIMUTH_set_manual(int value) {
-  if ((value >= 0) && (value <= 100)) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
-    AZIMUTH_set_output_manual(value);
+    AZIMUTH_set_steering(value);
   }
 }
 
@@ -370,28 +340,14 @@ static void cli_setup(void) {
 }
 
 /********************************************************************
- * Update status steerwheel
- *********************************************************************/
-static void AZIMUTH_update_wheel(void) {
-  int value;
-  if (!MAINTENANCE_enabled()) {
-    if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
-      value = STEERING_WHEEL_read();  // 0...4095
-      AZIMUTH_set_steering(value);    // 0...4095
-    }
-  }
-}
-
-/********************************************************************
  * Main task
  *********************************************************************/
 static void AZIMUTH_main_task(void *parameter) {
   (void)parameter;
 
   while (true) {
-    AZIMUTH_update_wheel();
-
-    vTaskDelay(200 / portTICK_PERIOD_MS);
+    // AZIMUTH update
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
 
@@ -435,7 +391,7 @@ void AZIMUTH_setup() {
 }
 
 void AZIMUTH_start() {
-  AZIMUTH_setup_tasks();
+  // AZIMUTH_setup_tasks();
   cli_setup();
 
   Serial.println(F("Azimuth started..."));

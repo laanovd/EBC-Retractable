@@ -112,8 +112,8 @@ typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bo
  * AZIMUTH ESP32 GPIO
  *******************************************************************/
 // Analog inputs
-#define STEER_WHEEL_ANALOG_CHANNEL A0
-#define THOTTLE_ANALOG_CHANNEL A1
+#define STEER_WHEEL_ANALOG_CHANNEL A6
+#define THOTTLE_ANALOG_CHANNEL A5
 
 // Digital inputs & outputs
 #define AZIMUTH_HOME_PIN 19

@@ -280,7 +280,7 @@ void MCP1_transmit_task(void* parameter) {
   mcp_frame_t frame;
   (void)parameter;
 
-  while (1) {
+  while (true) {
     if (xQueueReceive(MCP1_TX_QUEUE, &frame, 0) == pdPASS) {
 #ifdef DEBUG_FRAMES
       Serial.printf("MCP-TX: Send frame with id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
@@ -339,7 +339,7 @@ void MCP1_main_task(void* parameter) {
   mcp_frame_t frame;
   (void)parameter;
 
-  while (1) {
+  while (true) {
     if (xQueueReceive(MCP1_RX_QUEUE, &frame, 0) == pdPASS) {
       _mcp1_received++;
 
