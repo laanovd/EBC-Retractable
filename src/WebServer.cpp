@@ -41,14 +41,11 @@
 AsyncWebServer web_server(WEBSERVER_PORT);
 WebSocketsServer web_socket_server = WebSocketsServer(WEBSOCKET_PORT);
 
-static bool OTA_Start = false;
-static bool OTA_Ready = false;
-
 static String htmlString;
 
 static JsonDocument WebSocket_JSON_data;
 
-static bool WebSocket_JSON_data_push = false;
+static int ota_restart_countdown = 0;
 
 /********************************************************************
  * Create initial JSON data
@@ -145,8 +142,6 @@ void setup_uri(rest_api_t *uri_hdl) {
  *********************************************************************/
 static void onOTAStart() {
   DEBUG_info("OTA update started!");
-  OTA_Start = true;
-  OTA_Ready = false;
 }
 
 static void onOTAProgress(size_t current, size_t final) {
@@ -165,19 +160,28 @@ static void onOTAEnd(bool success) {
     DEBUG_info("OTA update finished successfully!");
   else
     DEBUG_info("There was an error during OTA update!");
-  OTA_Ready = true;
+
+  ota_restart_countdown = 12;
+  Serial.println("OTA update finished, system will restart after short delay...");
 }
 
 /********************************************************************
- * WebServer main task
+ * Main task
  *********************************************************************/
-static void WEBSERVER_main_task(void *parameter) {
+static void WEBSERVER_task(void *parameter) {
   (void)parameter;
 
   while (true) {
-    vTaskDelay(200 / portTICK_PERIOD_MS);
-
     web_socket_server.loop();
+
+    if (ota_restart_countdown > 0) {
+      ota_restart_countdown--;
+      if (ota_restart_countdown == 0) {
+        ESP.restart();
+      }
+    }
+
+    vTaskDelay(250 / portTICK_PERIOD_MS);
   }
 }
 
@@ -258,26 +262,18 @@ void WEBSOCKET_send_doc(JsonDocument doc) {
 }
 
 /********************************************************************
- * WebSocketsServer task
+ * WebSockets on connect
  *********************************************************************/
-static void WEBSOCKET_task(void *parameter) {
-  (void)parameter;
-  JsonDocument doc;
-  String str;
+static void WEBSOCKET_on_connect(void) {
+  WEBSOCKET_send_doc(WebSocket_JSON_data);
+    JsonDocument doc;
 
-  doc["program_name"] = ProgramName;
-  doc["chip_id"] = ChipIds();
-  doc["wifi_ssid"] = WiFi_ssid();
-  WEBSOCKET_update_doc(doc);
+    doc["program_name"] = ProgramName;
+    doc["chip_id"] = ChipIds();
+    doc["wifi_ssid"] = WiFi_ssid();
+    WEBSOCKET_update_doc(doc);
 
-  while (true) {
-    if (WebSocket_JSON_data_push) {
-      WEBSOCKET_send_doc(WebSocket_JSON_data);
-      WebSocket_JSON_data_push = false;
-    }
-
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-  }
+    WEBSOCKET_send_doc(WebSocket_JSON_data);
 }
 
 /********************************************************************
@@ -346,9 +342,12 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
   switch (type) {              // switch on the type of information sent
     case WStype_DISCONNECTED:  // if a client is disconnected, then type == WStype_DISCONNECTED
       break;
+
     case WStype_CONNECTED:  // if a client is connected, then type == WStype_CONNECTED
-      WebSocket_JSON_data_push = true;
+      Serial.println("Websocket client connected.");	
+      WEBSOCKET_on_connect();
       break;
+
     case WStype_TEXT:  // if a client has sent data, then type == WStype_TEXT
 #ifdef DEBUG_WEBSOCKET
       for (int i = 0; i < length; i++) {  // print received data from client
@@ -465,16 +464,13 @@ void WEBSERVER_cli_handlers(void) {
 
 /********************************************************************
  *  Initialize tasks
- *
  *********************************************************************/
 static void WEBSERVER_setup_tasks(void) {
-  xTaskCreate(WEBSERVER_main_task, "WebServer main task", 4096, NULL, 15, NULL);
-  xTaskCreate(WEBSOCKET_task, "WebSocketsServer main task", 4096, NULL, 15, NULL);
+  xTaskCreate(WEBSERVER_task, "WebServer task", 4096, NULL, 10, NULL);
 }
 
 /********************************************************************
  *  Setup webserver
- *
  *********************************************************************/
 void WEBSERVER_setup(void) {
   WEBSERVER_init();
