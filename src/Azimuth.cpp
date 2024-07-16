@@ -365,6 +365,8 @@ static void AZIMUTH_led_update(void) {
 static void AZIMUTH_main_task(void *parameter) {
   (void)parameter;
 
+  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
+
   while (true) {
     AZIMUTH_led_update();
 

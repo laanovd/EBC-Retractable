@@ -141,28 +141,24 @@ void setup_uri(rest_api_t *uri_hdl) {
  * ElegantOTA Profesional Routines
  *********************************************************************/
 static void onOTAStart() {
-  DEBUG_info("OTA update started!");
+  DEBUG_info("OTA update started...\n");
 }
 
 static void onOTAProgress(size_t current, size_t final) {
   static unsigned long ota_progress_millis = 0;
-  if (millis() - ota_progress_millis > 1000) {
-    char msg[64];
+  if (millis() - ota_progress_millis > 500) {
     ota_progress_millis = millis();
-    snprintf(msg, sizeof(msg), "OTA Progress Current: %u bytes, Final: %u bytes\n", (unsigned int)current, (unsigned int) final);
-    DEBUG_info(msg);
+    Serial.printf("\rOTA update progress: %u bytes, Final: %u bytes", (unsigned int)current, (unsigned int) final);
   }
 }
 
 static void onOTAEnd(bool success) {
-  // Log when OTA has finished
-  if (success)
-    DEBUG_info("OTA update finished successfully!");
-  else
-    DEBUG_info("There was an error during OTA update!");
-
-  ota_restart_countdown = 12;  // Short delay in main-task-cycles
-  Serial.println("OTA update finished, system will restart after short delay...");
+  if (success) {
+    Serial.println("\nOTA update finished...");
+  } else {
+    Serial.println("\nOTA update failed...");
+  }
+  ota_restart_countdown = 12;  // Short delay, in main-task-cycles
 }
 
 /********************************************************************

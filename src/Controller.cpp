@@ -465,6 +465,9 @@ static void CONTROLLER_update_steering() {
  *******************************************************************/
 static void CONTROLLER_main_task(void *parameter) {
   (void)parameter;
+
+  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
+
   while (true) {
     stateMachine.Update();
 

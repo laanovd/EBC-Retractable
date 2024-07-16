@@ -502,6 +502,8 @@ static void MAINTENANCE_steering_update(void) {
 void MAINTENANCE_main_task(void *parameter) {
   (void)parameter;
 
+  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
+
   while (true) {
     // Start maintenace mode
     if (MAINTENANCE_enabled()) {

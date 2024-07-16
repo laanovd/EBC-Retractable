@@ -306,6 +306,11 @@ static void LIFT_LED_up(void) {
       digitalWrite(LIFT_LED_UP_PIN, IO_ON);
       return; 
     }
+
+    if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
+      digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); // Inverted logic
+      return;
+    }
   }
   digitalWrite(LIFT_LED_UP_PIN, IO_OFF);
 }
@@ -326,22 +331,26 @@ static void LIFT_LED_down(void) {
       digitalWrite(LIFT_LED_DOWN_PIN, IO_ON);
       return; 
     }
+
+    if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
+      digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
+      return;
+    }
   }
   digitalWrite(LIFT_LED_DOWN_PIN, IO_OFF);
 }
 
 /*******************************************************************
- * LIFT main task
+ * Main task
  *******************************************************************/
-static void LIFT_main(void *parameter) {
+static void LIFT_main_task(void *parameter) {
   (void)parameter;
 
-  vTaskDelay(1500 / portTICK_PERIOD_MS); // Startup delay
+  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
 
   while (true) {
-    // Read buttons
-    LIFT_button_update();
-    
+    Serial.println("Lift main task...");
+
     // Control leds
     LIFT_LED_up();
     LIFT_LED_down();
@@ -349,6 +358,22 @@ static void LIFT_main(void *parameter) {
     LIFT_position_check();
 
     vTaskDelay(100 / portTICK_PERIOD_MS);
+  }
+}
+
+/*******************************************************************
+ * Button task
+ *******************************************************************/
+static void LIFT_button_task(void *parameter) {
+  (void)parameter;
+
+  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
+
+  while (true) {
+    // Read buttons
+    LIFT_button_update();
+    
+    vTaskDelay(50 / portTICK_PERIOD_MS);
   }
 }
 
@@ -434,7 +459,8 @@ static void LIFT_setup_gpio(void) {
   Setup tasks
  *******************************************************************/
 static void LIFT_setup_tasks(void) {
-  xTaskCreate(LIFT_main, "Lift main", 2048, NULL, 15, NULL);
+  xTaskCreate(LIFT_main_task, "Lift main", 2048, NULL, 10, NULL);
+  xTaskCreate(LIFT_button_task, "Lift buttons", 1024, NULL, 5, NULL);
 }
 
 /*******************************************************************
