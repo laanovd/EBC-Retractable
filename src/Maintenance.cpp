@@ -516,16 +516,38 @@ static void MAINTENACE_websocket_task(void *parameter) {
 }
 
 /********************************************************************
- * Maintenance parts
+ * @brief Updates the DMC (Digital Motor Controller) during maintenance.
+ *
+ * This function is responsible for updating the DMC during maintenance.
+ * TODO: Implement the DMC update logic.
  *******************************************************************/
 static void MAINTENANCE_dmc_update(void) {
   // TOD: DMC update
 }
 
+/********************************************************************
+ * Updates the maintenance state of the lift.
+ * If the lift is moving up and the up sensor is triggered, turns off the lift.
+ * If the lift is moving down and the down sensor is triggered, turns off the lift.
+ *******************************************************************/
 static void MAINTENANCE_lift_update(void) {
-  // TOD: LIFT update
+
+  // Auto switch of LIFT UP
+  if (LIFT_UP_sensor() && LIFT_UP_moving()) {
+    LIFT_UP_off();
+  }
+
+  // Auto switch of LIFT down
+  if (LIFT_DOWN_sensor() && LIFT_DOWN_moving()) {
+    LIFT_DOWN_off();
+  }
 }
 
+/********************************************************************
+ * Updates the steering value for maintenance mode.
+ * If the azimuth is enabled and the analog input is enabled,
+ * the manual azimuth value is retrieved and set as the steering value.
+ *******************************************************************/
 static void MAINTENANCE_steering_update(void) {
   if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
     int value = AZIMUTH_get_manual();

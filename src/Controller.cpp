@@ -419,7 +419,7 @@ static bool fnAnyToEmergencyStop() {
 }
 
 static bool fnEmergencyStopToCalibrating() {
-  if (EMERGENCY_STOP_active()) {
+  if (!EMERGENCY_STOP_active()) {
     // TODO: Clear error not calibrated
     return true;
   }

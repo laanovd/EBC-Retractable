@@ -12,11 +12,11 @@
 #include <WebServer.h>
 #include <WebSocketsServer.h>
 
-#include "Config.h"
-#include "Storage.h"
 #include "CLI.h"
+#include "Config.h"
+#include "EBC_IOLib.h"
 #include "GPIO.h"
-#include "EBC_IOLib.h" 
+#include "Storage.h"
 
 /*******************************************************************
  * Definitions
@@ -89,7 +89,7 @@ static String LIFT_info_str(void) {
 
   text.concat("\r\nMoving up/down timeout: ");
   text.concat(doc[JSON_LIFT_MOVE_TIMEOUT].as<int>());
-  
+
   text.concat("\r\nTimes retracted: ");
   text.concat(doc[JSON_RETRACTED_COUNT].as<int>());
 
@@ -191,23 +191,22 @@ bool LIFT_UP_sensor(void) {
 }
 
 bool LIFT_DOWN_sensor(void) {
-  return digitalRead(LIFT_SENSOR_DOWN_PIN) == HIGH  ? true : false;
+  return digitalRead(LIFT_SENSOR_DOWN_PIN) == HIGH ? true : false;
 }
 
 bool LIFT_HOME_sensor(void) {
-  return digitalRead(LIFT_SENSOR_HOME_PIN) == HIGH  ? true : false;
+  return digitalRead(LIFT_SENSOR_HOME_PIN) == HIGH ? true : false;
 }
 
 static void LIFT_position_check(void) {
-
   if (!LIFT_UP_moving() && LIFT_DOWN_moving()) {
     if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
-      LIFT_error_mask |= 0x0001; // No position error
+      LIFT_error_mask |= 0x0001;  // No position error
       return;
     }
   }
 
-  LIFT_error_mask &= ~0x0001; // Clear error
+  LIFT_error_mask &= ~0x0001;  // Clear error
 }
 
 /*******************************************************************
@@ -221,7 +220,7 @@ bool LIFT_UP_button(void) {
   if (BUTTON_UP_pushed) {
     BUTTON_UP_pushed = false;
 #ifdef DEBUG_LIFT
-  Serial.println("LIFT UP button pushed");
+    Serial.println("LIFT UP button pushed");
 #endif
     return true;
   }
@@ -232,7 +231,7 @@ bool LIFT_DOWN_button(void) {
   if (BUTTON_DOWN_pushed) {
     BUTTON_DOWN_pushed = false;
 #ifdef DEBUG_LIFT
-  Serial.println("LIFT DOWN button pushed");
+    Serial.println("LIFT DOWN button pushed");
 #endif
     return true;
   }
@@ -240,7 +239,7 @@ bool LIFT_DOWN_button(void) {
 }
 
 bool LIFT_BOTH_button(void) {
-  if (BUTTON_BOTH_pushed ){
+  if (BUTTON_BOTH_pushed) {
     BUTTON_BOTH_pushed = false;
     return true;
   }
@@ -254,29 +253,30 @@ static void LIFT_button_update(void) {
   static int delay = BUTTON_BOTH_DELAY;
 
   // Button up flag
-  BUTTON_UP_state = (digitalRead(LIFT_BUTTON_UP_PIN));
-  if (BUTTON_UP_memo && !BUTTON_UP_state && !BUTTON_DOWN_state && !BUTTON_BOTH_pushed)
+  BUTTON_UP_state = digitalRead(LIFT_BUTTON_UP_PIN);
+  if (BUTTON_UP_memo && !BUTTON_UP_state && !BUTTON_DOWN_state)
     BUTTON_UP_pushed = true;
   BUTTON_UP_memo = BUTTON_UP_state;
 
   // Button down flag
-  BUTTON_DOWN_state = (digitalRead(LIFT_BUTTON_DOWN_PIN));
-  if (BUTTON_DOWN_memo && !BUTTON_UP_state && !BUTTON_DOWN_state && !BUTTON_BOTH_pushed)
+  BUTTON_DOWN_state = digitalRead(LIFT_BUTTON_DOWN_PIN);
+  if (BUTTON_DOWN_memo && !BUTTON_DOWN_state && !BUTTON_UP_state)
     BUTTON_DOWN_pushed = true;
   BUTTON_DOWN_memo = BUTTON_DOWN_state;
 
   // Both buttons pushed
   if (BUTTON_UP_state && BUTTON_DOWN_state) {
-    if (delay > 0) {
+    if (delay >= 0) {
       delay--;
-      if (!delay) {
+      if (delay == 0) {
         BUTTON_UP_memo = BUTTON_DOWN_memo = false;
+        BUTTON_UP_pushed = BUTTON_DOWN_pushed = false;
         BUTTON_BOTH_pushed = true;
       }
-    } else {
-      delay = 100;
     }
+    return;
   }
+  delay = BUTTON_BOTH_DELAY;  // Run every 100ms.
 }
 
 /*******************************************************************
@@ -297,44 +297,48 @@ void LIFT_extended_increment(void) {
 }
 
 /*******************************************************************
-  * Lift LED
+ * Lift LED
  *******************************************************************/
 static void LIFT_LED_up(void) {
   if (LIFT_error()) {
-    digitalWrite(LIFT_LED_UP_PIN, !LED_error_takt()); // Inverted logic
+    digitalWrite(LIFT_LED_UP_PIN, !LED_error_takt());
     return;
-  }
+  } 
+  
+  if (!LIFT_DOWN_moving()) {
+    if (LIFT_UP_moving()) {
+      digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); 
+      return;
+    }
 
-  if (LIFT_UP_moving()) {
-    digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); // Inverted logic
-    return;
+    if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
+      digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); 
+      return;
+    }
   }
-
-  if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
-    digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); // Inverted logic
-    return;
-  }
-
-  digitalWrite(LIFT_LED_UP_PIN, (LIFT_UP_sensor()) ? HIGH : LOW);
+ 
+  digitalWrite(LIFT_LED_UP_PIN, (LIFT_UP_sensor()) ? HIGH : LOW); // Inverted logic.
 }
 
 static void LIFT_LED_down(void) {
   if (LIFT_error()) {
-    digitalWrite(LIFT_LED_DOWN_PIN, !LED_error_takt()); // Inverted logic
+    digitalWrite(LIFT_LED_DOWN_PIN, !LED_error_takt());
     return;
-  }
+  } 
+  
+  if (!LIFT_UP_moving()) {
+    if (LIFT_DOWN_moving()) {
+      digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); 
+      return;
+    }
 
-  if (LIFT_DOWN_moving()) {
-    digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
-    return;
+    if (!LIFT_DOWN_sensor() && !LIFT_UP_sensor()) {
+      digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); 
+      return;
+    }
   }
-
-  if (!LIFT_DOWN_sensor() && !LIFT_UP_sensor()) {
-    digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
-    return;
-  }
-
-  digitalWrite(LIFT_LED_DOWN_PIN, (LIFT_DOWN_sensor()) ? HIGH : LOW);
+ 
+  digitalWrite(LIFT_LED_DOWN_PIN, (LIFT_DOWN_sensor()) ? HIGH : LOW); // Inverted logic.
 }
 
 /*******************************************************************
@@ -377,15 +381,13 @@ static rest_api_t LIFT_api_handlers = {
 /********************************************************************
  * CLI handler
  *******************************************************************/
-static void clicb_handler(cmd *c)
-{
+static void clicb_handler(cmd *c) {
   Command cmd(c);
   Argument arg = cmd.getArg(0);
   String strArg = arg.getValue();
 
   /* List settings */
-  if (strArg.isEmpty())
-  {
+  if (strArg.isEmpty()) {
     CLI_println(LIFT_info_str());
     return;
   }
@@ -394,8 +396,7 @@ static void clicb_handler(cmd *c)
   strArg = arg.getValue();
   int val = cmd.getArg(1).getValue().toInt();
 
-  if (strArg.equalsIgnoreCase("timeout"))
-  {
+  if (strArg.equalsIgnoreCase("timeout")) {
     if ((val < 0) || (val > 120)) {
       CLI_println("Illegal value, range: 0 ... 120s.");
       return;
@@ -426,11 +427,11 @@ static void LIFT_setup_gpio(void) {
   pinMode(LIFT_LED_DOWN_PIN, OUTPUT);
 
   /* LED startup cycle */
-  digitalWrite(LIFT_LED_UP_PIN, LOW); // Inverted
-  digitalWrite(LIFT_LED_DOWN_PIN, LOW); // Inverted
-  vTaskDelay(1000 / portTICK_PERIOD_MS); // Wait one second
-  digitalWrite(LIFT_LED_UP_PIN, HIGH); // Inverted
-  digitalWrite(LIFT_LED_DOWN_PIN, HIGH); // Inverted
+  digitalWrite(LIFT_LED_UP_PIN, LOW);     // Inverted
+  digitalWrite(LIFT_LED_DOWN_PIN, LOW);   // Inverted
+  vTaskDelay(1000 / portTICK_PERIOD_MS);  // Wait one second
+  digitalWrite(LIFT_LED_UP_PIN, HIGH);    // Inverted
+  digitalWrite(LIFT_LED_DOWN_PIN, HIGH);  // Inverted
 }
 
 /*******************************************************************
@@ -482,7 +483,7 @@ void LIFT_start(void) {
   LIFT_setup_cli();
   setup_uri(&LIFT_api_handlers);
 
-  LIFT_error_mask = 1; // TODO: Remove after testing
+  LIFT_error_mask = 1;  // TODO: Remove after testing
 
   Serial.println(F("Lift started..."));
 }
