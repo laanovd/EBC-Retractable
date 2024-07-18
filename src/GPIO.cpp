@@ -60,7 +60,8 @@ static JsonDocument GPIO_json_int(void) {
  * Emergency stop
  *******************************************************************/
 bool EMERGENCY_STOP_active(void) {
-  return digitalRead(EMERGNECY_STOP_PIN) == HIGH ? false : true;
+  // return digitalRead(EMERGNECY_STOP_PIN) == HIGH ? false : true;
+  return false;
 }
 
 /*******************************************************************

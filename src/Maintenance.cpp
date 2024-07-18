@@ -325,7 +325,7 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Maintenance mode active */
   if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
     if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true) {
-      CONTROLLER_request_maintenance();
+      // CONTROLLER_request_maintenance();
       MAINTENANCE_enable(); // Temporary
     }
     else
@@ -525,7 +525,7 @@ void MAINTENANCE_main_task(void *parameter) {
     // Start maintenace mode
     if (MAINTENANCE_enabled()) {
       // Stop maintenance mode on emergency stop
-      if (!EMERGENCY_STOP_active()) {
+      if (EMERGENCY_STOP_active()) {
         MAINTENANCE_disable();
         continue;
       }
