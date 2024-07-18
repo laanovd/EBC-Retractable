@@ -55,24 +55,24 @@ function INIT_number_input(elm_id, json_key) {
 
 // Steering
 const elm_id_steering = "steering_manual";
-const elm_id_steering_bubble = "steering_bubble";
 const json_key_steering = "steering_manual";
+let steering_manual_current = 0;
 function INIT_steering() {
   const elm = document.querySelector(`#${elm_id_steering}`);
-  const bubble = document.querySelector(`#${elm_id_steering_bubble}`);
+  let timeout;
   elm.addEventListener("change", (e) => {
-    bubble.innerHTML = e.target.value;
+    timeout = setTimeout(() => {
+      elm.value = steering_manual_current;
+    }, 1000)
     sendCommand(JSON.stringify({ [json_key_steering]: e.target.value }));
   });
   addMessageHandler((data) => {
     if (data.hasOwnProperty(json_key_steering)) {
-      steering_set_value(data[json_key_steering]);
-      label.innerHTML = Math.round(data[json_key_steering] / 4095);
+      clearTimeout(timeout);
+      steering_manual_current = JSON.parse(data[json_key_steering]);
+      elm.value = steering_manual_current;
     }
   });
-}
-function steering_set_value(value) {
-  setValue(elm_id_steering, value);
 }
 // Init
 document.addEventListener(
@@ -100,12 +100,12 @@ document.addEventListener(
     INIT_number_input("azimuth_left", "steering_left_volt");
     INIT_number_input("azimuth_right", "steering_right_volt");
     INIT_number_input("azimuth_actual", "no_key"); // TODO
-    INIT_number_input("azimuth_delay", "steering_delay_to_the_middle");
+    INIT_number_input("azimuth_timeout", "steering_delay_to_the_middle");
     INIT_number_input("wheel_left", "no_key"); // TODO
     INIT_number_input("wheel_right", "no_key"); // TODO
     INIT_number_input("wheel_middle", "no_key"); // TODO
-    INIT_number_input("wheel_actual", "steering_steer_wheel");
 
+    INIT_steering();
 
     addSingleMessageHandler((data) => {
       document.querySelector("#loading_overlay").classList.add("hidden");

@@ -318,6 +318,7 @@
                 min="0"
                 max="4095"
                 value="0"
+                disabled
               />
               <span class="rounded-r bg-slate-300 text-slate-400 px-2"
                 >counts</span
@@ -327,16 +328,16 @@
         </div>
         <div class="flex gap-4">
           <div class="flex-1 flex flex-col">
-            <label for="azimuth_actual">Homing time-out</label>
+            <label for="azimuth_timeout">Homing time-out</label>
             <div class="flex w-full">
               <input
                 type="number"
-                name="azimuth_actual"
-                id="azimuth_actual"
+                name="azimuth_timeout"
+                id="azimuth_timeout"
                 step="1"
                 class="w-20 border border-gray-200 rounded-l flex-1"
-                min="0"
-                max="4095"
+                min="30"
+                max="120"
                 value="0"
               />
               <span class="rounded-r bg-slate-300 text-slate-400 px-2"
@@ -356,12 +357,12 @@
 
         <div class="flex gap-4">
           <div class="flex-1 flex flex-col">
-            <label for="azimuth_left">Left</label>
+            <label for="wheel_left">Left</label>
             <div class="flex w-full">
               <input
                 type="number"
-                name="azimuth_left"
-                id="azimuth_left"
+                name="wheel_left"
+                id="wheel_left"
                 step="1"
                 class="w-20 border border-gray-200 rounded-l flex-1"
                 min="0"
@@ -374,12 +375,12 @@
             </div>
           </div>
           <div class="flex-1 flex flex-col">
-            <label for="azimuth_right">Middle</label>
+            <label for="wheel_middle">Middle</label>
             <div class="flex w-full">
               <input
                 type="number"
-                name="azimuth_right"
-                id="azimuth_right"
+                name="wheel_middle"
+                id="wheel_middle"
                 step="1"
                 class="w-20 border border-gray-200 rounded-l flex-1"
                 min="0"
@@ -393,12 +394,12 @@
           </div>
 
           <div class="flex-1 flex flex-col">
-            <label for="azimuth_actual">Right</label>
+            <label for="wheel_right">Right</label>
             <div class="flex w-full">
               <input
                 type="number"
-                name="azimuth_actual"
-                id="azimuth_actual"
+                name="wheel_right"
+                id="wheel_right"
                 step="1"
                 class="w-20 border border-gray-200 rounded-l flex-1"
                 min="0"
