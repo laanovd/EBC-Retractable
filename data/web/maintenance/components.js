@@ -41,13 +41,17 @@ let values = {};
 function INIT_number_input(elm_id, json_key) {
   values[json_key] = 0;
   const elm = document.querySelector(`#${elm_id}`);
+  let timeout;
   elm.addEventListener("change", (e) => {
     const val = e.target.value;
-    elm.value = values[json_key];
-    sendCommand(JSON.stringify({ [json_key_azimuth_offset_right]: val }));
+    timeout = setTimeout(() => {
+      elm.value = values[json_key];
+    }, 2000);
+    sendCommand(JSON.stringify({ [json_key]: val }));
   });
   addMessageHandler((data) => {
     if (data.hasOwnProperty(json_key)) {
+      clearTimeout(timeout);
       elm.value = JSON.parse(data[json_key]);
     }
   });
@@ -63,7 +67,7 @@ function INIT_steering() {
   elm.addEventListener("change", (e) => {
     timeout = setTimeout(() => {
       elm.value = steering_manual_current;
-    }, 1000);
+    }, 2000);
     sendCommand(JSON.stringify({ [json_key_steering]: e.target.value }));
   });
   addMessageHandler((data) => {
@@ -79,12 +83,12 @@ function INIT_steering() {
 const elm_id_steering_calibration = "steering_calibration";
 const json_key_steering_calibration = "steering_start_calibration";
 function set_steering_calibrating(set_calibrating) {
-  const elm = document.querySelector(`#${elm_id_steering_calibration}`)
-  if(set_calibrating) {
-    elm.classList.remove("hidden")
+  const elm = document.querySelector(`#${elm_id_steering_calibration}`);
+  if (set_calibrating) {
+    elm.classList.remove("hidden");
     sendCommand(`{${json_key_steering_calibration}:true}`);
-  }else {
-    elm.classList.add("hidden")
+  } else {
+    elm.classList.add("hidden");
     sendCommand(`{${json_key_steering_calibration}:false}`);
   }
 }
