@@ -243,6 +243,16 @@ static void MAINTENANCE_dmc_enable(void) {
 }
 
 /********************************************************************
+ * @brief Updates the DMC (Digital Motor Controller) during maintenance.
+ *
+ * This function is responsible for updating the DMC during maintenance.
+ * TODO: Implement the DMC update logic.
+ *******************************************************************/
+// static void MAINTENANCE_dmc_update(void) {
+//   // TOD: DMC update
+// }
+
+/********************************************************************
  * AZIMUTH
  *******************************************************************/
 static void MAINTENANCE_azimuth_enable(void) {
@@ -269,6 +279,18 @@ static void MAINTENANCE_azimuth_homing(void) {
   maintenance_data[JSON_AZIMUTH_HOMING] = true;
   AZIMUTH_start_homing();
   azimuth_homing_timer = 20;
+}
+
+/********************************************************************
+ * Updates the steering value for maintenance mode.
+ * If the azimuth is enabled and the analog input is enabled,
+ * the manual azimuth value is retrieved and set as the steering value.
+ *******************************************************************/
+static void MAINTENANCE_azimuth_update(void) {
+  if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
+    int value = AZIMUTH_get_manual();
+    AZIMUTH_set_steering(value);
+  }
 }
 
 /********************************************************************
@@ -306,6 +328,23 @@ static void MAINTENANCE_lift_homing(void) {
     maintenance_data[JSON_LIFT_HOMING] = true;
     LIFT_start_homing();
     lift_homing_timer = 20;
+  }
+}
+
+/********************************************************************
+ * Updates the maintenance state of the lift.
+ * If the lift is moving up and the up sensor is triggered, turns off the lift.
+ * If the lift is moving down and the down sensor is triggered, turns off the lift.
+ *******************************************************************/
+static void MAINTENANCE_lift_update(void) {
+  // Auto switch of LIFT UP
+  if (LIFT_UP_sensor() && LIFT_UP_moving()) {
+    LIFT_UP_off();
+  }
+
+  // Auto switch of LIFT down
+  if (LIFT_DOWN_sensor() && LIFT_DOWN_moving()) {
+    LIFT_DOWN_off();
   }
 }
 
@@ -361,7 +400,8 @@ int MAINTENANCE_command_handler(const char *data) {
   Serial.println(str);
 #endif
 
-  /* Maintenance mode active */
+  /* ----------------------------------------------------*/
+  /* Maintenance mode activate */
   if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
     if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true) {
       // CONTROLLER_request_maintenance();
@@ -371,6 +411,7 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
+  /* ----------------------------------------------------*/
   /* Lift enable */
   if (doc.containsKey(JSON_LIFT_ENABLED)) {
     if (doc[JSON_LIFT_ENABLED].as<bool>() == true)
@@ -401,6 +442,7 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
+  /* ----------------------------------------------------*/
   /* DMC enable */
   if (doc.containsKey(JSON_DMC_ENABLED)) {
     if (doc[JSON_DMC_ENABLED].as<bool>() == true)
@@ -410,7 +452,8 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
-  /* Steering enable */
+  /* ----------------------------------------------------*/
+  /* Azimuth enable */
   if (doc.containsKey(JSON_AZIMUTH_ENABLED)) {
     if (doc[JSON_AZIMUTH_ENABLED].as<bool>() == true)
       MAINTENANCE_azimuth_enable();
@@ -419,7 +462,7 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
-  /* Steering analog output enable */
+  /* Azimuth analog output enable */
   if (doc.containsKey(JSON_AZIMUTH_OUTPUT_ENABLED)) {
     if (doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() == true)
       MAINTENANCE_analog_enable();
@@ -428,32 +471,51 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
-  /* Steering set LEFT voltage */
-  if (doc.containsKey(JSON_STEERWHEEL_LEFT)) {
-    STEERWHEEL_set_left(doc[JSON_STEERWHEEL_LEFT].as<float>());
+  /* Azimuth set LEFT counts */
+  if (doc.containsKey(JSON_AZIMUTH_LEFT)) {
+    STEERWHEEL_set_left(doc[JSON_AZIMUTH_LEFT].as<int>());
     handeled++;
   }
 
-  /* Steering set RIGHT voltage */
-  if (doc.containsKey(JSON_STEERWHEEL_RIGHT)) {
-    STEERWHEEL_set_right(doc[JSON_STEERWHEEL_RIGHT].as<float>());
+  /* Azimuth set RIGHT counts */
+  if (doc.containsKey(JSON_AZIMUTH_RIGHT)) {
+    STEERWHEEL_set_right(doc[JSON_AZIMUTH_RIGHT].as<int>());
     handeled++;
   }
 
-  /* Steering start homing */
+  /* Azimuth start homing */
   if (doc.containsKey(JSON_AZIMUTH_HOMING)) {
     if (doc[JSON_AZIMUTH_HOMING].as<bool>() == true)
       MAINTENANCE_azimuth_homing();
     handeled++;
   }
 
-  /* Steering manual control (%) */
+  /* Azimuth manual control (%) */
   if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
     handeled++;
   }
 
-  /* Steering manual control (%) */
+  /* ----------------------------------------------------*/
+  /* Steering wheel set LEFT counts */
+  if (doc.containsKey(JSON_STEERWHEEL_LEFT)) {
+    STEERWHEEL_set_left(doc[JSON_STEERWHEEL_LEFT].as<int>());
+    handeled++;
+  }
+
+  /* Steering wheel set RIGHT counts */
+  if (doc.containsKey(JSON_STEERWHEEL_RIGHT)) {
+    STEERWHEEL_set_right(doc[JSON_STEERWHEEL_RIGHT].as<int>());
+    handeled++;
+  }
+
+  /* Steering wheel set RIGHT counts */
+  if (doc.containsKey(JSON_STEERWHEEL_MIDDLE)) {
+    STEERWHEEL_set_middle(doc[JSON_STEERWHEEL_MIDDLE].as<int>());
+    handeled++;
+  }
+
+  /* Steering wheel start calibration */
   if (doc.containsKey(JSON_STEERWHEEL_START_CALIBRATION)) {
     if (doc[JSON_STEERWHEEL_START_CALIBRATION].as<bool>() == true)
       STEERWHEEL_calibration_start();
@@ -462,6 +524,8 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
+  /* ----------------------------------------------------*/
+  /* General */
   if (handeled == 0) {
 #ifdef DEBUG_WEBSOCKET
     Serail.println(F("MAINTENANCE mode no commands handled"))
@@ -537,45 +601,6 @@ static void MAINTENACE_websocket_task(void *parameter) {
 }
 
 /********************************************************************
- * @brief Updates the DMC (Digital Motor Controller) during maintenance.
- *
- * This function is responsible for updating the DMC during maintenance.
- * TODO: Implement the DMC update logic.
- *******************************************************************/
-static void MAINTENANCE_dmc_update(void) {
-  // TOD: DMC update
-}
-
-/********************************************************************
- * Updates the maintenance state of the lift.
- * If the lift is moving up and the up sensor is triggered, turns off the lift.
- * If the lift is moving down and the down sensor is triggered, turns off the lift.
- *******************************************************************/
-static void MAINTENANCE_lift_update(void) {
-  // Auto switch of LIFT UP
-  if (LIFT_UP_sensor() && LIFT_UP_moving()) {
-    LIFT_UP_off();
-  }
-
-  // Auto switch of LIFT down
-  if (LIFT_DOWN_sensor() && LIFT_DOWN_moving()) {
-    LIFT_DOWN_off();
-  }
-}
-
-/********************************************************************
- * Updates the steering value for maintenance mode.
- * If the azimuth is enabled and the analog input is enabled,
- * the manual azimuth value is retrieved and set as the steering value.
- *******************************************************************/
-static void MAINTENANCE_azimuth_update(void) {
-  if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
-    int value = AZIMUTH_get_manual();
-    AZIMUTH_set_steering(value);
-  }
-}
-
-/********************************************************************
  * Steerwheel calibration
  *******************************************************************/
 static bool steerwheel_calibrate_stop;
@@ -633,7 +658,7 @@ void MAINTENANCE_main_task(void *parameter) {
         continue;
       }
 
-      MAINTENANCE_dmc_update();
+      // MAINTENANCE_dmc_update(); // No tasks yet
       MAINTENANCE_lift_update();
       MAINTENANCE_azimuth_update();
 
