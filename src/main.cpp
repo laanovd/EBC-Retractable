@@ -87,15 +87,11 @@ void loop()
   // Do main task things...
 }
 
+
 /*******************************************************************
- * setup
+ * MAIN setup
  *******************************************************************/
-void setup()
-{
-  Serial.begin(115200);
-  sleep(2); // Startup delay for terminal
-  
-  /*--- SETUP ---*/
+static void MAIN_setup(void) {
   STORAGE_setup();
   CLI_setup();
   WiFi_setup();
@@ -104,20 +100,39 @@ void setup()
   AZIMUTH_setup();
   LIFT_setup();
   DMC_setup();
-  CONTROLLER_setup();
+  // CONTROLLER_setup();
   MAINTENANCE_setup();
-  // MAIN_setup();
 
   Serial.println(F("Main setup completed."));
-  vTaskDelay(1000 / portTICK_PERIOD_MS); // Wait one second for LED's to finish
+}
 
-  /*--- STARTUP ---*/
-  MAIN_CLI_handlers();
+/*******************************************************************
+ * MAIN start
+ *******************************************************************/
+static void MAIN_start(void) {
   GPIO_start();
   AZIMUTH_start();
   LIFT_start();
   DMC_start();
-  CONTROLLER_start();
+  // CONTROLLER_start();
   MAINTENANCE_start();
-  // MAIN_start();
+
+  MAIN_CLI_handlers();
+
+  Serial.println(F("Main setup completed."));
+}
+
+/*******************************************************************
+ * setup
+ *******************************************************************/
+void setup()
+{
+  Serial.begin(115200);
+  sleep(2); // Startup delay for terminal
+  
+  MAIN_setup();
+
+  vTaskDelay(1000 / portTICK_PERIOD_MS); // Wait one second for LED's to finish
+
+  MAIN_start();
 }

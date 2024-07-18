@@ -178,6 +178,9 @@ void MAINTENANCE_enable(void) {
     LIFT_disable();
     AZIMUTH_disable();
     AZIMUTH_analog_disable();
+#ifdef DEBUG_API
+  Serial.println(F("MAINTENACE mode enabled."));
+#endif
   }
 }
 
@@ -194,6 +197,10 @@ void MAINTENANCE_disable(void) {
   LIFT_disable();
   AZIMUTH_disable();
   AZIMUTH_analog_disable();
+
+#ifdef DEBUG_API
+  Serial.println(F("MAINTENACE mode disabled."));
+#endif
 }
 
 /********************************************************************
@@ -220,12 +227,20 @@ static void MAINTENANCE_dmc_enable(void) {
 static void MAINTENANCE_azimuth_enable(void) {
   if (MAINTENANCE_enabled()) {
     AZIMUTH_enable();
+
+#ifdef DEBUG_API
+  Serial.println(F("MAINTENACE azimuth enable."));
+#endif
   }
 }
 
 static void MAINTENANCE_analog_enable(void) {
   if (MAINTENANCE_enabled()) {
     AZIMUTH_analog_enable();
+
+#ifdef DEBUG_API
+  Serial.println(F("MAINTENACE analog enable enable."));
+#endif
   }
 }
 
@@ -309,8 +324,10 @@ int MAINTENANCE_command_handler(const char *data) {
 
   /* Maintenance mode active */
   if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
-    if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true)
+    if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true) {
       CONTROLLER_request_maintenance();
+      MAINTENANCE_enable(); // Temporary
+    }
     else
       MAINTENANCE_disable();
     handeled++;

@@ -291,53 +291,57 @@ void LIFT_extended_increment(void) {
   * Lift LED
  *******************************************************************/
 static void LIFT_LED_up(void) {
-  if (!EMERGENCY_STOP_active()) {
-    if (LIFT_error()) {
-      digitalWrite(LIFT_LED_UP_PIN, !LED_error_takt()); // Inverted logic
+  if (!LIFT_enabled()) {
+      digitalWrite(LIFT_LED_UP_PIN, IO_OFF);
       return;
-    }
-
-    if (LIFT_UP_moving()) {
-      digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); // Inverted logic
-      return;
-    }
-
-    if (LIFT_UP_sensor()) {
-      digitalWrite(LIFT_LED_UP_PIN, IO_ON);
-      return; 
-    }
-
-    if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
-      digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); // Inverted logic
-      return;
-    }
   }
-  digitalWrite(LIFT_LED_UP_PIN, IO_OFF);
+
+  if (LIFT_error()) {
+    digitalWrite(LIFT_LED_UP_PIN, !LED_error_takt()); // Inverted logic
+    return;
+  }
+
+  if (LIFT_UP_moving()) {
+    digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); // Inverted logic
+    return;
+  }
+
+  if (LIFT_UP_sensor()) {
+    digitalWrite(LIFT_LED_UP_PIN, IO_ON);
+    return; 
+  }
+
+  if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
+    digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); // Inverted logic
+    return;
+  }
 }
 
 static void LIFT_LED_down(void) {
-  if (!EMERGENCY_STOP_active()) {
-    if (LIFT_error()) {
-      digitalWrite(LIFT_LED_DOWN_PIN, !LED_error_takt()); // Inverted logic
-      return;
-    }
-
-    if (LIFT_UP_moving()) {
-      digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
-      return;
-    }
-
-    if (LIFT_UP_sensor()) {
-      digitalWrite(LIFT_LED_DOWN_PIN, IO_ON);
-      return; 
-    }
-
-    if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
-      digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
-      return;
-    }
+  if (!LIFT_enabled()) {
+    digitalWrite(LIFT_LED_DOWN_PIN, IO_OFF);
+    return;
   }
-  digitalWrite(LIFT_LED_DOWN_PIN, IO_OFF);
+
+  if (LIFT_error()) {
+    digitalWrite(LIFT_LED_DOWN_PIN, !LED_error_takt()); // Inverted logic
+    return;
+  }
+
+  if (LIFT_UP_moving()) {
+    digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
+    return;
+  }
+
+  if (LIFT_UP_sensor()) {
+    digitalWrite(LIFT_LED_DOWN_PIN, IO_ON);
+    return; 
+  }
+
+  if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
+    digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
+    return;
+  }
 }
 
 /*******************************************************************
@@ -349,8 +353,6 @@ static void LIFT_main_task(void *parameter) {
   vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
 
   while (true) {
-    Serial.println("Lift main task...");
-
     // Control leds
     LIFT_LED_up();
     LIFT_LED_down();

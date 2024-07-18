@@ -141,7 +141,7 @@ void setup_uri(rest_api_t *uri_hdl) {
  * ElegantOTA Profesional Routines
  *********************************************************************/
 static void onOTAStart() {
-  DEBUG_info("OTA update started...\n");
+  DEBUG_info("\nOTA update started...\n");
 }
 
 static void onOTAProgress(size_t current, size_t final) {
@@ -154,9 +154,9 @@ static void onOTAProgress(size_t current, size_t final) {
 
 static void onOTAEnd(bool success) {
   if (success) {
-    Serial.println("\nOTA update finished...");
+    Serial.println("\nOTA update finished...\n");
   } else {
-    Serial.println("\nOTA update failed...");
+    Serial.println("\nOTA update failed...\n");
   }
   ota_restart_countdown = 12;  // Short delay, in main-task-cycles
 }
@@ -205,7 +205,15 @@ static void WEBSOCKET_send_pair(JsonPair kv) {
   web_socket_server.broadcastTXT(msg);
 }
 
+/********************************************************************
+ * Stores a key-value pair in the WebSocket JSON data if 
+ * the value has changed.
+ *********************************************************************/
 static bool WEBSOCKET_store_pair(JsonPair kv) {
+  if (!WebSocket_JSON_data.containsKey(kv.key().c_str())) {
+    WebSocket_JSON_data[kv.key().c_str()] = NULL;
+  }
+
   if (WebSocket_JSON_data[kv.key().c_str()] != kv.value()) {
     WebSocket_JSON_data[kv.key().c_str()] = kv.value();
     return true;
@@ -215,16 +223,13 @@ static bool WEBSOCKET_store_pair(JsonPair kv) {
 
 /********************************************************************
  * Updates the WebSocket JSON data with the given key-value pair.
- * If the key does not exist in the WebSocket JSON data, it is added with a null value.
- * Then, the key-value pair is stored and sent via WebSocket.
+ * If the key does not exist in the WebSocket JSON data, it is 
+ * added with a null value. * Then, the key-value pair is stored 
+ * and sent via WebSocket.
  *
  * @param kv The key-value pair to update.
  *********************************************************************/
 void WEBSOCKET_update_pair(JsonPair kv) {
-  if (!WebSocket_JSON_data.containsKey(kv.key().c_str())) {
-    WebSocket_JSON_data[kv.key().c_str()] = NULL;
-  }
-
   if (WEBSOCKET_store_pair(kv)) {
     WEBSOCKET_send_pair(kv);
   }

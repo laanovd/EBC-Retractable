@@ -525,6 +525,7 @@ static void CONTROLLER_setup_statemachine() {
 
   stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_extended, fnPrecalibratingToExtended);
   stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_calibrating, fnPrecalibratingToCalibrating);
+  stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_maintenance, fnAnyToMantenance);
   stateMachine.SetOnEntering(CONTROLLER_precalibrating, fnStatePrecalibrating);
 
   stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extended, fnNoPositionToExtended);
