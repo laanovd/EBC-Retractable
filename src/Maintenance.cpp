@@ -48,6 +48,7 @@ static int lift_homing_timer = 0;
  * Forwards
  *******************************************************************/
 static void STEERWHEEL_calibration_start(void);
+static void STEERWHEEL_calibration_stop(void);
 
 /********************************************************************
  * Internal JSON data
@@ -454,7 +455,10 @@ int MAINTENANCE_command_handler(const char *data) {
 
   /* Steering manual control (%) */
   if (doc.containsKey(JSON_STEERWHEEL_START_CALIBRATION)) {
-    STEERWHEEL_calibration_start();
+    if (doc[JSON_STEERWHEEL_START_CALIBRATION].as<bool>() == true)
+      STEERWHEEL_calibration_start();
+    else
+      STEERWHEEL_calibration_stop();
     handeled++;
   }
 
@@ -575,16 +579,13 @@ static void MAINTENANCE_azimuth_update(void) {
  * Steerwheel calibration
  *******************************************************************/
 static bool steerwheel_calibrate_stop;
-
-void STEERWHEEL_calibrate_end(void) {
-  steerwheel_calibrate_stop = true;
-}
+static TaskHandle_t steerwheel_calibrate_task = NULL;
 
 void STEERWHEEL_calibrate(void *parameter) {
   (void)parameter;
   int low = 0, high = 0, middle = 0;
   
-  while (!steerwheel_calibrate_stop) {
+  while (steerwheel_calibrate_task) {
     int value = STEERWHEEL_get_actual();
 
     low = max(min(low, value), 0);
@@ -604,8 +605,15 @@ void STEERWHEEL_calibrate(void *parameter) {
 }
 
 static void STEERWHEEL_calibration_start(void) {
-  steerwheel_calibrate_stop = false;
-  xTaskCreate(STEERWHEEL_calibrate, "Steerwheel calibration", 2048, NULL, 5, NULL);
+  if (!steerwheel_calibrate_task) {
+    maintenance_data[JSON_STEERWHEEL_START_CALIBRATION] = true;
+    xTaskCreate(STEERWHEEL_calibrate, "Steerwheel calibration", 2048, NULL, 5, &steerwheel_calibrate_task);
+  }
+}
+
+static void STEERWHEEL_calibration_stop(void) {
+  steerwheel_calibrate_task = NULL;
+  maintenance_data[JSON_STEERWHEEL_START_CALIBRATION] = false;
 }
 
 /********************************************************************

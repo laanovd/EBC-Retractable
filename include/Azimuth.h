@@ -29,7 +29,6 @@
 /*******************************************************************
  * Azimuth
  *******************************************************************/
-extern void AZIMUTH_update();
 extern void AZIMUTH_enable();
 extern void AZIMUTH_disable();
 extern bool AZIMUTH_enabled();
