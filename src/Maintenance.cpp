@@ -28,7 +28,7 @@
 /*******************************************************************
  * Definitions
  *******************************************************************/
-#define DEBUG
+#define DEBUG_MAINTENANCE
 
 /*******************************************************************
  * JSON and Websocket keys
@@ -178,8 +178,9 @@ void MAINTENANCE_enable(void) {
     LIFT_disable();
     AZIMUTH_disable();
     AZIMUTH_analog_disable();
-#ifdef DEBUG_API
-  Serial.println(F("MAINTENACE mode enabled."));
+
+#ifdef DEBUG_MAINTENANCE
+    Serial.println(F("MAINTENACE mode enabled."));
 #endif
   }
 }
@@ -198,7 +199,7 @@ void MAINTENANCE_disable(void) {
   AZIMUTH_disable();
   AZIMUTH_analog_disable();
 
-#ifdef DEBUG_API
+#ifdef DEBUG_MAINTENANCE
   Serial.println(F("MAINTENACE mode disabled."));
 #endif
 }
@@ -228,8 +229,8 @@ static void MAINTENANCE_azimuth_enable(void) {
   if (MAINTENANCE_enabled()) {
     AZIMUTH_enable();
 
-#ifdef DEBUG_API
-  Serial.println(F("MAINTENACE azimuth enable."));
+#ifdef DEBUG_MAINTENANCE
+    Serial.println(F("MAINTENACE azimuth enable."));
 #endif
   }
 }
@@ -238,8 +239,8 @@ static void MAINTENANCE_analog_enable(void) {
   if (MAINTENANCE_enabled()) {
     AZIMUTH_analog_enable();
 
-#ifdef DEBUG_API
-  Serial.println(F("MAINTENACE analog enable enable."));
+#ifdef DEBUG_MAINTENANCE
+    Serial.println(F("MAINTENACE analog enable enable."));
 #endif
   }
 }
@@ -261,32 +262,23 @@ static void MAINTENANCE_lift_enable(void) {
 
 static void MAINTENANCE_lift_motor_up(void) {
   if (MAINTENANCE_enabled() && LIFT_enabled()) {
-    LIFT_UP_on();
     LIFT_DOWN_off();
+    vTaskDelay(500 / portTICK_PERIOD_MS);  // Wait 0.5s
+    LIFT_UP_on();
   }
 }
 
 static void MAINTENANCE_lift_motor_down(void) {
   if (MAINTENANCE_enabled() && LIFT_enabled()) {
-    LIFT_DOWN_on();
-    LIFT_UP_off();
-  }
-}
-
-static void MAINTENANCE_lift_extend(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
     LIFT_UP_off();
     vTaskDelay(500 / portTICK_PERIOD_MS);  // Wait 0.5s
     LIFT_DOWN_on();
   }
 }
 
-static void MAINTENANCE_lift_retract(void) {
-  if (MAINTENANCE_enabled() && LIFT_enabled()) {
-    LIFT_DOWN_off();
-    vTaskDelay(500 / portTICK_PERIOD_MS);  // Wait 0.5s
-    LIFT_UP_on();
-  }
+static void MAINTENANCE_lift_motor_off(void) {
+  LIFT_DOWN_off();
+  LIFT_UP_off();
 }
 
 static void MAINTENANCE_lift_homing(void) {
@@ -294,6 +286,41 @@ static void MAINTENANCE_lift_homing(void) {
     maintenance_data[JSON_LIFT_HOMING] = true;
     LIFT_start_homing();
     lift_homing_timer = 20;
+  }
+}
+
+/********************************************************************
+ * Hardwaree buttons
+ *********************************************************************/
+static void MAINTENANCE_buttons(void) {
+  if (MAINTENANCE_enabled() && LIFT_enabled()) {
+    if (LIFT_UP_button()) {
+#ifdef DEBUG_MAINTENANCE
+    Serial.println(F("MAINTENACE UP button pushed."));
+#endif
+      if (LIFT_UP_moving() || LIFT_DOWN_moving()) {
+        MAINTENANCE_lift_motor_off();
+      }
+      else {
+#ifdef DEBUG_MAINTENANCE
+    Serial.println(F("MAINTENACE UP button pushed, stop movement."));
+#endif
+        MAINTENANCE_lift_motor_up();
+      }
+    } else if (LIFT_DOWN_button()) {
+#ifdef DEBUG_MAINTENANCE
+    Serial.println(F("MAINTENACE DOWN button pushed."));
+#endif
+      if (LIFT_UP_moving() || LIFT_DOWN_moving()) {
+        MAINTENANCE_lift_motor_off();
+      }
+      else {
+#ifdef DEBUG_MAINTENANCE
+    Serial.println(F("MAINTENACE DOWN button pushed, stop movement."));
+#endif
+        MAINTENANCE_lift_motor_down();
+      }
+    }
   }
 }
 
@@ -315,7 +342,7 @@ int MAINTENANCE_command_handler(const char *data) {
     return -1;  // DeserializationError
   }
 
-#ifdef DEBUG_API
+#ifdef DEBUG_MAINTENANCE
   String str;
   Serial.print(F("MAINTENACE COMMAND HANDLER received: "));
   serializeJson(doc, str);
@@ -326,9 +353,8 @@ int MAINTENANCE_command_handler(const char *data) {
   if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
     if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true) {
       // CONTROLLER_request_maintenance();
-      MAINTENANCE_enable(); // Temporary
-    }
-    else
+      MAINTENANCE_enable();  // Temporary
+    } else
       MAINTENANCE_disable();
     handeled++;
   }
@@ -340,12 +366,6 @@ int MAINTENANCE_command_handler(const char *data) {
     else
       LIFT_disable();
     handeled++;
-  }
-
-  /* Lift EXTEND */
-  if (doc.containsKey(JSON_LIFT_SENSOR_DOWN)) {
-    if (doc[JSON_LIFT_SENSOR_DOWN].as<bool>() == true)
-      MAINTENANCE_lift_extend();
   }
 
   /* Lift homing */
@@ -519,7 +539,7 @@ static void MAINTENANCE_steering_update(void) {
 void MAINTENANCE_main_task(void *parameter) {
   (void)parameter;
 
-  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
+  vTaskDelay(2000 / portTICK_PERIOD_MS);  // Startup delay
 
   while (true) {
     // Start maintenace mode
@@ -533,6 +553,8 @@ void MAINTENANCE_main_task(void *parameter) {
       MAINTENANCE_dmc_update();
       MAINTENANCE_lift_update();
       MAINTENANCE_steering_update();
+
+      MAINTENANCE_buttons();
 
       vTaskDelay(250 / portTICK_PERIOD_MS);
       continue;  // taks 4 x/sec.

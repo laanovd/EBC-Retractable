@@ -119,7 +119,7 @@ static void MAIN_start(void) {
 
   MAIN_CLI_handlers();
 
-  Serial.println(F("Main setup completed."));
+  Serial.println(F("Main start completed."));
 }
 
 /*******************************************************************
@@ -128,11 +128,9 @@ static void MAIN_start(void) {
 void setup()
 {
   Serial.begin(115200);
-  sleep(2); // Startup delay for terminal
+  vTaskDelay(2000 / portTICK_PERIOD_MS); // Wait two seconds before startup
   
   MAIN_setup();
-
   vTaskDelay(1000 / portTICK_PERIOD_MS); // Wait one second for LED's to finish
-
   MAIN_start();
 }

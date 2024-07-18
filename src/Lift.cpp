@@ -108,7 +108,8 @@ int LIFT_move_timeout(void) {
 }
 
 bool LIFT_error(void) {
-  return (LIFT_error_mask != 0);
+  // return (LIFT_error_mask != 0);
+  return false;
 }
 
 /*******************************************************************
@@ -182,7 +183,6 @@ void LIFT_start_homing() {
   PCF8574_write(PCF8574_address, LIFT_START_HOMING_PIN, IO_OFF);
 }
 
-
 /*******************************************************************
  * Lift position
  *******************************************************************/
@@ -220,6 +220,9 @@ static bool BUTTON_BOTH_pushed = false;
 bool LIFT_UP_button(void) {
   if (BUTTON_UP_pushed) {
     BUTTON_UP_pushed = false;
+#ifdef DEBUG_LIFT
+  Serial.println("LIFT UP button pushed");
+#endif
     return true;
   }
   return false;
@@ -228,6 +231,9 @@ bool LIFT_UP_button(void) {
 bool LIFT_DOWN_button(void) {
   if (BUTTON_DOWN_pushed) {
     BUTTON_DOWN_pushed = false;
+#ifdef DEBUG_LIFT
+  Serial.println("LIFT DOWN button pushed");
+#endif
     return true;
   }
   return false;
@@ -247,21 +253,24 @@ static void LIFT_button_update(void) {
   static bool BUTTON_DOWN_state, BUTTON_DOWN_memo = false;
   static int delay = BUTTON_BOTH_DELAY;
 
-  BUTTON_UP_state = (digitalRead(LIFT_BUTTON_UP_PIN) == IO_ON);
-  if (BUTTON_UP_memo && !BUTTON_UP_state && !BUTTON_DOWN_state)
+  // Button up flag
+  BUTTON_UP_state = (digitalRead(LIFT_BUTTON_UP_PIN));
+  if (BUTTON_UP_memo && !BUTTON_UP_state && !BUTTON_DOWN_state && !BUTTON_BOTH_pushed)
     BUTTON_UP_pushed = true;
   BUTTON_UP_memo = BUTTON_UP_state;
 
-  BUTTON_DOWN_state = (digitalRead(LIFT_BUTTON_DOWN_PIN) == IO_ON);
-  if (BUTTON_DOWN_memo && !BUTTON_UP_state && !BUTTON_DOWN_state)
+  // Button down flag
+  BUTTON_DOWN_state = (digitalRead(LIFT_BUTTON_DOWN_PIN));
+  if (BUTTON_DOWN_memo && !BUTTON_UP_state && !BUTTON_DOWN_state && !BUTTON_BOTH_pushed)
     BUTTON_DOWN_pushed = true;
   BUTTON_DOWN_memo = BUTTON_DOWN_state;
 
+  // Both buttons pushed
   if (BUTTON_UP_state && BUTTON_DOWN_state) {
     if (delay > 0) {
       delay--;
       if (!delay) {
-        BUTTON_UP_pushed = BUTTON_DOWN_pushed = false;
+        BUTTON_UP_memo = BUTTON_DOWN_memo = false;
         BUTTON_BOTH_pushed = true;
       }
     } else {
@@ -291,11 +300,6 @@ void LIFT_extended_increment(void) {
   * Lift LED
  *******************************************************************/
 static void LIFT_LED_up(void) {
-  if (!LIFT_enabled()) {
-      digitalWrite(LIFT_LED_UP_PIN, IO_OFF);
-      return;
-  }
-
   if (LIFT_error()) {
     digitalWrite(LIFT_LED_UP_PIN, !LED_error_takt()); // Inverted logic
     return;
@@ -306,42 +310,31 @@ static void LIFT_LED_up(void) {
     return;
   }
 
-  if (LIFT_UP_sensor()) {
-    digitalWrite(LIFT_LED_UP_PIN, IO_ON);
-    return; 
-  }
-
   if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
     digitalWrite(LIFT_LED_UP_PIN, !LED_blink_takt()); // Inverted logic
     return;
   }
+
+  digitalWrite(LIFT_LED_UP_PIN, (LIFT_UP_sensor()) ? HIGH : LOW);
 }
 
 static void LIFT_LED_down(void) {
-  if (!LIFT_enabled()) {
-    digitalWrite(LIFT_LED_DOWN_PIN, IO_OFF);
-    return;
-  }
-
   if (LIFT_error()) {
     digitalWrite(LIFT_LED_DOWN_PIN, !LED_error_takt()); // Inverted logic
     return;
   }
 
-  if (LIFT_UP_moving()) {
+  if (LIFT_DOWN_moving()) {
     digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
     return;
   }
 
-  if (LIFT_UP_sensor()) {
-    digitalWrite(LIFT_LED_DOWN_PIN, IO_ON);
-    return; 
-  }
-
-  if (!LIFT_UP_sensor() && !LIFT_DOWN_sensor()) {
+  if (!LIFT_DOWN_sensor() && !LIFT_UP_sensor()) {
     digitalWrite(LIFT_LED_DOWN_PIN, !LED_blink_takt()); // Inverted logic
     return;
   }
+
+  digitalWrite(LIFT_LED_DOWN_PIN, (LIFT_DOWN_sensor()) ? HIGH : LOW);
 }
 
 /*******************************************************************
@@ -350,32 +343,15 @@ static void LIFT_LED_down(void) {
 static void LIFT_main_task(void *parameter) {
   (void)parameter;
 
-  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
-
   while (true) {
-    // Control leds
     LIFT_LED_up();
     LIFT_LED_down();
 
     LIFT_position_check();
 
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-  }
-}
-
-/*******************************************************************
- * Button task
- *******************************************************************/
-static void LIFT_button_task(void *parameter) {
-  (void)parameter;
-
-  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
-
-  while (true) {
-    // Read buttons
     LIFT_button_update();
-    
-    vTaskDelay(50 / portTICK_PERIOD_MS);
+
+    vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }
 
@@ -462,7 +438,6 @@ static void LIFT_setup_gpio(void) {
  *******************************************************************/
 static void LIFT_setup_tasks(void) {
   xTaskCreate(LIFT_main_task, "Lift main", 2048, NULL, 10, NULL);
-  xTaskCreate(LIFT_button_task, "Lift buttons", 1024, NULL, 5, NULL);
 }
 
 /*******************************************************************
