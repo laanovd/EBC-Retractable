@@ -63,7 +63,7 @@ function INIT_steering() {
   elm.addEventListener("change", (e) => {
     timeout = setTimeout(() => {
       elm.value = steering_manual_current;
-    }, 1000)
+    }, 1000);
     sendCommand(JSON.stringify({ [json_key_steering]: e.target.value }));
   });
   addMessageHandler((data) => {
@@ -74,6 +74,21 @@ function INIT_steering() {
     }
   });
 }
+
+// Steering calibration
+const elm_id_steering_calibration = "steering_calibration";
+const json_key_steering_calibration = "steering_start_calibration";
+function set_steering_calibrating(set_calibrating) {
+  const elm = document.querySelector(`#${elm_id_steering_calibration}`)
+  if(set_calibrating) {
+    elm.classList.remove("hidden")
+    sendCommand(`{${json_key_steering_calibration}:true}`);
+  }else {
+    elm.classList.add("hidden")
+    sendCommand(`{${json_key_steering_calibration}:false}`);
+  }
+}
+
 // Init
 document.addEventListener(
   "DOMContentLoaded",
@@ -84,9 +99,14 @@ document.addEventListener(
     INIT_toggle("retract_enabled", "lift_motor_up");
     INIT_toggle("extend_enabled", "lift_motor_down");
     INIT_toggle("dmc_enabled", "dmc_enabled");
+
+    INIT_number_input("azimuth_left", "azimuth_left_counts");
+    INIT_number_input("azimuth_right", "azimuth_right_counts");
+    INIT_number_input("azimuth_actual", "azimuth_actual_counts");
+    INIT_number_input("azimuth_timeout", "steering_delay_to_the_middle");
     INIT_toggle("azimuth_homing", "steering_homing");
-    INIT_toggle("steering_enabled", "steering_enabled");
-    INIT_toggle("output_enabled", "steering_analog_out_enabled"); // TODO
+    INIT_toggle("azimuth_enabled", "azimuth_enabled");
+    INIT_toggle("output_enabled", "azimuth_analog_out_enabled");
 
     INIT_indicator(
       "emergency_stop_indicator",
@@ -97,13 +117,10 @@ document.addEventListener(
     INIT_indicator("retracted_indicator", "lift_sensor_up");
     INIT_indicator("extended_indicator", "lift_sensor_down");
 
-    INIT_number_input("azimuth_left", "steering_left_volt");
-    INIT_number_input("azimuth_right", "steering_right_volt");
-    INIT_number_input("azimuth_actual", "no_key"); // TODO
-    INIT_number_input("azimuth_timeout", "steering_delay_to_the_middle");
-    INIT_number_input("wheel_left", "no_key"); // TODO
-    INIT_number_input("wheel_right", "no_key"); // TODO
-    INIT_number_input("wheel_middle", "no_key"); // TODO
+    INIT_number_input("steering_left", "steering_left_counts");
+    INIT_number_input("steering_right", "steering_right_counts");
+    INIT_number_input("steering_middle", "steering_middle_counts");
+    INIT_number_input("steering_actual", "steering_actual_counts");
 
     INIT_steering();
 
