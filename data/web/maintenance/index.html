@@ -10,327 +10,409 @@
     <title>RIM DRIVE TECHNOLOGY</title>
   </head>
 
-  <body>
-    <header class="text-center">
-      <div class="text-4xl py-4">
-        <span class="text-blue-500">RIM DRIVE</span>
-        <span>TECHNOLOGY</span>
-      </div>
-    </header>
+  <body class="flex items-center justify-center bg-slate-50">
+    <div class="max-w-screen-md w-full rounded-xl md:shadow-xl shadow-black/25">
+      <header class="text-center">
+        <div class="text-4xl py-4">
+          <span class="text-blue-500">RIM DRIVE</span>
+          <span>TECHNOLOGY</span>
+        </div>
+      </header>
 
-    <main class="p-4 flex flex-col gap-4">
-      <div
-        class="fixed bg-black/75 inset-0 flex items-center justify-center hidden"
-        id="loading_overlay"
-      >
-        <svg
-          aria-hidden="true"
-          class="w-16 h-16 text-gray-200 animate-spin dark:text-slate-400 fill-blue-500"
-          viewBox="0 0 100 101"
-          fill="none"
-        >
-          <path
-            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-            fill="currentColor"
-          />
-          <path
-            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-            fill="currentFill"
-          />
-        </svg>
-        <span class="sr-only">Loading...</span>
-      </div>
-
-      <div class="flex gap-4">
+      <main class="p-4 flex flex-col gap-4">
         <div
-          class="flex-1 rounded bg-slate-100 w-full p-4 py-2 text-slate-500"
-          id="terminal"
-        ></div>
-        <div class="group flex">
-          <input
-            type="checkbox"
-            name="maintenance_enabled"
-            id="maintenance_enabled"
-            disabled
-            class="hidden"
-          />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="maintenance_enabled"
+          class="fixed bg-black/75 inset-0 flex items-center justify-center hidden"
+          id="loading_overlay"
+        >
+          <svg
+            aria-hidden="true"
+            class="w-16 h-16 text-gray-200 animate-spin dark:text-slate-400 fill-blue-500"
+            viewBox="0 0 100 101"
+            fill="none"
           >
-            <span>Maintenance Enable</span>
-          </label>
+            <path
+              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+              fill="currentColor"
+            />
+            <path
+              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+              fill="currentFill"
+            />
+          </svg>
+          <span class="sr-only">Loading...</span>
         </div>
-      </div>
 
-      <hr />
-
-      <div class="flex flex-row gap-2 items-center">
-        <span
-          class="indicator w-5 h-5 rounded-full bg-slate-300"
-          id="emergency_stop_indicator"
-        ></span>
-        <span>Emergency stop</span>
-      </div>
-
-      <hr />
-
-      <div class="flex">
-        <div class="group flex-1 flex">
-          <input
-            type="checkbox"
-            name="lift_homing"
-            id="lift_homing"
-            class="hidden"
-          />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="lift_homing"
+        <div class="flex flex-col gap-4 items-center">
+          <div class="group flex">
+            <input
+              type="checkbox"
+              name="maintenance_enabled"
+              id="maintenance_enabled"
+              disabled
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="maintenance_enabled"
+            >
+              <span>Maintenance Enable</span>
+            </label>
+          </div>
+          <div
+            class="flex-1 flex rounded bg-slate-200 w-full p-4 py-2 text-slate-500 min-h-2"
           >
-            <span>Homing (Lift)</span>
-          </label>
+            <span id="terminal" class="flex-1">Error/status</span>
+            <span class="rounded bg-slate-300 text-white text-sm p-2 py-1"
+              >No error</span
+            >
+          </div>
         </div>
-        <div class="group flex flex-1">
-          <input
-            type="checkbox"
-            name="lift_enabled"
-            id="lift_enabled"
-            class="hidden"
-          />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="lift_enabled"
-          >
-            <span>Lift enable</span>
-          </label>
-        </div>
-      </div>
 
-      <div class="flex">
-        <div class="flex-1 flex flex-row gap-2 items-center">
+        <hr />
+
+        <div class="flex flex-row gap-2 items-center">
           <span
             class="indicator w-5 h-5 rounded-full bg-slate-300"
-            id="retracted_indicator"
+            id="emergency_stop_indicator"
           ></span>
-          <span> Up </span>
+          <span>Emergency stop</span>
         </div>
-        <div class="group flex flex-1">
-          <input type="checkbox" name="retract_enabled" id="retract_enabled" class="hidden" />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="retract_enabled"
-          >
-            <span>Up</span>
-          </label>
-        </div>
-      </div>
 
-      <div class="flex">
-        <div class="flex-1 flex flex-row gap-2 items-center">
-          <span
-            class="indicator w-5 h-5 rounded-full bg-slate-300"
-            id="extended_indicator"
-          ></span>
-          <span> Down </span>
-        </div>
-        <div class="group flex-1 flex">
-          <input type="checkbox" name="extend_enabled" id="extend_enabled" class="hidden" />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="extend_enabled"
-          >
-            <span>Down</span>
-          </label>
-        </div>
-      </div>
+        <hr />
 
-      <hr />
+        <div class="flex items-center">
+          <h2 class="text-lg font-bold flex-1">Lift</h2>
+          <div class="group flex flex-1">
+            <input
+              type="checkbox"
+              name="lift_enabled"
+              id="lift_enabled"
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="lift_enabled"
+            >
+              <span>Enable</span>
+            </label>
+          </div>
+        </div>
 
-      <div class="flex">
-        <div class="flex-1"></div>
-        <div class="group flex-1 flex">
+        <div class="flex">
+          <div class="flex-1"></div>
+          <div class="group flex-1 flex">
+            <input
+              type="checkbox"
+              name="lift_homing"
+              id="lift_homing"
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="lift_homing"
+            >
+              <span>Homing</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex">
+          <div class="flex-1 flex flex-row gap-2 items-center">
+            <span
+              class="indicator w-5 h-5 rounded-full bg-slate-300"
+              id="retracted_indicator"
+            ></span>
+            <span> Up </span>
+          </div>
+          <div class="group flex flex-1">
+            <input
+              type="checkbox"
+              name="retract_enabled"
+              id="retract_enabled"
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="retract_enabled"
+            >
+              <span>Up</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex">
+          <div class="flex-1 flex flex-row gap-2 items-center">
+            <span
+              class="indicator w-5 h-5 rounded-full bg-slate-300"
+              id="extended_indicator"
+            ></span>
+            <span> Down </span>
+          </div>
+          <div class="group flex-1 flex">
+            <input
+              type="checkbox"
+              name="extend_enabled"
+              id="extend_enabled"
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="extend_enabled"
+            >
+              <span>Down</span>
+            </label>
+          </div>
+        </div>
+
+        <hr />
+
+        <div class="flex items-center">
+          <h2 class="text-lg font-bold flex-1">DMC</h2>
+          <div class="group flex-1 flex">
+            <input
+              type="checkbox"
+              name="dmc_enabled"
+              id="dmc_enabled"
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="dmc_enabled"
+            >
+              <span>Enable</span>
+            </label>
+          </div>
+        </div>
+
+        <hr />
+
+        <div class="flex items-center">
+          <h2 class="text-lg font-bold flex-1">Azimuth</h2>
+          <div class="group flex-1 flex">
+            <input
+              type="checkbox"
+              name="steering_enabled"
+              id="steering_enabled"
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="steering_enabled"
+            >
+              <span>Enable</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex">
+          <div class="group flex-1 flex">
+            <input
+              type="checkbox"
+              name="azimuth_homing"
+              id="azimuth_homing"
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="azimuth_homing"
+            >
+              <span>Homing</span>
+            </label>
+          </div>
+          <div class="group flex-1 flex">
+            <input
+              type="checkbox"
+              name="output_enabled"
+              id="output_enabled"
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="output_enabled"
+            >
+              <span>Output Enable</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="relative mb-8">
           <input
-            type="checkbox"
-            name="dmc_enabled"
-            id="dmc_enabled"
-            class="hidden"
-          />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="dmc_enabled"
-          >
-            <span>DMC Enable</span>
-          </label>
-        </div>
-      </div>
-
-      <hr />
-
-      <div class="flex">
-        <div class="group flex-1 flex">
-          <input
-            type="checkbox"
-            name="azimuth_homing"
-            id="azimuth_homing"
-            class="hidden"
-          />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="azimuth_homing"
-          >
-            <span>Homing (Azimuth)</span>
-          </label>
-        </div>
-        <div class="group flex-1 flex">
-          <input
-            type="checkbox"
-            name="steering_enabled"
-            id="steering_enabled"
-            class="hidden"
-          />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="steering_enabled"
-          >
-            <span>Steering Enable</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="flex">
-        <div class="flex-1"></div>
-        <div class="group flex-1 flex">
-          <input
-            type="checkbox"
-            name="output_enabled"
-            id="output_enabled"
-            class="hidden"
-          />
-          <label
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
-            for="output_enabled"
-          >
-            <span>Output Enable</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="flex">
-        <div class="flex-1 flex flex-col gap-2">
-          <div>
-            <input
-              type="number"
-              name="azimuth_left"
-              id="azimuth_left"
-              step="1"
-              class="w-20 border border-gray-200 rounded"
-              min="0"
-              max="4095"
-              value="0"
-            />
-            <span>Azimuth left (counts)</span>
-          </div>
-          <div>
-            <input
-              type="number"
-              name="azimuth_right"
-              id="azimuth_right"
-              min="0"
-              max="4095"
-              step="1"
-              value="0"
-              class="w-20 border border-gray-200 rounded"
-            />
-            <span>Azimuth right (counts)</span>
-          </div>
-          <div>
-            <input
-              type="number"
-              name="azimuth_delay"
-              id="azimuth_delay"
-              min="10"
-              max="120"
-              step="1"
-              value="0"
-              class="w-20 border border-gray-200 rounded"
-            />
-            <span>Azimuth delay (seconds)</span>
-          </div>
-          <div>
-            <input
-              type="number"
-              name="azimuth_actual"
-              id="azimuth_actual"
-              value="0"
-              class="w-20 border border-gray-200 rounded"
-              disabled
-            />
-            <span>Azimuth actual (Counts)</span>
-          </div>
-          <div>
-            <input
-              type="number"
-              name="wheel_left"
-              id="wheel_left"
-              step="1"
-              class="w-20 border border-gray-200 rounded"
-              min="0"
-              max="4095"
-              value="0"
-            />
-            <span>Steerwheel left (counts)</span>
-          </div>
-          <div>
-            <input
-              type="number"
-              name="wheel_right"
-              id="wheel_right"
-              min="0"
-              max="4095"
-              step="1"
-              value="0"
-              class="w-20 border border-gray-200 rounded"
-            />
-            <span>Steerwheel right (counts)</span>
-          </div>
-          <div>
-            <input
-              type="number"
-              name="wheel_middle"
-              id="wheel_middle"
-              min="0"
-              max="4095"
-              step="1"
-              value="0"
-              class="w-20 border border-gray-200 rounded"
-            />
-            <span>Steerwheel middle (counts)</span>
-          </div>
-          <div>
-            <input
-              type="number"
-              name="wheel_actual"
-              id="wheel_actual"
-              value="0"
-              class="w-20 border border-gray-200 rounded"
-              disabled
-            />
-            <span>Steerwheel actual (Counts)</span>
-          </div>
-        </div>
-        <div class="flex-1 flex items-center gap-2">
-          <input
+            id="steering_manual"
+            name="steering_manual"
             type="range"
             min="0"
             max="4095"
             step="1"
             value="0"
-            id="steering_manual"
-            class="w-full"
+            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
-          <span class="whitespace-nowrap">Steering (<span id="steering_percentage">0</span>%)</span>
+          <span
+            class="text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6"
+            >0</span
+          >
+          <span
+            class="text-sm text-gray-500 dark:text-gray-400 absolute start-1/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
+            >25</span
+          >
+          <span
+            class="text-sm text-gray-500 dark:text-gray-400 absolute start-1/2 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
+            >50</span
+          >
+          <span
+            class="text-sm text-gray-500 dark:text-gray-400 absolute start-3/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
+            >75</span
+          >
+          <span
+            class="text-sm text-gray-500 dark:text-gray-400 absolute end-0 -bottom-6"
+            >100</span
+          >
         </div>
-      </div>
-    </main>
+
+        <div class="flex gap-4">
+          <div class="flex-1 flex flex-col">
+            <label for="azimuth_left">Left</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="azimuth_left"
+                id="azimuth_left"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1"
+                min="0"
+                max="4095"
+                value="0"
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >counts</span
+              >
+            </div>
+          </div>
+          <div class="flex-1 flex flex-col">
+            <label for="azimuth_right">Right</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="azimuth_right"
+                id="azimuth_right"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1"
+                min="0"
+                max="4095"
+                value="0"
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >counts</span
+              >
+            </div>
+          </div>
+
+          <div class="flex-1 flex flex-col">
+            <label for="azimuth_actual">Actual</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="azimuth_actual"
+                id="azimuth_actual"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1"
+                min="0"
+                max="4095"
+                value="0"
+                disabled
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >counts</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <div class="flex-1 flex flex-col">
+            <label for="azimuth_timeout">Homing time-out</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="azimuth_timeout"
+                id="azimuth_timeout"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1"
+                min="30"
+                max="120"
+                value="0"
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >Seconds</span
+              >
+            </div>
+          </div>
+          <div class="flex-1"></div>
+          <div class="flex-1"></div>
+        </div>
+
+        <hr />
+
+        <div class="flex">
+          <h2 class="text-lg font-bold">Steeringwheel</h2>
+        </div>
+
+        <div class="flex gap-4">
+          <div class="flex-1 flex flex-col">
+            <label for="wheel_left">Left</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="wheel_left"
+                id="wheel_left"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1"
+                min="0"
+                max="4095"
+                value="0"
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >counts</span
+              >
+            </div>
+          </div>
+          <div class="flex-1 flex flex-col">
+            <label for="wheel_middle">Middle</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="wheel_middle"
+                id="wheel_middle"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1"
+                min="0"
+                max="4095"
+                value="0"
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >counts</span
+              >
+            </div>
+          </div>
+
+          <div class="flex-1 flex flex-col">
+            <label for="wheel_right">Right</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="wheel_right"
+                id="wheel_right"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1"
+                min="0"
+                max="4095"
+                value="0"
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >counts</span
+              >
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   </body>
 </html>
