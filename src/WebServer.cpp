@@ -354,9 +354,10 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
       break;
 
     case WStype_TEXT:  // if a client has sent data, then type == WStype_TEXT
+      Serial.print("Cmd handler: ");
 #ifdef DEBUG_WEBSOCKET
-      for (int i = 0; i < length; i++) {  // print received data from client
-        Serial.print((char)payload[i]);
+      for (int i = 0; i < length; i++) {
+          Serial.print((char)payload[i]);
       }
       Serial.println("");
 #endif
@@ -365,7 +366,6 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
         Serial.print(F("MAINTENANCE command handler failed!"));
         return;
       }
-
       break;
   }
 }
@@ -471,7 +471,7 @@ void WEBSERVER_cli_handlers(void) {
  *  Initialize tasks
  *********************************************************************/
 static void WEBSERVER_setup_tasks(void) {
-  xTaskCreate(WEBSERVER_task, "WebServer task", 4096, NULL, 10, NULL);
+  xTaskCreate(WEBSERVER_task, "WebServer task", 8192, NULL, 10, NULL); // 8Kb stack
 }
 
 /********************************************************************

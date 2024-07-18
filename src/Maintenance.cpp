@@ -74,7 +74,7 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_RIGHT] = 0;
   maintenance_data[JSON_AZIMUTH_MANUAL] = 0;
 
-  maintenance_data[JSON_DELAY_TO_MIDDLE] = 0;
+  maintenance_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = 0;
 
   maintenance_data[JSON_AZIMUTH_HOME] = false;
   maintenance_data[JSON_AZIMUTH_HOMING] = false;
@@ -100,7 +100,7 @@ static JsonDocument MAINTENANCE_json(void) {
   // DMC
   maintenance_data[JSON_DMC_ENABLED] = DMC_enabled();
 
-  // Steering
+  // Azimuth
   maintenance_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
 
@@ -110,8 +110,10 @@ static JsonDocument MAINTENANCE_json(void) {
 
   maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
 
+  maintenance_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = AZIMUTH_get_to_middle_timeout();
   maintenance_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
+  // Steering
   maintenance_data[JSON_STEERWHEEL_LEFT] = STEERWHEEL_get_left();
   maintenance_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();
   maintenance_data[JSON_STEERWHEEL_MIDDLE] = STEERWHEEL_get_middle();
@@ -173,7 +175,7 @@ String MAINTENANCE_string(void) {
   text.concat(doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() ? "YES" : "NO");
 
   text.concat("\r\nAZIMUTH delay-to-the-middle:  ");
-  text.concat(doc[JSON_DELAY_TO_MIDDLE].as<int>());
+  text.concat(doc[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE].as<int>());
 
   text.concat("\r\n");
   return text;
@@ -393,13 +395,6 @@ int MAINTENANCE_command_handler(const char *data) {
     return -1;  // DeserializationError
   }
 
-#ifdef DEBUG_MAINTENANCE
-  String str;
-  Serial.print(F("MAINTENACE COMMAND HANDLER received: "));
-  serializeJson(doc, str);
-  Serial.println(str);
-#endif
-
   /* ----------------------------------------------------*/
   /* Maintenance mode activate */
   if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
@@ -473,13 +468,13 @@ int MAINTENANCE_command_handler(const char *data) {
 
   /* Azimuth set LEFT counts */
   if (doc.containsKey(JSON_AZIMUTH_LEFT)) {
-    STEERWHEEL_set_left(doc[JSON_AZIMUTH_LEFT].as<int>());
+    AZIMUTH_set_left(doc[JSON_AZIMUTH_LEFT].as<int>());
     handeled++;
   }
 
   /* Azimuth set RIGHT counts */
   if (doc.containsKey(JSON_AZIMUTH_RIGHT)) {
-    STEERWHEEL_set_right(doc[JSON_AZIMUTH_RIGHT].as<int>());
+    AZIMUTH_set_right(doc[JSON_AZIMUTH_RIGHT].as<int>());
     handeled++;
   }
 
@@ -493,6 +488,12 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Azimuth manual control (%) */
   if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
+    handeled++;
+  }
+
+  /* Set azimuth to the middle timout */
+  if (doc.containsKey(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE)) {
+    AZIMUTH_set_to_middle_timeout(doc[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE].as<int>());
     handeled++;
   }
 
@@ -608,31 +609,33 @@ static TaskHandle_t steerwheel_calibrate_task = NULL;
 
 void STEERWHEEL_calibrate(void *parameter) {
   (void)parameter;
-  int low = 0, high = 0, middle = 0;
+  int low = ADC_MAX, high = ADC_MIN, middle = 0;
   
   while (steerwheel_calibrate_task) {
     int value = STEERWHEEL_get_actual();
 
-    low = max(min(low, value), 0);
-    STEERWHEEL_set_left(low);
+    low = max(min(low, value), ADC_MIN);
 
     high = min(max(high, value), ADC_MAX);
-    STEERWHEEL_set_right(high);	
-
+    
     middle = value;
 
     vTaskDelay(250 / portTICK_PERIOD_MS);
   }
   
+  /* Store values */
+  STEERWHEEL_set_left(high);
+  STEERWHEEL_set_right(low);	
   STEERWHEEL_set_middle(middle);
 
+  /* End task */
   vTaskDelete( NULL );
 }
 
 static void STEERWHEEL_calibration_start(void) {
   if (!steerwheel_calibrate_task) {
     maintenance_data[JSON_STEERWHEEL_START_CALIBRATION] = true;
-    xTaskCreate(STEERWHEEL_calibrate, "Steerwheel calibration", 2048, NULL, 5, &steerwheel_calibrate_task);
+    xTaskCreate(STEERWHEEL_calibrate, "Steerwheel calibration", 4096, NULL, 5, &steerwheel_calibrate_task);
   }
 }
 
@@ -686,8 +689,7 @@ static void MAINTENANCE_setup_tasks(void) {
  * Command Line handler(s)
  *********************************************************************/
 static void MAINTENANCE_cli_handlers(void) {
-  // cli.addCommand("maintenance", clicb_list_wifi);
-  // cli.addCommand("mtc", clicb_list_wifi);
+  // cli.addCommand("mtn", clicb_list_wifi);
 }
 
 /********************************************************************

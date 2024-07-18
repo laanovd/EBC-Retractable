@@ -164,7 +164,7 @@ static void fnStatePreretracting() {
   CONTROLLER_disable_propulsion();
   CONTROLLER_disable_lift();
 
-  TIMER_start(preretracting_timer, AZIMUTH_to_the_middle_delay());
+  TIMER_start(preretracting_timer, AZIMUTH_get_to_middle_timeout());
 }
 
 static bool fnPreretractingToNoPosition() {

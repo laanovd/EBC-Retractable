@@ -1598,7 +1598,7 @@
                 "t": "move",
                 "p": "payload",
                 "pt": "msg",
-                "to": "payload.steering_manual",
+                "to": "payload.azimuth_manual",
                 "tot": "msg"
             }
         ],

@@ -58,8 +58,8 @@ function INIT_number_input(elm_id, json_key) {
 }
 
 // Steering
-const elm_id_steering = "steering_manual";
-const json_key_steering = "steering_manual";
+const elm_id_steering = "azimuth_manual";
+const json_key_steering = "azimuth_manual";
 let steering_manual_current = 0;
 function INIT_steering() {
   const elm = document.querySelector(`#${elm_id_steering}`);
@@ -107,8 +107,8 @@ document.addEventListener(
     INIT_number_input("azimuth_left", "azimuth_left_counts");
     INIT_number_input("azimuth_right", "azimuth_right_counts");
     INIT_number_input("azimuth_actual", "azimuth_actual_counts");
-    INIT_number_input("azimuth_timeout", "steering_delay_to_the_middle");
-    INIT_toggle("azimuth_homing", "steering_homing");
+    INIT_number_input("azimuth_timeout", "azimuth_timeout_to_the_middle");
+    INIT_toggle("azimuth_homing", "asimuth_homing");
     INIT_toggle("azimuth_enabled", "azimuth_enabled");
     INIT_toggle("output_enabled", "azimuth_analog_out_enabled");
 

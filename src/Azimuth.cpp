@@ -47,16 +47,16 @@ static JsonDocument AZIMUTH_json(void) {
 
   AZIMUTH_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
 
-  AZIMUTH_data[JSON_AZIMUTH_LEFT] = AZIMUTH_get_left();  
-  AZIMUTH_data[JSON_AZIMUTH_RIGHT] = AZIMUTH_get_right();  
+  AZIMUTH_data[JSON_AZIMUTH_LEFT] = AZIMUTH_get_left();
+  AZIMUTH_data[JSON_AZIMUTH_RIGHT] = AZIMUTH_get_right();
   AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
 
-  AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = AZIMUTH_to_the_middle_delay();
+  AZIMUTH_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = AZIMUTH_get_to_middle_timeout();
 
-  AZIMUTH_data[JSON_STEERWHEEL_LEFT] = STEERWHEEL_get_left();  
-  AZIMUTH_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();  
-  AZIMUTH_data[JSON_STEERWHEEL_MIDDLE] = STEERWHEEL_get_middle();  
-  AZIMUTH_data[JSON_STEERWHEEL_ACTUAL] = STEERWHEEL_get_actual();  
+  AZIMUTH_data[JSON_STEERWHEEL_LEFT] = STEERWHEEL_get_left();
+  AZIMUTH_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();
+  AZIMUTH_data[JSON_STEERWHEEL_MIDDLE] = STEERWHEEL_get_middle();
+  AZIMUTH_data[JSON_STEERWHEEL_ACTUAL] = STEERWHEEL_get_actual();
   AZIMUTH_data[JSON_STEERWHEEL_LEFT] = STEERWHEEL_get_left();
   AZIMUTH_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();
 
@@ -87,7 +87,7 @@ String AZIMUTH_info(void) {
   text.concat(doc[JSON_AZIMUTH_ACTUAL].as<bool>());
 
   text.concat("\r\nAzimuth delay: ");
-  text.concat(doc[JSON_DELAY_TO_MIDDLE].as<int>());
+  text.concat(doc[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE].as<int>());
 
   text.concat("\r\n");
   return text;
@@ -240,26 +240,15 @@ int AZIMUTH_get_actual(void) {
 }
 
 void AZIMUTH_set_steering(int value) {
-  AZIMUTH_set_right_output(value);
+    long left = AZIMUTH_get_left();
+    long right = AZIMUTH_get_right();
+
+    int output = mapl(value, DAC_MIN, DAC_MAX, left, right);  // map to DAC_MIN...DAC_MAX
+    AZIMUTH_set_right_output(output);
 
 #ifdef ENABLE_LEFT_OUTPUT
-  AZIMUTH_set_left_output(value);
+  AZIMUTH_set_left_output(output);
 #endif
-}
-
-static bool AZIMUTH_steeringwheel_in_middle(void) {
-  int position = STEERWHEEL_get_actual();
-
-#ifdef DEBUG_AZIMUTH
-  static int memo = -1;
-  if (abs(position - memo) > 10) {
-    memo = position;
-    Serial.printf("Steer wheel position: %d\n", position);
-  }
-#endif
-
-  // TODO: Check if steer wheel in the middle
-  return ((position >= 1600) && (position <= 1700));
 }
 
 /*******************************************************************
@@ -272,7 +261,7 @@ int STEERWHEEL_get_left(void) {
 }
 
 void STEERWHEEL_set_left(int value) {
-  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+  if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
     STORAGE_set_int(JSON_STEERWHEEL_LEFT, value);
   }
 }
@@ -284,7 +273,7 @@ int STEERWHEEL_get_right(void) {
 }
 
 void STEERWHEEL_set_right(int value) {
-  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+  if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
     STORAGE_set_int(JSON_STEERWHEEL_RIGHT, value);
   }
 }
@@ -316,15 +305,16 @@ int AZIMUTH_get_manual(void) {
   return AZIMUTH_data[JSON_AZIMUTH_MANUAL].as<int>();
 }
 
-int AZIMUTH_to_the_middle_delay(void) {
+int AZIMUTH_get_to_middle_timeout(void) {
   int value;
-  STORAGE_set_int(JSON_DELAY_TO_MIDDLE, value);
+  STORAGE_get_int(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, value);
   return value;
 }
 
-static void AZIMUTH_set_delay_to_the_middle(int value) {
-  STORAGE_set_int(JSON_DELAY_TO_MIDDLE, value);
-  AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = value;
+void AZIMUTH_set_to_middle_timeout(int value) {
+  if ((value >= 0) && (value <= 120)) {
+    STORAGE_set_int(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, value);
+  }
 }
 
 /********************************************************************
@@ -367,7 +357,7 @@ static void clicb_handler(cmd *c) {
       CLI_println("Illegal value, range: 0 ... 60s");
       return;
     }
-    AZIMUTH_set_delay_to_the_middle(val);
+    AZIMUTH_set_to_middle_timeout(val);
     CLI_println("Azimuth delay-to-middle has been set to " + String(val) + " seconds");
   }
 
@@ -386,7 +376,7 @@ static void cli_setup(void) {
  * Update LED status
  *********************************************************************/
 static void AZIMUTH_led_update(void) {
-  if (AZIMUTH_steeringwheel_in_middle()) {
+  if (AZIMUTH_home()) {
     digitalWrite(LED_TWAI_PIN, HIGH);
   } else {
     digitalWrite(LED_TWAI_PIN, LOW);
@@ -399,7 +389,7 @@ static void AZIMUTH_led_update(void) {
 static void AZIMUTH_main_task(void *parameter) {
   (void)parameter;
 
-  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
+  vTaskDelay(2000 / portTICK_PERIOD_MS);  // Startup delay
 
   while (true) {
     AZIMUTH_led_update();
@@ -430,11 +420,41 @@ static void AZIMUTH_setup_gpio(void) {
 static void AZIMUTH_setup_variables(void) {
   int value;
 
-  if (STORAGE_get_int(JSON_DELAY_TO_MIDDLE, value)) {
-    value = DELAY_TO_MIDDLE_DEFAULT;
-    STORAGE_set_int(JSON_DELAY_TO_MIDDLE, value);
+  if (STORAGE_get_int(JSON_AZIMUTH_LEFT, value)) {
+    value = DAC_MIN;
+    STORAGE_set_int(JSON_AZIMUTH_LEFT, value);
   }
-  AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = value;
+  AZIMUTH_data[JSON_AZIMUTH_LEFT] = value;
+
+  if (STORAGE_get_int(JSON_AZIMUTH_RIGHT, value)) {
+    value = DAC_MAX;
+    STORAGE_set_int(JSON_AZIMUTH_RIGHT, value);
+  }
+  AZIMUTH_data[JSON_AZIMUTH_RIGHT] = value;
+
+  if (STORAGE_get_int(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, value)) {
+    value = DELAY_TO_MIDDLE_DEFAULT;
+    STORAGE_set_int(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, value);
+  }
+  AZIMUTH_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = value;
+
+  if (STORAGE_get_int(JSON_STEERWHEEL_LEFT, value)) {
+    value = ADC_MAX;
+    STORAGE_set_int(JSON_STEERWHEEL_LEFT, value);
+  }
+  AZIMUTH_data[JSON_STEERWHEEL_LEFT] = value;
+
+  if (STORAGE_get_int(JSON_STEERWHEEL_RIGHT, value)) {
+    value = ADC_MIN;
+    STORAGE_set_int(JSON_STEERWHEEL_RIGHT, value);
+  }
+  AZIMUTH_data[JSON_STEERWHEEL_RIGHT] = value;
+
+  if (STORAGE_get_int(JSON_STEERWHEEL_MIDDLE, value)) {
+    value = (ADC_MAX - ADC_MIN) / 2;
+    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value);
+  }
+  AZIMUTH_data[JSON_STEERWHEEL_MIDDLE] = value;
 }
 
 /*******************************************************************

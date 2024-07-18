@@ -16,7 +16,7 @@
 #define JSON_AZIMUTH_RIGHT "azimuth_right_counts"
 #define JSON_AZIMUTH_ACTUAL "azimuth_actual_counts"
 #define JSON_AZIMUTH_MANUAL "azimuth_manual"
-#define JSON_DELAY_TO_MIDDLE "steering_delay_to_the_middle"
+#define JSON_AZIMUTH_TIMEOUT_TO_MIDDLE "azimuth_timeout_to_the_middle"
 #define JSON_AZIMUTH_HOME "azimuth_home"
 #define JSON_AZIMUTH_HOMING "azimuth_homing"
 
@@ -42,7 +42,8 @@ extern int AZIMUTH_get_actual(void);
 extern void AZIMUTH_set_steering(int value);
 extern void AZIMUTH_set_output_manual(int value);
 
-extern int AZIMUTH_to_the_middle_delay(void);
+extern int AZIMUTH_get_to_middle_timeout(void);
+extern void AZIMUTH_set_to_middle_timeout(int value);
 
 extern void AZIMUTH_set_manual(int value);
 extern int AZIMUTH_get_manual(void);
