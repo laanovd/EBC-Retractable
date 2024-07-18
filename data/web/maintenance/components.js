@@ -55,12 +55,13 @@ function INIT_number_input(elm_id, json_key) {
 
 // Steering
 const elm_id_steering = "steering_manual";
-const elm_id_steering_label = "steering_percentage";
+const elm_id_steering_bubble = "steering_bubble";
 const json_key_steering = "steering_manual";
 function INIT_steering() {
   const elm = document.querySelector(`#${elm_id_steering}`);
-  const label = document.querySelector(`#${elm_id_steering}`);
+  const bubble = document.querySelector(`#${elm_id_steering_bubble}`);
   elm.addEventListener("change", (e) => {
+    bubble.innerHTML = e.target.value;
     sendCommand(JSON.stringify({ [json_key_steering]: e.target.value }));
   });
   addMessageHandler((data) => {
@@ -73,7 +74,6 @@ function INIT_steering() {
 function steering_set_value(value) {
   setValue(elm_id_steering, value);
 }
-
 // Init
 document.addEventListener(
   "DOMContentLoaded",
