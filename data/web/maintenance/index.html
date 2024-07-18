@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="./script.js"></script>
     <script src="./websocket.js"></script>
     <script src="./components.js"></script>
     <title>RIM DRIVE TECHNOLOGY</title>
@@ -21,7 +20,7 @@
 
       <main class="p-4 flex flex-col gap-4">
         <div
-          class="fixed bg-black/75 inset-0 flex items-center justify-center z-20 hidden"
+          class="fixed bg-black/75 inset-0 flex items-center justify-center z-20"
           id="loading_overlay"
         >
           <svg
@@ -58,6 +57,27 @@
             >
               End calibration
             </button>
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <div
+            class="flex-1 rounded bg-slate-100 w-full p-4 py-2 text-slate-500"
+            id="terminal"
+          ></div>
+          <div class="group flex">
+            <input
+              type="checkbox"
+              name="maintenance_enabled"
+              id="maintenance_enabled"
+              disabled
+              class="hidden"
+            />
+            <label
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+              for="maintenance_enabled"
+            >
+              <span>Maintenance Enable</span>
+            </label>
           </div>
         </div>
 

@@ -123,10 +123,6 @@ document.addEventListener(
     INIT_number_input("steering_actual", "steering_actual_counts");
 
     INIT_steering();
-
-    addSingleMessageHandler((data) => {
-      document.querySelector("#loading_overlay").classList.add("hidden");
-    });
   },
   false
 );
