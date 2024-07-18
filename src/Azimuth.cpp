@@ -220,6 +220,7 @@ int AZIMUTH_get_left(void) {
 void AZIMUTH_set_left(int value) {
   if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     STORAGE_set_int(JSON_AZIMUTH_LEFT, value);
+    AZIMUTH_set_steering(AZIMUTH_get_manual());  // Recalculate
   }
 }
 
@@ -232,6 +233,7 @@ int AZIMUTH_get_right(void) {
 void AZIMUTH_set_right(int value) {
   if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     STORAGE_set_int(JSON_AZIMUTH_RIGHT, value);
+    AZIMUTH_set_steering(AZIMUTH_get_manual());  // Recalculate
   }
 }
 
@@ -240,11 +242,11 @@ int AZIMUTH_get_actual(void) {
 }
 
 void AZIMUTH_set_steering(int value) {
-    long left = AZIMUTH_get_left();
-    long right = AZIMUTH_get_right();
+  long left = AZIMUTH_get_left();
+  long right = AZIMUTH_get_right();
 
-    int output = mapl(value, DAC_MIN, DAC_MAX, left, right);  // map to DAC_MIN...DAC_MAX
-    AZIMUTH_set_right_output(output);
+  int output = mapl(value, DAC_MIN, DAC_MAX, left, right);  // map to DAC_MIN...DAC_MAX
+  AZIMUTH_set_right_output(output);
 
 #ifdef ENABLE_LEFT_OUTPUT
   AZIMUTH_set_left_output(output);
