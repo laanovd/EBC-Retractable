@@ -317,7 +317,7 @@ static void LIFT_LED_up(void) {
     }
   }
  
-  digitalWrite(LIFT_LED_UP_PIN, (LIFT_UP_sensor()) ? HIGH : LOW); // Inverted logic.
+  digitalWrite(LIFT_LED_UP_PIN, (LIFT_UP_sensor()) ? HIGH : LOW);
 }
 
 static void LIFT_LED_down(void) {
@@ -338,7 +338,7 @@ static void LIFT_LED_down(void) {
     }
   }
  
-  digitalWrite(LIFT_LED_DOWN_PIN, (LIFT_DOWN_sensor()) ? HIGH : LOW); // Inverted logic.
+  digitalWrite(LIFT_LED_DOWN_PIN, (LIFT_DOWN_sensor()) ? HIGH : LOW); 
 }
 
 /*******************************************************************

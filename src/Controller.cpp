@@ -455,7 +455,7 @@ static bool fnAnyToMantenance() {
  *******************************************************************/
 static void CONTROLLER_update_steering() {
   if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
-    int value = AZIMUTH_get_steerwheel();
+    int value = STEERWHEEL_get_actual();
     AZIMUTH_set_steering(value);
   }
 }

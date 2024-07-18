@@ -21,18 +21,13 @@
  *******************************************************************/
 #define DEBUG_AZIMUTH
 
-#define ADC_MIN 0
-#define ADC_MAX 4095
-#define DAC_MIN 0
-#define DAC_MAX 4095
-
 #undef ENABLE_LEFT_OUTPUT  // No left output use yet
 
 /*******************************************************************
  * Storage keys and defaults
  *******************************************************************/
-#define JSON_AZIMUTH_LEFT_DEFAULT 0.0
-#define JSON_AZIMUTH_RIGHT_DEFAULT 5.0
+#define JSON_STEERWHEEL_LEFT_DEFAULT 0.0
+#define JSON_STEERWHEEL_RIGHT_DEFAULT 5.0
 #define DELAY_TO_MIDDLE_DEFAULT 5
 
 /*******************************************************************
@@ -52,15 +47,18 @@ static JsonDocument AZIMUTH_json(void) {
 
   AZIMUTH_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
 
-  AZIMUTH_data[JSON_AZIMUTH_LEFT_V] = AZIMUTH_get_left();
-  AZIMUTH_data[JSON_AZIMUTH_RIGHT_V] = AZIMUTH_get_right();
-  AZIMUTH_data[JSON_AZIMUTH_ACTUAL_V] = AZIMUTH_get_actual();
+  AZIMUTH_data[JSON_AZIMUTH_LEFT] = AZIMUTH_get_left();  
+  AZIMUTH_data[JSON_AZIMUTH_RIGHT] = AZIMUTH_get_right();  
+  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
 
   AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = AZIMUTH_to_the_middle_delay();
 
-  AZIMUTH_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_steerwheel();  
-
-  AZIMUTH_data[JSON_DELAY_TO_MIDDLE] = AZIMUTH_to_the_middle_delay();
+  AZIMUTH_data[JSON_STEERWHEEL_LEFT] = STEERWHEEL_get_left();  
+  AZIMUTH_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();  
+  AZIMUTH_data[JSON_STEERWHEEL_MIDDLE] = STEERWHEEL_get_middle();  
+  AZIMUTH_data[JSON_STEERWHEEL_ACTUAL] = STEERWHEEL_get_actual();  
+  AZIMUTH_data[JSON_STEERWHEEL_LEFT] = STEERWHEEL_get_left();
+  AZIMUTH_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();
 
   return AZIMUTH_data;
 }
@@ -77,16 +75,16 @@ String AZIMUTH_info(void) {
   text.concat(doc[JSON_AZIMUTH_ENABLED].as<bool>());
 
   text.concat("\r\nAzimuth left: ");
-  text.concat(doc[JSON_AZIMUTH_LEFT_V].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_LEFT].as<float>());
 
   text.concat("\r\nAzimuth right: ");
-  text.concat(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<float>());
 
   text.concat("\r\nAzimuth right: ");
-  text.concat(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<float>());
 
   text.concat("\r\nAzimuth actual: ");
-  text.concat(doc[JSON_AZIMUTH_ACTUAL_V].as<bool>());
+  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<bool>());
 
   text.concat("\r\nAzimuth delay: ");
   text.concat(doc[JSON_DELAY_TO_MIDDLE].as<int>());
@@ -213,8 +211,32 @@ void AZIMUTH_analog_disable() {
 /*******************************************************************
  * Get/Set steering
  *******************************************************************/
-int AZIMUTH_get_steerwheel(void) {
-  return analogRead(STEER_WHEEL_ANALOG_CHANNEL);
+int AZIMUTH_get_left(void) {
+  int value;
+  STORAGE_get_int(JSON_AZIMUTH_LEFT, value);
+  return value;
+}
+
+void AZIMUTH_set_left(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    STORAGE_set_int(JSON_AZIMUTH_LEFT, value);
+  }
+}
+
+int AZIMUTH_get_right(void) {
+  int value;
+  STORAGE_get_int(JSON_AZIMUTH_RIGHT, value);
+  return value;
+}
+
+void AZIMUTH_set_right(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    STORAGE_set_int(JSON_AZIMUTH_RIGHT, value);
+  }
+}
+
+int AZIMUTH_get_actual(void) {
+  return AZIMUTH_get_right_output();
 }
 
 void AZIMUTH_set_steering(int value) {
@@ -225,12 +247,8 @@ void AZIMUTH_set_steering(int value) {
 #endif
 }
 
-float AZIMUTH_get_actual(void) {
-  return AZIMUTH_get_right_output();
-}
-
 static bool AZIMUTH_steeringwheel_in_middle(void) {
-  int position = AZIMUTH_get_steerwheel();
+  int position = STEERWHEEL_get_actual();
 
 #ifdef DEBUG_AZIMUTH
   static int memo = -1;
@@ -247,28 +265,44 @@ static bool AZIMUTH_steeringwheel_in_middle(void) {
 /*******************************************************************
  * Output settings
  *******************************************************************/
-float AZIMUTH_get_left(void) {
-  float value;
-  STORAGE_get_float(JSON_AZIMUTH_LEFT_V, value);
+int STEERWHEEL_get_left(void) {
+  int value;
+  STORAGE_get_int(JSON_STEERWHEEL_LEFT, value);
   return value;
 }
 
-void AZIMUTH_set_left(float value) {
-  if ((value >= 0.0) && (value <= 5.0)) {
-    STORAGE_set_float(JSON_AZIMUTH_LEFT_V, value);
+void STEERWHEEL_set_left(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    STORAGE_set_int(JSON_STEERWHEEL_LEFT, value);
   }
 }
 
-float AZIMUTH_get_right(void) {
-  float value;
-  STORAGE_get_float(JSON_AZIMUTH_RIGHT_V, value);
+int STEERWHEEL_get_right(void) {
+  int value;
+  STORAGE_get_int(JSON_STEERWHEEL_RIGHT, value);
   return value;
 }
 
-void AZIMUTH_set_right(float value) {
-  if ((value >= 0.0) && (value <= 5.0)) {
-    STORAGE_set_float(JSON_AZIMUTH_RIGHT_V, value);
+void STEERWHEEL_set_right(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    STORAGE_set_int(JSON_STEERWHEEL_RIGHT, value);
   }
+}
+
+int STEERWHEEL_get_middle(void) {
+  int value;
+  STORAGE_get_int(JSON_STEERWHEEL_MIDDLE, value);
+  return value;
+}
+
+void STEERWHEEL_set_middle(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value);
+  }
+}
+
+int STEERWHEEL_get_actual(void) {
+  return analogRead(STEER_WHEEL_ANALOG_CHANNEL);
 }
 
 void AZIMUTH_set_manual(int value) {
@@ -313,7 +347,7 @@ static void clicb_handler(cmd *c) {
       CLI_println("Illegal value, range: 0.0V ... 5.0V");
       return;
     }
-    STORAGE_set_float(JSON_AZIMUTH_LEFT_V, val);
+    STORAGE_set_float(JSON_STEERWHEEL_LEFT, val);
     CLI_println("Azimuth left limit has been set to " + String(val) + " Volt");
   }
 
@@ -323,7 +357,7 @@ static void clicb_handler(cmd *c) {
       CLI_println("Illegal value, range: 0.0V ... 5.0V");
       return;
     }
-    STORAGE_set_float(JSON_AZIMUTH_RIGHT_V, val);
+    STORAGE_set_float(JSON_STEERWHEEL_RIGHT, val);
     CLI_println("Azimuth right limit has been set to " + String(val) + " Volt");
   }
 

@@ -10,16 +10,21 @@
 /*******************************************************************
  * JSON and Websocket keys
  *******************************************************************/
-#define JSON_AZIMUTH_ENABLED "steering_enabled"
-#define JSON_AZIMUTH_HOME "steering_home"
-#define JSON_AZIMUTH_HOMING "steering_homing"
-#define JSON_AZIMUTH_LEFT_V "steering_left_volt"
-#define JSON_AZIMUTH_RIGHT_V "steering_right_volt"
-#define JSON_AZIMUTH_ACTUAL_V "steering_output_volt"
-#define JSON_AZIMUTH_MANUAL "steering_manual"
-#define JSON_AZIMUTH_STEERING "steering_steer_wheel"
-#define JSON_AZIMUTH_OUTPUT_ENABLED "steering_analog_out_enabled"
+#define JSON_AZIMUTH_ENABLED "azimuth_enabled"
+#define JSON_AZIMUTH_OUTPUT_ENABLED "azimuth_analog_out_enabled"
+#define JSON_AZIMUTH_LEFT "azimuth_left_counts"
+#define JSON_AZIMUTH_RIGHT "azimuth_right_counts"
+#define JSON_AZIMUTH_ACTUAL "azimuth_actual_counts"
+#define JSON_AZIMUTH_MANUAL "azimuth_manual"
 #define JSON_DELAY_TO_MIDDLE "steering_delay_to_the_middle"
+#define JSON_AZIMUTH_HOME "azimuth_home"
+#define JSON_AZIMUTH_HOMING "azimuth_homing"
+
+#define JSON_STEERWHEEL_START_CALIBRATION "steering_start_calibration"
+#define JSON_STEERWHEEL_LEFT "steering_left_counts"
+#define JSON_STEERWHEEL_RIGHT "steering_right_counts"
+#define JSON_STEERWHEEL_MIDDLE "steering_middle_counts"
+#define JSON_STEERWHEEL_ACTUAL "steering_actual_counts"
 
 /*******************************************************************
  * Azimuth
@@ -29,22 +34,19 @@ extern void AZIMUTH_enable();
 extern void AZIMUTH_disable();
 extern bool AZIMUTH_enabled();
 
-extern float AZIMUTH_get_actual(void);
-extern float AZIMUTH_get_left(void);
-extern void AZIMUTH_set_left(float value);
-extern float AZIMUTH_get_right(void);
-extern void AZIMUTH_set_right(float value);
+extern int AZIMUTH_get_left(void);
+extern void AZIMUTH_set_left(int value);
+extern int AZIMUTH_get_right(void);
+extern void AZIMUTH_set_right(int value);
+extern int AZIMUTH_get_actual(void);
+
 extern void AZIMUTH_set_steering(int value);
 extern void AZIMUTH_set_output_manual(int value);
-
-extern int AZIMUTH_read_steer(void);
 
 extern int AZIMUTH_to_the_middle_delay(void);
 
 extern void AZIMUTH_set_manual(int value);
 extern int AZIMUTH_get_manual(void);
-
-extern int AZIMUTH_get_steerwheel(void);
 
 extern bool AZIMUTH_home();
 extern void AZIMUTH_start_homing();
@@ -55,5 +57,16 @@ extern void AZIMUTH_analog_disable();
 
 extern void AZIMUTH_setup();
 extern void AZIMUTH_start();
+
+/*******************************************************************
+ * Steering wheel
+ *******************************************************************/
+extern int STEERWHEEL_get_left(void);
+extern void STEERWHEEL_set_left(int value);
+extern int STEERWHEEL_get_right(void);
+extern void STEERWHEEL_set_right(int value);
+extern int STEERWHEEL_get_middle(void);
+extern void STEERWHEEL_set_middle(int value);
+extern int STEERWHEEL_get_actual(void);
 
 #endif

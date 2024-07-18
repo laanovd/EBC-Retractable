@@ -20,6 +20,7 @@
 #include "DMC.h"
 #include "Debug.h"
 #include "GPIO.h"
+#include "EBC_IOLib.h"
 #include "Lift.h"
 #include "StateMachineLib.h"
 #include "Storage.h"
@@ -39,8 +40,14 @@
  * Local variables
  *******************************************************************/
 static JsonDocument maintenance_data;
+
 static int azimuth_homing_timer = 0;
 static int lift_homing_timer = 0;
+
+/*******************************************************************
+ * Forwards
+ *******************************************************************/
+static void STEERWHEEL_calibration_start(void);
 
 /********************************************************************
  * Internal JSON data
@@ -60,16 +67,21 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_DMC_ENABLED] = false;
 
   maintenance_data[JSON_AZIMUTH_ENABLED] = false;
-  maintenance_data[JSON_AZIMUTH_HOME] = false;
-  maintenance_data[JSON_AZIMUTH_LEFT_V] = 0.0;
-  maintenance_data[JSON_AZIMUTH_RIGHT_V] = 0.0;
-  maintenance_data[JSON_AZIMUTH_ACTUAL_V] = 0.0;
-  maintenance_data[JSON_AZIMUTH_MANUAL] = 0;
-  maintenance_data[JSON_AZIMUTH_STEERING] = 0;
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = false;
+
+  maintenance_data[JSON_AZIMUTH_LEFT] = 0;
+  maintenance_data[JSON_AZIMUTH_RIGHT] = 0;
+  maintenance_data[JSON_AZIMUTH_MANUAL] = 0;
+
   maintenance_data[JSON_DELAY_TO_MIDDLE] = 0;
+
   maintenance_data[JSON_AZIMUTH_HOME] = false;
   maintenance_data[JSON_AZIMUTH_HOMING] = false;
+
+  maintenance_data[JSON_STEERWHEEL_START_CALIBRATION] = false;
+  maintenance_data[JSON_STEERWHEEL_LEFT] = 0;
+  maintenance_data[JSON_STEERWHEEL_RIGHT] = 0;
+  maintenance_data[JSON_STEERWHEEL_MIDDLE] = 0;
 
   WEBSOCKET_send_doc(maintenance_data);
 }
@@ -90,12 +102,19 @@ static JsonDocument MAINTENANCE_json(void) {
   // Steering
   maintenance_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
-  maintenance_data[JSON_AZIMUTH_LEFT_V] = AZIMUTH_get_left();
-  maintenance_data[JSON_AZIMUTH_RIGHT_V] = AZIMUTH_get_right();
-  maintenance_data[JSON_AZIMUTH_ACTUAL_V] = AZIMUTH_get_actual();
+
+  maintenance_data[JSON_AZIMUTH_LEFT] = AZIMUTH_get_left();
+  maintenance_data[JSON_AZIMUTH_RIGHT] = AZIMUTH_get_right();
+  maintenance_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
+
   maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
-  maintenance_data[JSON_AZIMUTH_STEERING] = AZIMUTH_get_steerwheel();
+
   maintenance_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
+
+  maintenance_data[JSON_STEERWHEEL_LEFT] = STEERWHEEL_get_left();
+  maintenance_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();
+  maintenance_data[JSON_STEERWHEEL_MIDDLE] = STEERWHEEL_get_middle();
+  maintenance_data[JSON_STEERWHEEL_ACTUAL] = STEERWHEEL_get_actual();
 
   return maintenance_data;
 }
@@ -138,16 +157,16 @@ String MAINTENANCE_string(void) {
   text.concat(doc[JSON_AZIMUTH_HOME].as<bool>() ? "YES" : "NO");
 
   text.concat("\r\nAZIMUTH voltages: left: ");
-  text.concat(doc[JSON_AZIMUTH_LEFT_V].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_LEFT].as<float>());
   text.concat(", right: ");
-  text.concat(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<float>());
   text.concat(", actual: ");
-  text.concat(doc[JSON_AZIMUTH_ACTUAL_V].as<float>());
+  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<float>());
 
   text.concat("\r\nAZIMUTH steering: maunal: ");
   text.concat(doc[JSON_AZIMUTH_MANUAL].as<int>());
   text.concat(", calculated: ");
-  text.concat(doc[JSON_AZIMUTH_STEERING].as<int>());
+  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<int>());
 
   text.concat("\r\nAZIMUTH output enabled:  ");
   text.concat(doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() ? "YES" : "NO");
@@ -290,36 +309,28 @@ static void MAINTENANCE_lift_homing(void) {
 }
 
 /********************************************************************
- * Hardwaree buttons
+ * Hardware buttons
  *********************************************************************/
 static void MAINTENANCE_buttons(void) {
   if (MAINTENANCE_enabled() && LIFT_enabled()) {
     if (LIFT_UP_button()) {
-#ifdef DEBUG_MAINTENANCE
-    Serial.println(F("MAINTENACE UP button pushed."));
-#endif
       if (LIFT_UP_moving() || LIFT_DOWN_moving()) {
         MAINTENANCE_lift_motor_off();
       }
       else {
-#ifdef DEBUG_MAINTENANCE
-    Serial.println(F("MAINTENACE UP button pushed, stop movement."));
-#endif
         MAINTENANCE_lift_motor_up();
       }
-    } else if (LIFT_DOWN_button()) {
-#ifdef DEBUG_MAINTENANCE
-    Serial.println(F("MAINTENACE DOWN button pushed."));
-#endif
+      return;
+    } 
+    
+    if (LIFT_DOWN_button()) {
       if (LIFT_UP_moving() || LIFT_DOWN_moving()) {
         MAINTENANCE_lift_motor_off();
       }
       else {
-#ifdef DEBUG_MAINTENANCE
-    Serial.println(F("MAINTENACE DOWN button pushed, stop movement."));
-#endif
         MAINTENANCE_lift_motor_down();
       }
+      return;
     }
   }
 }
@@ -417,14 +428,14 @@ int MAINTENANCE_command_handler(const char *data) {
   }
 
   /* Steering set LEFT voltage */
-  if (doc.containsKey(JSON_AZIMUTH_LEFT_V)) {
-    AZIMUTH_set_left(doc[JSON_AZIMUTH_LEFT_V].as<float>());
+  if (doc.containsKey(JSON_STEERWHEEL_LEFT)) {
+    STEERWHEEL_set_left(doc[JSON_STEERWHEEL_LEFT].as<float>());
     handeled++;
   }
 
   /* Steering set RIGHT voltage */
-  if (doc.containsKey(JSON_AZIMUTH_RIGHT_V)) {
-    AZIMUTH_set_right(doc[JSON_AZIMUTH_RIGHT_V].as<float>());
+  if (doc.containsKey(JSON_STEERWHEEL_RIGHT)) {
+    STEERWHEEL_set_right(doc[JSON_STEERWHEEL_RIGHT].as<float>());
     handeled++;
   }
 
@@ -438,6 +449,12 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Steering manual control (%) */
   if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
+    handeled++;
+  }
+
+  /* Steering manual control (%) */
+  if (doc.containsKey(JSON_STEERWHEEL_START_CALIBRATION)) {
+    STEERWHEEL_calibration_start();
     handeled++;
   }
 
@@ -531,7 +548,6 @@ static void MAINTENANCE_dmc_update(void) {
  * If the lift is moving down and the down sensor is triggered, turns off the lift.
  *******************************************************************/
 static void MAINTENANCE_lift_update(void) {
-
   // Auto switch of LIFT UP
   if (LIFT_UP_sensor() && LIFT_UP_moving()) {
     LIFT_UP_off();
@@ -548,11 +564,48 @@ static void MAINTENANCE_lift_update(void) {
  * If the azimuth is enabled and the analog input is enabled,
  * the manual azimuth value is retrieved and set as the steering value.
  *******************************************************************/
-static void MAINTENANCE_steering_update(void) {
+static void MAINTENANCE_azimuth_update(void) {
   if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
     int value = AZIMUTH_get_manual();
     AZIMUTH_set_steering(value);
   }
+}
+
+/********************************************************************
+ * Steerwheel calibration
+ *******************************************************************/
+static bool steerwheel_calibrate_stop;
+
+void STEERWHEEL_calibrate_end(void) {
+  steerwheel_calibrate_stop = true;
+}
+
+void STEERWHEEL_calibrate(void *parameter) {
+  (void)parameter;
+  int low = 0, high = 0, middle = 0;
+  
+  while (!steerwheel_calibrate_stop) {
+    int value = STEERWHEEL_get_actual();
+
+    low = max(min(low, value), 0);
+    STEERWHEEL_set_left(low);
+
+    high = min(max(high, value), ADC_MAX);
+    STEERWHEEL_set_right(high);	
+
+    middle = value;
+
+    vTaskDelay(250 / portTICK_PERIOD_MS);
+  }
+  
+  STEERWHEEL_set_middle(middle);
+
+  vTaskDelete( NULL );
+}
+
+static void STEERWHEEL_calibration_start(void) {
+  steerwheel_calibrate_stop = false;
+  xTaskCreate(STEERWHEEL_calibrate, "Steerwheel calibration", 2048, NULL, 5, NULL);
 }
 
 /********************************************************************
@@ -574,7 +627,7 @@ void MAINTENANCE_main_task(void *parameter) {
 
       MAINTENANCE_dmc_update();
       MAINTENANCE_lift_update();
-      MAINTENANCE_steering_update();
+      MAINTENANCE_azimuth_update();
 
       MAINTENANCE_buttons();
 
