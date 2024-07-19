@@ -1,4 +1,4 @@
-// const socket = new WebSocket(`ws://192.168.1.125:81`);
+// const socket = new WebSocket(`ws://192.168.1.120:81`);
 const socket = new WebSocket(`ws://${window.location.host}:81`);
 
 const data = {};
@@ -30,4 +30,13 @@ function addMessageHandler(fn) {
 
 function addSingleMessageHandler(fn) {
   on_next_data.push(fn);
+}
+
+function login() {
+  const elm = document.querySelector("#password");
+  if(elm.value == "ebce6671") {
+    document.querySelector("#login_overlay").classList.add("hidden")
+  } else {
+    elm.classList.add("border","border-rose-500")
+  }
 }

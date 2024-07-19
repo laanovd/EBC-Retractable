@@ -1,3 +1,17 @@
+const json_key_maintenance = "maintenance_enabled";
+let maintenance_enabled;
+function INIT_maintenance() {
+  addMessageHandler((data) => {
+    if (data.hasOwnProperty(json_key_maintenance)) {
+      const inputs = document.querySelectorAll("input.mt_only");
+      maintenance_enabled = JSON.parse(data[json_key_maintenance]);
+      inputs.forEach((elm) => {
+        elm.disabled = !maintenance_enabled;
+      });
+    }
+  });
+}
+
 // Indicator
 function INIT_indicator(
   elm_id,
@@ -31,7 +45,7 @@ function INIT_toggle(elm_id, json_key) {
     if (data.hasOwnProperty(json_key)) {
       console.log(`${json_key}: ${data[json_key]}`);
       elm.checked = JSON.parse(data[json_key]);
-      elm.disabled = false;
+      if (maintenance_enabled || elm.id == json_key_maintenance) elm.disabled = false;
     }
   });
 }
@@ -97,6 +111,8 @@ function set_steering_calibrating(set_calibrating) {
 document.addEventListener(
   "DOMContentLoaded",
   function () {
+    INIT_maintenance();
+
     INIT_toggle("maintenance_enabled", "maintenance_enabled");
     INIT_toggle("lift_homing", "lift_homing");
     INIT_toggle("lift_enabled", "lift_enabled");

@@ -20,6 +20,44 @@
 
       <main class="p-4 flex flex-col gap-4">
         <div
+          class="fixed bg-white inset-0 flex items-center justify-center z-30"
+          id="login_overlay"
+        >
+          <div class="w-full md:w-1/2 space-y-6">
+            <div>
+              <div class="flex items-center justify-between">
+                <label
+                  for="password"
+                  class="block text-sm font-medium leading-6 text-gray-900"
+                  >Password</label
+                >
+              </div>
+              <div class="mt-2">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                  placeholder="password"
+                  class="block w-full px-2 rounded-md border py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                onclick="login()"
+                class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                Sign in
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
           class="fixed bg-black/75 inset-0 flex items-center justify-center z-20"
           id="loading_overlay"
         >
@@ -100,7 +138,8 @@
               type="checkbox"
               name="lift_enabled"
               id="lift_enabled"
-              class="hidden"
+              class="hidden mt_only"
+              disabled
             />
             <label
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -117,7 +156,8 @@
               type="checkbox"
               name="lift_homing"
               id="lift_homing"
-              class="hidden"
+              class="hidden mt_only"
+              disabled
             />
             <label
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -141,7 +181,8 @@
               type="checkbox"
               name="retract_enabled"
               id="retract_enabled"
-              class="hidden"
+              class="hidden mt_only"
+              disabled
             />
             <label
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -165,7 +206,8 @@
               type="checkbox"
               name="extend_enabled"
               id="extend_enabled"
-              class="hidden"
+              class="hidden mt_only"
+              disabled
             />
             <label
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -185,7 +227,8 @@
               type="checkbox"
               name="dmc_enabled"
               id="dmc_enabled"
-              class="hidden"
+              class="hidden mt_only"
+              disabled
             />
             <label
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -205,7 +248,8 @@
               type="checkbox"
               name="azimuth_enabled"
               id="azimuth_enabled"
-              class="hidden"
+              class="hidden mt_only"
+              disabled
             />
             <label
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -222,7 +266,8 @@
               type="checkbox"
               name="azimuth_homing"
               id="azimuth_homing"
-              class="hidden"
+              class="hidden mt_only"
+              disabled
             />
             <label
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -236,7 +281,8 @@
               type="checkbox"
               name="output_enabled"
               id="output_enabled"
-              class="hidden"
+              class="hidden mt_only"
+              disabled
             />
             <label
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
@@ -256,7 +302,7 @@
             max="4095"
             step="1"
             value="0"
-            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt_only"
           />
           <span
             class="text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6"
@@ -291,7 +337,7 @@
                 name="azimuth_left"
                 id="azimuth_left"
                 step="1"
-                class="w-20 border border-gray-200 rounded-l flex-1"
+                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
                 min="0"
                 max="4095"
                 value="0"
@@ -309,7 +355,7 @@
                 name="azimuth_right"
                 id="azimuth_right"
                 step="1"
-                class="w-20 border border-gray-200 rounded-l flex-1"
+                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
                 min="0"
                 max="4095"
                 value="0"
@@ -327,7 +373,7 @@
                 name="azimuth_timeout"
                 id="azimuth_timeout"
                 step="1"
-                class="w-20 border border-gray-200 rounded-l flex-1"
+                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
                 min="30"
                 max="120"
                 value="0"
@@ -366,7 +412,7 @@
         <div class="flex">
           <div class="flex-1">
             <button
-              class="rounded bg-slate-200 text-slate-500 p-2 px-4"
+              class="rounded bg-slate-200 text-slate-500 p-2 px-4 mt_only"
               onclick="set_steering_calibrating(true)"
             >
               Start calibration
@@ -383,7 +429,7 @@
                 name="steering_left"
                 id="steering_left"
                 step="1"
-                class="w-20 border border-gray-200 rounded-l flex-1"
+                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
                 min="0"
                 max="4095"
                 value="0"
@@ -402,7 +448,7 @@
                 name="steering_middle"
                 id="steering_middle"
                 step="1"
-                class="w-20 border border-gray-200 rounded-l flex-1"
+                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
                 min="0"
                 max="4095"
                 value="0"
@@ -421,7 +467,7 @@
                 name="steering_right"
                 id="steering_right"
                 step="1"
-                class="w-20 border border-gray-200 rounded-l flex-1"
+                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
                 min="0"
                 max="4095"
                 value="0"
