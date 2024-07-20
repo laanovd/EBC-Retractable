@@ -116,13 +116,10 @@ long mapl(long x, long in_min, long in_max, long out_min, long out_max) {
 static void AZIMUTH_set_right_output(int value) {
   static int memo = -1;
 
-  if (value != memo) {
-    memo = max(min(DAC_MAX, value), DAC_MIN);  // range from 0...4095
-    MCP4725_write(MCP4725_R_address, (int)memo);
-
-// #ifdef DEBUG_AZIMUTH
-//     Serial.printf("Azimuth set right analog out: %d\n", memo);
-// #endif
+  value = max(min(DAC_MAX, value), DAC_MIN);  // range from 0...4095
+  if (abs(value - memo) > 4) {
+    MCP4725_write(MCP4725_R_address, (int)value);
+    memo = value;
   }
 }
 
@@ -309,8 +306,21 @@ void STEERWHEEL_set_middle(int value) {
   }
 }
 
+#define MAX_AVERAGE 20
 int STEERWHEEL_get_actual(void) {
-  return analogRead(STEER_WHEEL_ANALOG_CHANNEL);
+  static int ndx = 0;
+  static int array[MAX_AVERAGE] = {0};
+  static long sum = 0;
+  int left = STEERWHEEL_get_left();
+  int right = STEERWHEEL_get_right();
+
+  sum -= array[ndx];
+  array[ndx] = analogRead(STEER_WHEEL_ANALOG_CHANNEL);
+  sum += array[ndx];
+  ndx = (ndx + 1) % MAX_AVERAGE;
+
+  int value = map((int) sum/MAX_AVERAGE, left, right, DAC_MIN, DAC_MAX);
+  return (int) max(min(value, ADC_MAX), ADC_MIN);
 }
 
 void AZIMUTH_set_manual(int value) {

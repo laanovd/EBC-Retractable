@@ -413,7 +413,7 @@ static void CONTROLLER_main_task(void *parameter) {
       CONTROLLER_update_steering();
     }
 
-    vTaskDelay(250 / portTICK_PERIOD_MS);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
   }
 }
 
