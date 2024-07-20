@@ -40,12 +40,10 @@ enum VEDOUTStateIds {
   CONTROLLER_init,
   CONTROLLER_retracted,
   CONTROLLER_retracting,
-  CONTROLLER_preretracting,
+  CONTROLLER_homing,
   CONTROLLER_extended,
   CONTROLLER_extending,
   CONTROLLER_no_position,
-  CONTROLLER_precalibrating,
-  CONTROLLER_calibrating,
   CONTROLLER_emergency_stop,
   CONTROLLER_maintenance
 };
@@ -54,10 +52,10 @@ enum VEDOUTStateIds {
  * Global variables
  *******************************************************************/
 static JsonDocument controller_data;
-static StateMachine stateMachine(11, 31);
+static StateMachine stateMachine(9, 26);
 
 /* timers */
-static unsigned long preretracting_timer = 0;
+static unsigned long Homing_timer = 0;
 static unsigned long retracting_timer = 0;
 static unsigned long extending_timer = 0;
 static unsigned long precalibrating_timer = 0;
@@ -100,33 +98,91 @@ static bool CONTROLLER_maintenance_requested(void) {
 }
 
 /*******************************************************************
- * Disable dmc and azimuth
- *******************************************************************/
-static void CONTROLLER_disable_propulsion(void) {
-  DMC_disable();
-  AZIMUTH_disable();
-  AZIMUTH_analog_disable();
-}
-
-static void CONTROLLER_disable_lift(void) {
-  LIFT_disable();
-  LIFT_UP_off();
-  LIFT_DOWN_off();
-}
-
-/*******************************************************************
  * Controller Initializiation State
  *******************************************************************/
 static void fnStateInit() {
 #ifdef DEBUG_CONTROLLER
   Serial.println("Enter state: INIT.");
 #endif
-  CONTROLLER_disable_propulsion();
-  CONTROLLER_disable_lift();
+  DMC_disable();
+  AZIMUTH_disable();
+  AZIMUTH_analog_disable();
+
+  LIFT_disable();
+  LIFT_UP_off();
+  LIFT_DOWN_off();
 }
 
-static bool fnInitToCalibrating() {
+static bool fnInitToNoPosition() {
   return true;
+}
+
+/*******************************************************************
+ * Controller Retracting Aligning State
+ *******************************************************************/
+static void fnStateHoming() {
+#ifdef DEBUG_CONTROLLER
+  Serial.println("Enter state: HOMING");
+#endif
+  DMC_disable();
+  AZIMUTH_disable();
+  AZIMUTH_analog_disable();
+  TIMER_start(Homing_timer, AZIMUTH_get_to_middle_timeout());
+}
+
+static bool fnHomingToNoPosition() {
+  if (TIMER_finished(Homing_timer)) {
+    return true;
+  }
+  return false;
+}
+
+static bool fnHomingToRetracting() {
+#ifdef DEBUG_CONTROLLER
+  Serial.printf("Azimuth at home position: %s.\n", AZIMUTH_home() ? "yes" : "no");
+#endif
+
+  if (AZIMUTH_home()) {
+    TIMER_stop(Homing_timer);
+    return true;
+  }
+  return false;
+}
+
+/*******************************************************************
+ * Azimuth homing
+ *******************************************************************/
+static void fnStateRetracting() {
+#ifdef DEBUG_CONTROLLER
+  Serial.println("Enter state: RETRACTING");
+#endif
+  DMC_disable();
+  AZIMUTH_disable();
+  AZIMUTH_analog_disable();
+
+  LIFT_enable();
+  LIFT_UP_on();
+  LIFT_DOWN_off();
+
+  TIMER_start(retracting_timer, LIFT_move_timeout());
+}
+
+static bool fnRetractingToNoPosition() {
+  /* LIFT not UP in time */
+  if (TIMER_finished(retracting_timer)) {
+    LIFT_UP_off();
+    return true;
+  }
+  return false;
+}
+
+static bool fnRetractingToRetracted() {
+  if (LIFT_UP_sensor()) {
+    LIFT_UP_off();
+    TIMER_stop(retracting_timer);
+    return true;
+  }
+  return false;
 }
 
 /*******************************************************************
@@ -136,12 +192,16 @@ static void fnStateRetracted() {
 #ifdef DEBUG_CONTROLLER
   Serial.println("Enter state: RETRACTED");
 #endif
-  CONTROLLER_disable_propulsion();
-  CONTROLLER_disable_lift();
+  DMC_disable();
+  LIFT_disable();
+  LIFT_UP_off();
+  LIFT_DOWN_off();
+
+  LIFT_retected_increment();
 }
 
 static bool fnRetractedToExtending() {
-  if (LIFT_UP_button()) {
+  if (LIFT_DOWN_button()) {
     return true;
   }
   return false;
@@ -155,69 +215,36 @@ static bool fnRetractedToNoPosition() {
 }
 
 /*******************************************************************
- * Controller Retracting Aligning State
+ * Controller Extending State
  *******************************************************************/
-static void fnStatePreretracting() {
+static void fnStateExtending() {
 #ifdef DEBUG_CONTROLLER
-  Serial.println("Enter state: PRERETRACTING");
+  Serial.println("Enter state: EXTENDING");
 #endif
-  CONTROLLER_disable_propulsion();
-  CONTROLLER_disable_lift();
-
-  TIMER_start(preretracting_timer, AZIMUTH_get_to_middle_timeout());
-}
-
-static bool fnPreretractingToNoPosition() {
-  if (LIFT_UP_button() || LIFT_DOWN_button())
-    return true;
-
-  if (TIMER_finished(preretracting_timer))
-    return true;
-
-  return false;
-}
-
-static bool fnPreretractingToRetracting() {
-  if (AZIMUTH_home()) {
-    TIMER_stop(preretracting_timer);
-    return true;
-  }
-  return false;
-}
-
-/*******************************************************************
- * Controller Retracting State
- *******************************************************************/
-static void fnStateRetracting() {
-#ifdef DEBUG_CONTROLLER
-  Serial.println("Enter state: RETRACTING");
-#endif
-  CONTROLLER_disable_propulsion();
+  DMC_disable();
+  AZIMUTH_disable();
+  AZIMUTH_analog_disable();
 
   LIFT_enable();
   LIFT_UP_off();
   LIFT_DOWN_on();
 
-  TIMER_start(retracting_timer, LIFT_move_timeout());
+  TIMER_start(extending_timer, LIFT_move_timeout());
 }
 
-static bool fnRetractingToNoPosition() {
-  if (LIFT_UP_button() || LIFT_DOWN_button()) {
-    TIMER_stop(retracting_timer);
-    return true;
-  }
-
-  /* LIFT not UP in time */
-  if (TIMER_finished(retracting_timer)) {
+static bool fnExtendingToNoPosition() {
+  /* LIFT not down in time */
+  if (TIMER_finished(extending_timer)) {
+    LIFT_DOWN_off();
     return true;
   }
   return false;
 }
 
-static bool fnRetractingToRetracted() {
-  if (LIFT_UP_sensor()) {
+static bool fnExtendingToExtended() {
+  if (LIFT_DOWN_sensor()) {
     LIFT_DOWN_off();
-    TIMER_stop(retracting_timer);
+    TIMER_stop(extending_timer);
     return true;
   }
   return false;
@@ -239,18 +266,11 @@ static void fnStateExtended() {
   vTaskDelay(500 / portTICK_PERIOD_MS);
   AZIMUTH_enable();
 
-  LIFT_retected_increment();
-}
-
-static bool fnExtendedToPrecalibrating() {
-  if (LIFT_UP_button() && LIFT_DOWN_button()) {
-    return true;
-  }
-  return false;
+  LIFT_extended_increment();
 }
 
 static bool fnExtendedToRetracting() {
-  if (LIFT_UP_button() && !LIFT_DOWN_button()) {
+  if (LIFT_UP_button()) {
     return true;
   }
   return false;
@@ -260,100 +280,6 @@ static bool fnExtendedToNoPosition() {
   if (!LIFT_DOWN_sensor()) {
     return true;
   }
-  return false;
-}
-
-/*******************************************************************
- * Controller Extending State
- *******************************************************************/
-static void fnStateExtending() {
-#ifdef DEBUG_CONTROLLER
-  Serial.println("Enter state: EXTENDING");
-#endif
-  CONTROLLER_disable_propulsion();
-
-  LIFT_enable();
-  LIFT_UP_on();
-  LIFT_DOWN_on();
-
-  TIMER_start(extending_timer, LIFT_move_timeout());
-}
-
-static bool fnExtendingToNoPosition() {
-  if (LIFT_UP_button() || LIFT_DOWN_button()) {
-    TIMER_stop(extending_timer);
-    return true;
-  }
-
-  /* LIFT not down in time */
-  if (TIMER_finished(extending_timer)) {
-    return true;
-  }
-  return false;
-}
-
-static bool fnExtendingToExtended() {
-  if (LIFT_DOWN_sensor()) {
-    TIMER_stop(extending_timer);
-    return true;
-  }
-  return false;
-}
-
-/*******************************************************************
- * Controller Pre-Calibration State
- *******************************************************************/
-static void fnStatePrecalibrating() {
-#ifdef DEBUG_CONTROLLER
-  Serial.println("Enter state: PRECALIBRATING");
-#endif
-  CONTROLLER_disable_propulsion();
-  CONTROLLER_disable_lift();
-
-  TIMER_start(precalibrating_timer, 5);
-}
-
-static bool fnPrecalibratingToExtended() {
-  if (!LIFT_UP_button() || !LIFT_DOWN_button()) {
-    TIMER_stop(precalibrating_timer);
-    return true;
-  }
-  return false;
-}
-
-static bool fnPrecalibratingToCalibrating() {
-  if (TIMER_finished(precalibrating_timer)) {
-    return true;
-  }
-  return false;
-}
-
-/*******************************************************************
- * Controller Calibration State
- *******************************************************************/
-static void fnStateCalibrating() {
-#ifdef DEBUG_CONTROLLER
-  Serial.println("Enter state: CALIBRATING");
-#endif
-  CONTROLLER_disable_propulsion();
-  CONTROLLER_disable_lift();
-
-  set_calibrating(true);
-  TIMER_start(calibrating_timer, 3);
-}
-
-static bool fnCalibratingToNoPosition() {
-  if (LIFT_UP_button() || LIFT_DOWN_button()) {
-    TIMER_stop(calibrating_timer);
-    set_calibrating(false);
-    return true;
-  }
-
-  if (TIMER_finished(calibrating_timer)) {
-    set_calibrating(false);
-    return true;
-  }
-
   return false;
 }
 
@@ -369,7 +295,9 @@ static void fnStateNoPosition() {
 
   /* If lift not down the block DMC and AZIMUTH */
   if (!LIFT_DOWN_sensor()) {
-    CONTROLLER_disable_propulsion();
+      DMC_disable();
+      AZIMUTH_disable();
+      AZIMUTH_analog_disable();
   }
 }
 
@@ -394,7 +322,7 @@ static bool fnNoPositionToRetracted() {
   return false;
 }
 
-static bool fnNoPositionToRetracting() {
+static bool fnNoPositionToHoming() {
   if (LIFT_UP_button())
     return true;
 
@@ -408,8 +336,13 @@ static void fnStateEmergencyStop() {
 #ifdef DEBUG_CONTROLLER
   Serial.println("Enter state: EMERGENCY-STOP");
 #endif
-  CONTROLLER_disable_propulsion();
-  CONTROLLER_disable_lift();
+  DMC_disable();
+  AZIMUTH_disable();
+  AZIMUTH_analog_disable();
+
+  LIFT_disable();
+  LIFT_UP_off();
+  LIFT_DOWN_off();
 
   // TODO: Set error emergency stop
 }
@@ -418,7 +351,7 @@ static bool fnAnyToEmergencyStop() {
   return EMERGENCY_STOP_active();
 }
 
-static bool fnEmergencyStopToCalibrating() {
+static bool fnEmergencyStopToNoPosition() {
   if (!EMERGENCY_STOP_active()) {
     // TODO: Clear error not calibrated
     return true;
@@ -433,8 +366,13 @@ static void fnStateMaintenace() {
 #ifdef DEBUG_CONTROLLER
   Serial.println("Enter state: MAINTENANCE-MODE");
 #endif
-  CONTROLLER_disable_propulsion();
-  CONTROLLER_disable_lift();
+  DMC_disable();
+  AZIMUTH_disable();
+  AZIMUTH_analog_disable();
+
+  LIFT_disable();
+  LIFT_UP_off();
+  LIFT_DOWN_off();
 
   MAINTENANCE_enable();  // Start maintenance mode
 }
@@ -454,9 +392,11 @@ static bool fnAnyToMantenance() {
  * Update steering
  *******************************************************************/
 static void CONTROLLER_update_steering() {
-  if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
-    int value = STEERWHEEL_get_actual();
-    AZIMUTH_set_steering(value);
+  if (LIFT_DOWN_sensor()) {
+    if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
+      int value = STEERWHEEL_get_actual();
+      AZIMUTH_set_steering(value);
+    }
   }
 }
 
@@ -466,14 +406,14 @@ static void CONTROLLER_update_steering() {
 static void CONTROLLER_main_task(void *parameter) {
   (void)parameter;
 
-  vTaskDelay(2000 / portTICK_PERIOD_MS); // Startup delay
-
   while (true) {
     stateMachine.Update();
 
-    CONTROLLER_update_steering();
+    if (!MAINTENANCE_enabled()) {
+      CONTROLLER_update_steering();
+    }
 
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    vTaskDelay(250 / portTICK_PERIOD_MS);
   }
 }
 
@@ -488,59 +428,67 @@ static void CONTROLLER_setup_tasks() {
  * Setup Controller State Machine
  *******************************************************************/
 static void CONTROLLER_setup_statemachine() {
-  stateMachine.AddTransition(CONTROLLER_init, CONTROLLER_calibrating, fnInitToCalibrating);
+  /* ---------------- */
+  /* STATE(s) initial */
+  /* ---------------- */
   stateMachine.SetOnEntering(CONTROLLER_init, fnStateInit);
+  stateMachine.AddTransition(CONTROLLER_init, CONTROLLER_no_position, fnInitToNoPosition);
 
+  /* -------------------- */
+  /* STATE(s) No position */
+  /* -------------------- */
+  stateMachine.SetOnEntering(CONTROLLER_no_position, fnStateNoPosition);
+  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extended, fnNoPositionToExtended);
+  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extending, fnNoPositionToExtending);
+  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_homing, fnNoPositionToHoming);
+  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_retracted, fnNoPositionToRetracted);
+  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
+  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_maintenance, fnAnyToMantenance);
+
+  /* ----------------------------------------- */
+  /* STATE(s) Homing, retracting and retracted */
+  /* ----------------------------------------- */
+  stateMachine.SetOnEntering(CONTROLLER_homing, fnStateHoming);
+  stateMachine.AddTransition(CONTROLLER_homing, CONTROLLER_retracting, fnHomingToRetracting);
+  stateMachine.AddTransition(CONTROLLER_homing, CONTROLLER_no_position, fnHomingToNoPosition);
+  stateMachine.AddTransition(CONTROLLER_homing, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
+
+  stateMachine.SetOnEntering(CONTROLLER_retracting, fnStateRetracting);
   stateMachine.AddTransition(CONTROLLER_retracting, CONTROLLER_retracted, fnRetractingToRetracted);
   stateMachine.AddTransition(CONTROLLER_retracting, CONTROLLER_no_position, fnRetractingToNoPosition);
   stateMachine.AddTransition(CONTROLLER_retracting, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
-  stateMachine.SetOnEntering(CONTROLLER_retracting, fnStateRetracting);
 
-  stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_retracting, fnPreretractingToRetracting);
-  stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_no_position, fnPreretractingToNoPosition);
-  stateMachine.AddTransition(CONTROLLER_preretracting, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
-  stateMachine.SetOnEntering(CONTROLLER_preretracting, fnStatePreretracting);
-
+  stateMachine.SetOnEntering(CONTROLLER_retracted, fnStateRetracted);
   stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_extending, fnRetractedToExtending);
   stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_no_position, fnRetractedToNoPosition);
   stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
   stateMachine.AddTransition(CONTROLLER_retracted, CONTROLLER_maintenance, fnAnyToMantenance);
-  stateMachine.SetOnEntering(CONTROLLER_retracted, fnStateRetracted);
 
+  /* ------------------------------- */
+  /* STATE(s) Extending and extended */
+  /* ------------------------------- */
+  stateMachine.SetOnEntering(CONTROLLER_extending, fnStateExtending);
   stateMachine.AddTransition(CONTROLLER_extending, CONTROLLER_extended, fnExtendingToExtended);
   stateMachine.AddTransition(CONTROLLER_extending, CONTROLLER_no_position, fnExtendingToNoPosition);
   stateMachine.AddTransition(CONTROLLER_extending, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
-  stateMachine.SetOnEntering(CONTROLLER_extending, fnStateExtending);
 
-  stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_preretracting, fnExtendedToRetracting);
-  stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_precalibrating, fnExtendedToPrecalibrating);
+  stateMachine.SetOnEntering(CONTROLLER_extended, fnStateExtended);
+  stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_homing, fnExtendedToRetracting);
   stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_no_position, fnExtendedToNoPosition);
   stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
   stateMachine.AddTransition(CONTROLLER_extended, CONTROLLER_maintenance, fnAnyToMantenance);
-  stateMachine.SetOnEntering(CONTROLLER_extended, fnStateExtended);
 
-  stateMachine.AddTransition(CONTROLLER_calibrating, CONTROLLER_no_position, fnCalibratingToNoPosition);
-  stateMachine.AddTransition(CONTROLLER_calibrating, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
-  stateMachine.SetOnEntering(CONTROLLER_calibrating, fnStateCalibrating);
-
-  stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_extended, fnPrecalibratingToExtended);
-  stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_calibrating, fnPrecalibratingToCalibrating);
-  stateMachine.AddTransition(CONTROLLER_precalibrating, CONTROLLER_maintenance, fnAnyToMantenance);
-  stateMachine.SetOnEntering(CONTROLLER_precalibrating, fnStatePrecalibrating);
-
-  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extended, fnNoPositionToExtended);
-  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_extending, fnNoPositionToExtending);
-  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_retracted, fnNoPositionToRetracted);
-  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_preretracting, fnNoPositionToRetracting);
-  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_emergency_stop, fnAnyToEmergencyStop);
-  stateMachine.AddTransition(CONTROLLER_no_position, CONTROLLER_maintenance, fnAnyToMantenance);
-  stateMachine.SetOnEntering(CONTROLLER_no_position, fnStateNoPosition);
-
-  stateMachine.AddTransition(CONTROLLER_emergency_stop, CONTROLLER_calibrating, fnEmergencyStopToCalibrating);
+  /* ----------------------- */
+  /* STATE(s) Emergency stop */
+  /* ----------------------- */
   stateMachine.SetOnEntering(CONTROLLER_emergency_stop, fnStateEmergencyStop);
+  stateMachine.AddTransition(CONTROLLER_emergency_stop, CONTROLLER_no_position, fnEmergencyStopToNoPosition);
 
-  stateMachine.AddTransition(CONTROLLER_maintenance, CONTROLLER_no_position, fnMaintenanceToNoPosition);
+  /* ------------------------- */
+  /* STATE(s) Maintenance mode */
+  /* ------------------------- */
   stateMachine.SetOnEntering(CONTROLLER_maintenance, fnStateMaintenace);
+  stateMachine.AddTransition(CONTROLLER_maintenance, CONTROLLER_no_position, fnMaintenanceToNoPosition);
 
   // Initial state
   stateMachine.SetState(CONTROLLER_init, false, true);

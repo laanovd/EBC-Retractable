@@ -28,12 +28,6 @@
 /*******************************************************************
  * Storage keys and defaults
  *******************************************************************/
-#define JSON_LIFT_MOVE_TIMEOUT "lift_move_timeout"
-#define DELFAULT_LIFT_MOVE_TIMEOUT 30
-
-#define JSON_RETRACTED_COUNT "retracted"
-#define JSON_EXTENDED_COUNT "extended"
-
 #define DOUBLE_PRESS_HOLD_TIME 5000
 
 /*******************************************************************
@@ -397,8 +391,8 @@ static void clicb_handler(cmd *c) {
   int val = cmd.getArg(1).getValue().toInt();
 
   if (strArg.equalsIgnoreCase("timeout")) {
-    if ((val < 0) || (val > 120)) {
-      CLI_println("Illegal value, range: 0 ... 120s.");
+    if ((val < 3) || (val > 120)) {
+      CLI_println("Illegal value, range: 3 ... 120s.");
       return;
     }
     STORAGE_set_int(JSON_LIFT_MOVE_TIMEOUT, val);
@@ -456,7 +450,7 @@ static void LIFT_setup_variables(void) {
 
   /* Initialize if not exist */
   if (STORAGE_get_int(JSON_RETRACTED_COUNT, value)) {
-    STORAGE_set_int(JSON_LIFT_MOVE_TIMEOUT, 0);
+    STORAGE_set_int(JSON_RETRACTED_COUNT, 0);
   }
 
   if (STORAGE_get_int(JSON_EXTENDED_COUNT, value)) {

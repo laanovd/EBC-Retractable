@@ -34,7 +34,7 @@ function addSingleMessageHandler(fn) {
 
 function login() {
   const elm = document.querySelector("#password");
-  if(elm.value == "ebce6671") {
+  if(elm.value == "ebc6671") {
     document.querySelector("#login_overlay").classList.add("hidden")
   } else {
     elm.classList.add("border","border-rose-500")

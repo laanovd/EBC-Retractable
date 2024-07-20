@@ -49,7 +49,7 @@ static JsonDocument AZIMUTH_json(void) {
 
   AZIMUTH_data[JSON_AZIMUTH_LEFT] = AZIMUTH_get_left();
   AZIMUTH_data[JSON_AZIMUTH_RIGHT] = AZIMUTH_get_right();
-  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
+  // AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
 
   AZIMUTH_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = AZIMUTH_get_to_middle_timeout();
 
@@ -120,9 +120,9 @@ static void AZIMUTH_set_right_output(int value) {
     memo = max(min(DAC_MAX, value), DAC_MIN);  // range from 0...4095
     MCP4725_write(MCP4725_R_address, (int)memo);
 
-#ifdef DEBUG_AZIMUTH
-    Serial.printf("Azimuth set right analog out: %d\n", memo);
-#endif
+// #ifdef DEBUG_AZIMUTH
+//     Serial.printf("Azimuth set right analog out: %d\n", memo);
+// #endif
   }
 }
 
@@ -173,11 +173,11 @@ void AZIMUTH_disable(void) {
 }
 
 bool AZIMUTH_enabled() {
-  return PCF8574_read(PCF8574_address, AZIMUTH_ENABLE_PIN) == IO_ON;
+  return PCF8574_read(PCF8574_address, AZIMUTH_ENABLE_PIN);
 }
 
 bool AZIMUTH_home() {
-  return PCF8574_read(PCF8574_address, AZIMUTH_HOME_PIN) == IO_ON;
+  return digitalRead(AZIMUTH_HOME_PIN) == HIGH;
 }
 
 void AZIMUTH_start_homing() {
@@ -191,13 +191,11 @@ bool AZIMUTH_analog_enabled() {
 }
 
 void AZIMUTH_analog_enable() {
-  if (AZIMUTH_enabled()) {
-    digitalWrite(AZIMUTH_ANALOG_ENABLE_PIN, IO_ON);
+  digitalWrite(AZIMUTH_ANALOG_ENABLE_PIN, IO_ON);
 
 #ifdef DEBUG_AZIMUTH
-    Serial.println("Azimuth analog output enable");
+  Serial.println("Azimuth analog output enable");
 #endif
-  }
 }
 
 void AZIMUTH_analog_disable() {
@@ -238,7 +236,8 @@ void AZIMUTH_set_right(int value) {
 }
 
 int AZIMUTH_get_actual(void) {
-  return AZIMUTH_get_right_output();
+  // return AZIMUTH_get_right_output();
+  return AZIMUTH_data[JSON_AZIMUTH_ACTUAL].as<int>();
 }
 
 void AZIMUTH_set_steering(int value) {
@@ -248,9 +247,27 @@ void AZIMUTH_set_steering(int value) {
   int output = mapl(value, DAC_MIN, DAC_MAX, left, right);  // map to DAC_MIN...DAC_MAX
   AZIMUTH_set_right_output(output);
 
+  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = output;
+
 #ifdef ENABLE_LEFT_OUTPUT
   AZIMUTH_set_left_output(output);
 #endif
+}
+
+int AZIMUTH_get_manual(void) {
+  return AZIMUTH_data[JSON_AZIMUTH_MANUAL].as<int>();
+}
+
+int AZIMUTH_get_to_middle_timeout(void) {
+  int value;
+  STORAGE_get_int(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, value);
+  return value;
+}
+
+void AZIMUTH_set_to_middle_timeout(int value) {
+  if ((value >= 0) && (value <= 120)) {
+    STORAGE_set_int(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, value);
+  }
 }
 
 /*******************************************************************
@@ -303,21 +320,6 @@ void AZIMUTH_set_manual(int value) {
   }
 }
 
-int AZIMUTH_get_manual(void) {
-  return AZIMUTH_data[JSON_AZIMUTH_MANUAL].as<int>();
-}
-
-int AZIMUTH_get_to_middle_timeout(void) {
-  int value;
-  STORAGE_get_int(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, value);
-  return value;
-}
-
-void AZIMUTH_set_to_middle_timeout(int value) {
-  if ((value >= 0) && (value <= 120)) {
-    STORAGE_set_int(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, value);
-  }
-}
 
 /********************************************************************
  * CLI handler
@@ -361,10 +363,12 @@ static void clicb_handler(cmd *c) {
     }
     AZIMUTH_set_to_middle_timeout(val);
     CLI_println("Azimuth delay-to-middle has been set to " + String(val) + " seconds");
+    return;
   }
 
   if (strArg.equalsIgnoreCase("move") && is_calibrating()) {
     // AZIMUTH_set_position(val);
+    return;
   }
 
   CLI_println("Invalid command: AZIMUTH (left <n>, right <n>, delay <n>, move).");

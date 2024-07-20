@@ -124,7 +124,7 @@ document.addEventListener(
     INIT_number_input("azimuth_right", "azimuth_right_counts");
     INIT_number_input("azimuth_actual", "azimuth_actual_counts");
     INIT_number_input("azimuth_timeout", "azimuth_timeout_to_the_middle");
-    INIT_toggle("azimuth_homing", "asimuth_homing");
+    INIT_toggle("azimuth_homing", "azimuth_homing");
     INIT_toggle("azimuth_enabled", "azimuth_enabled");
     INIT_toggle("output_enabled", "azimuth_analog_out_enabled");
 

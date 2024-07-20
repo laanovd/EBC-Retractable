@@ -141,7 +141,7 @@ void setup_uri(rest_api_t *uri_hdl) {
  * ElegantOTA Profesional Routines
  *********************************************************************/
 static void onOTAStart() {
-  DEBUG_info("\nOTA update started...\n");
+  Serial.print("\nOTA update started...\n");
 }
 
 static void onOTAProgress(size_t current, size_t final) {
@@ -154,9 +154,9 @@ static void onOTAProgress(size_t current, size_t final) {
 
 static void onOTAEnd(bool success) {
   if (success) {
-    Serial.println("\nOTA update finished...\n");
+    Serial.println("\nOTA update finished...");
   } else {
-    Serial.println("\nOTA update failed...\n");
+    Serial.println("\nOTA update failed...");
   }
   ota_restart_countdown = 12;  // Short delay, in main-task-cycles
 }
@@ -173,7 +173,7 @@ static void WEBSERVER_task(void *parameter) {
     if (ota_restart_countdown > 0) {
       ota_restart_countdown--;
       if (ota_restart_countdown == 0) {
-        Serial.println("Restarting system after OTA update...");
+        Serial.println("\nRestarting system after OTA update...\n");
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         ESP.restart();
       }

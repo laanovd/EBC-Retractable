@@ -12,6 +12,8 @@
 #define MCP4725_CMD_WRITEDAC 0x40      // Commando write to analog output
 #define MCP4725_CMD_WRITE_EEprom 0x60  // Commando write to analog output and Eeprom
 
+#define MCP4725_MSG_LEN 6  // I2C message length
+
 /*******************************************************************
  * Variables
  *******************************************************************/
@@ -34,8 +36,9 @@ static int MCP4725_read(uint8_t address, uint8_t *data, int len) {
 
   if (address != 0) {
     I2C_1.requestFrom((int)address, len);
+    vTaskDelay(5 / portTICK_PERIOD_MS);  // Wait for the data to be available
     if (!I2C_1.endTransmission()) {
-      while (I2C_1.available() && (ndx < len)) {
+      while (I2C_1.available() && (ndx++ < len)) {
         *data++ = I2C_1.read();
       }
       return 0;  // Ok
@@ -56,7 +59,7 @@ static int MCP4725_read(uint8_t address, uint8_t *data, int len) {
  *         If an error occurs during the reading process, it returns DAC_READ_ERROR.
  *******************************************************************/
 int MCP4725_read_eeprom(uint8_t address) {
-  uint8_t data[6] = {0, 0, 0, 0, 0, 0};
+  uint8_t data[MCP4725_MSG_LEN] = {0, 0, 0, 0, 0, 0};
 
   if (address && !MCP4725_read(address, data, sizeof(data))) {
     return (int(data[3]) << 8) + int(data[4]);  // big-endian
@@ -77,7 +80,7 @@ int MCP4725_read_eeprom(uint8_t address) {
  *         If an error occurs during the reading process, it returns DAC_READ_ERROR.
  *******************************************************************/
 int MCP4725_read_status(uint8_t address) {
-  uint8_t data[6] = {0, 0, 0, 0, 0, 0};
+  uint8_t data[MCP4725_MSG_LEN] = {0, 0, 0, 0, 0, 0};
 
   if (address && !MCP4725_read(address, data, sizeof(data))) {
     return (int(data[1]) << 4) + ((int(data[2]) >> 4) & 0x000F);  // big-endian

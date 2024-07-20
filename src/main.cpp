@@ -100,7 +100,7 @@ static void MAIN_setup(void) {
   AZIMUTH_setup();
   LIFT_setup();
   DMC_setup();
-  // CONTROLLER_setup();
+  CONTROLLER_setup();
   MAINTENANCE_setup();
 
   Serial.println(F("Main setup completed."));
@@ -114,7 +114,7 @@ static void MAIN_start(void) {
   AZIMUTH_start();
   LIFT_start();
   DMC_start();
-  // CONTROLLER_start();
+  CONTROLLER_start();
   MAINTENANCE_start();
 
   MAIN_CLI_handlers();
