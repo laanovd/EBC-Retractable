@@ -32,11 +32,18 @@ function addSingleMessageHandler(fn) {
   on_next_data.push(fn);
 }
 
-function login() {
+function showMaintenanceEnable(value = true) {
+  const elm = document.querySelector("#login_overlay");
+  if (value) elm.classList.remove("hidden");
+  else elm.classList.add("hidden");
+}
+
+function enableMaintenance() {
   const elm = document.querySelector("#password");
-  if(elm.value == "ebc6671") {
-    document.querySelector("#login_overlay").classList.add("hidden")
+  if (elm.value == "ebce6671") {
+    showMaintenanceEnable(false);
+    sendCommand(JSON.stringify({ maintenance_enabled: true }));
   } else {
-    elm.classList.add("border","border-rose-500")
+    elm.classList.add("border", "border-rose-500");
   }
 }

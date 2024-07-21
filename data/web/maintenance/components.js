@@ -45,7 +45,8 @@ function INIT_toggle(elm_id, json_key) {
     if (data.hasOwnProperty(json_key)) {
       console.log(`${json_key}: ${data[json_key]}`);
       elm.checked = JSON.parse(data[json_key]);
-      if (maintenance_enabled || elm.id == json_key_maintenance) elm.disabled = false;
+      if (maintenance_enabled || elm.id == json_key_maintenance)
+        elm.disabled = false;
     }
   });
 }
@@ -107,13 +108,31 @@ function set_steering_calibrating(set_calibrating) {
   }
 }
 
+// Maintenance button
+function INIT_maintenance_button() {
+  const elm = document.querySelector(`#maintenance_enabled`);
+  elm.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    elm.disabled = true;
+    if (e.target.checked) showMaintenanceEnable(true);
+    else sendCommand(JSON.stringify({ maintenance_enabled: false }));
+  });
+  addMessageHandler((data) => {
+    if (data.hasOwnProperty(maintenance_enabled)) {
+      elm.checked = JSON.parse(data[maintenance_enabled]);
+      elm.disabled = false;
+    }
+  });
+}
+
 // Init
 document.addEventListener(
   "DOMContentLoaded",
   function () {
     INIT_maintenance();
 
-    INIT_toggle("maintenance_enabled", "maintenance_enabled");
+    INIT_maintenance_button();
     INIT_toggle("lift_homing", "lift_homing");
     INIT_toggle("lift_enabled", "lift_enabled");
     INIT_toggle("retract_enabled", "lift_motor_up");
@@ -136,6 +155,7 @@ document.addEventListener(
     );
     INIT_indicator("retracted_indicator", "lift_sensor_up");
     INIT_indicator("extended_indicator", "lift_sensor_down");
+    INIT_indicator("azimuth_home", "azimuth_home");
 
     INIT_number_input("steering_left", "steering_left_counts");
     INIT_number_input("steering_right", "steering_right_counts");
