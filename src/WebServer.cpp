@@ -41,8 +41,6 @@
 AsyncWebServer web_server(WEBSERVER_PORT);
 WebSocketsServer web_socket_server = WebSocketsServer(WEBSOCKET_PORT);
 
-static String htmlString;
-
 static JsonDocument WebSocket_JSON_data;
 
 static int ota_restart_countdown = 0;
@@ -206,7 +204,7 @@ static void WEBSOCKET_send_pair(JsonPair kv) {
 }
 
 /********************************************************************
- * Stores a key-value pair in the WebSocket JSON data if 
+ * Stores a key-value pair in the WebSocket JSON data if
  * the value has changed.
  *********************************************************************/
 static bool WEBSOCKET_store_pair(JsonPair kv) {
@@ -223,8 +221,8 @@ static bool WEBSOCKET_store_pair(JsonPair kv) {
 
 /********************************************************************
  * Updates the WebSocket JSON data with the given key-value pair.
- * If the key does not exist in the WebSocket JSON data, it is 
- * added with a null value. * Then, the key-value pair is stored 
+ * If the key does not exist in the WebSocket JSON data, it is
+ * added with a null value. * Then, the key-value pair is stored
  * and sent via WebSocket.
  *
  * @param kv The key-value pair to update.
@@ -357,7 +355,7 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
       Serial.print("Cmd handler: ");
 #ifdef DEBUG_WEBSOCKET
       for (int i = 0; i < length; i++) {
-          Serial.print((char)payload[i]);
+        Serial.print((char)payload[i]);
       }
       Serial.println("");
 #endif
@@ -373,31 +371,72 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
 /********************************************************************
  * Read HTML from file
  *********************************************************************/
-static void Load_HTML_Page(fs::FS &fs, const char *path) {
+static String load_file(fs::FS &fs, const char *path) {
   File file = fs.open(path);
+  String content = "";
+
   if (!file || file.isDirectory()) {
     Serial.println("- failed to read HTML page from file.");
-    return;
+    return "";
   }
 
-  htmlString = "";
-  while (file.available()) {
-    htmlString += file.readStringUntil(EOF);
-  }
+  content = file.readStringUntil(EOF);
   file.close();
+
+  return content;
 }
 
-/*******************************************************************
- *  Initialize the debug webserver
- *******************************************************************/
-static void Setup_HTML_Page_Title(void) {
+/*********************************************************************
+ * @brief Initializes the index.html file for the web server.
+ *
+ * This function reads the contents of the specified file path and modifies it
+ * by replacing certain placeholders with actual values. The modified content
+ * is then saved to the default HTML page file.
+ *
+ * @param fs The file system object to access the file.
+ * @param path The path of the HTML file to read.
+ *********************************************************************/
+static String WEBSERVER_load_html(fs::FS &fs, const char *path) {
   int start, end;
-  String title = HTML_title();
 
-  // Wijzig de titel van de pagina
-  start = htmlString.indexOf("<title>") + sizeof("<title>") - 1;
-  end = htmlString.indexOf("</title>");
-  htmlString = htmlString.substring(0, start) + title + htmlString.substring(end);
+  String content = load_file(fs, path);
+  if (content == "") {
+    Serial.println("- failed to read HTML page from file.");
+    return "";
+  }
+
+  // Program name
+  #define PROGRAM_NAME_PLACEHOLDER "<span id=\"program_name\">-</span>"
+  start = content.indexOf(PROGRAM_NAME_PLACEHOLDER);
+  if (start < 0)
+    return content;
+  end = start + sizeof(PROGRAM_NAME_PLACEHOLDER) - 1;
+  content = content.substring(0, start) + String(ProgramName) + content.substring(end);
+
+  // Chip id
+  #define CHIP_ID_PLACEHOLDER "<span id=\"chip_id\">-</span>"
+  start = content.indexOf(CHIP_ID_PLACEHOLDER);
+  if (start < 0)
+    return content;
+  end = start + sizeof(CHIP_ID_PLACEHOLDER) - 1;
+  content = content.substring(0, start) +  ChipIds() + content.substring(end);
+
+  // WiFi id
+  #define WIFI_SSID_PLACEHOLDER "<span id=\"wifi_ssid\">-</span>"
+  start = content.indexOf(WIFI_SSID_PLACEHOLDER);
+  if (start < 0)
+    return content;
+  end = start + sizeof(WIFI_SSID_PLACEHOLDER) - 1;
+  content = content.substring(0, start) + WiFi_ssid() + content.substring(end);
+
+  // Title
+  start = content.indexOf("<title>") + sizeof("<title>") - 1;
+  if (start < 0)
+    return content;
+  end = content.indexOf("</title>");
+  content = content.substring(0, start) + String(ProgramTitle) + content.substring(end);
+
+  return content;
 }
 
 /********************************************************************
@@ -405,9 +444,6 @@ static void Setup_HTML_Page_Title(void) {
  *********************************************************************/
 static void WEBSERVER_init(void) {
   String title = HTML_title();
-
-  Load_HTML_Page(LittleFS, DEFAULT_HTML_PAGE);
-  Setup_HTML_Page_Title();
 
   ElegantOTA.setID(ProgramName);            // Set Hardware ID
   ElegantOTA.setFWVersion(ProgramVersion);  // Set Firmware Version
@@ -424,12 +460,16 @@ static void WEBSERVER_init(void) {
   WebSerial.begin(&web_server);
   WebSerial.msgCallback(CLI_webserial_task);
 
-  web_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) { request->send(200, "text/html", htmlString); });
+  web_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String html = WEBSERVER_load_html(LittleFS, DEFAULT_HTML_PAGE);
+    request->send(200, "text/html", html);
+  });
 
-  web_server.on("/maintenance", HTTP_GET, [](AsyncWebServerRequest *request) { 
+  web_server.on("/maintenance", HTTP_GET, [](AsyncWebServerRequest *request) {
     String html = "/web" + request->url();
     File file = LittleFS.open(html);
-    request->send(200, "text/html", file.readStringUntil(EOF)); });
+    request->send(200, "text/html", file.readStringUntil(EOF));
+  });
 
   web_server.begin();  // Start WebServer
 
@@ -471,7 +511,7 @@ void WEBSERVER_cli_handlers(void) {
  *  Initialize tasks
  *********************************************************************/
 static void WEBSERVER_setup_tasks(void) {
-  xTaskCreate(WEBSERVER_task, "WebServer task", 8192, NULL, 10, NULL); // 8Kb stack
+  xTaskCreate(WEBSERVER_task, "WebServer task", 8192, NULL, 10, NULL);  // 8Kb stack
 }
 
 /********************************************************************

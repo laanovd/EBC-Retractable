@@ -615,12 +615,15 @@ void STEERWHEEL_calibrate(void *parameter) {
     int value = STEERWHEEL_get_actual();
 
     low = max(min(low, value), ADC_MIN);
+    maintenance_data[JSON_STEERWHEEL_LEFT] = low;
 
     high = min(max(high, value), ADC_MAX);
+    maintenance_data[JSON_STEERWHEEL_RIGHT] = high;
     
     middle = value;
+    maintenance_data[JSON_STEERWHEEL_MIDDLE] = middle;
 
-    vTaskDelay(250 / portTICK_PERIOD_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
   }
   
   /* Store values */

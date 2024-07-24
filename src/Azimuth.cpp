@@ -306,13 +306,17 @@ void STEERWHEEL_set_middle(int value) {
   }
 }
 
-#define MAX_AVERAGE 20
+#define MAX_AVERAGE 10
 int STEERWHEEL_get_actual(void) {
   static int ndx = 0;
   static int array[MAX_AVERAGE] = {0};
   static long sum = 0;
   int left = STEERWHEEL_get_left();
   int right = STEERWHEEL_get_right();
+
+  // Dummy read for MUX.
+  analogRead(STEER_WHEEL_ANALOG_CHANNEL);
+  vTaskDelay(2 / portTICK_PERIOD_MS);  
 
   sum -= array[ndx];
   array[ndx] = analogRead(STEER_WHEEL_ANALOG_CHANNEL);
