@@ -22,6 +22,8 @@
  *******************************************************************/
 #define DEBUG_AZIMUTH
 
+#undef STEERWHEEL_CALIBRATION_SIMULATE
+
 #undef ENABLE_LEFT_OUTPUT  // No left output use yet
 
 /*******************************************************************
@@ -173,7 +175,11 @@ void STEERWHEEL_calibrate(void *parameter) {
   int low = ADC_MAX, high = ADC_MIN, middle = 0;
   
   while (steerwheel_calibrate_task) {
+#ifdef STEERWHEEL_CALIBRATION_SIMULATE
+    int value = rand() % (4095 + 1 - 400) + 400;
+#else
     int value = STEERWHEEL_read();
+#endif
 
     STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL] = value;
 
@@ -212,7 +218,7 @@ void STEERWHEEL_calibration_start(void) {
   if (!steerwheel_calibrate_task) {
     calibration_abort = false;
     xTaskCreate(STEERWHEEL_calibrate, "Steerwheel calibration", 4096, NULL, 5, &steerwheel_calibrate_task);
-    Serial.printf("\r\nSteering wheel calibration started...");
+    Serial.println(F("Steering wheel calibration started..."));
   }
 }
 
@@ -226,7 +232,7 @@ void STEERWHEEL_calibration_start(void) {
 void STEERWHEEL_calibration_end(void) {
   calibration_abort = false;
   steerwheel_calibrate_task = NULL;
-  Serial.printf("\r\nSteering wheel calibration stoped...");
+  Serial.println(F("Steering wheel calibration stoped..."));
 }
 
 /********************************************************************
