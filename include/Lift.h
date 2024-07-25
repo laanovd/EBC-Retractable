@@ -71,9 +71,29 @@ extern bool LIFT_DOWN_button(void);
 extern bool LIFT_BOTH_button(void);
 
 /*******************************************************************
- * Lift general
+ * Stops the lift by disabling the lift motor and turning off the 
+ * lift up and lift down signals.
+ * 
+ * Prints a message to the serial monitor indicating that the lift has stopped.
+ *******************************************************************/
+extern void LIFT_stop(void);
+
+/*******************************************************************
+ * @brief Initializes the lift setup by setting up variables and GPIO pins.
+ * 
+ * It also disables the lift and turns off the lift up and lift down signals.
  *******************************************************************/
 extern void LIFT_setup(void);
+
+/*******************************************************************
+ * Starts the lift functionality.
+ * 
+ * This function sets up tasks, command-line interface (CLI), and 
+ * API handlers for the lift. It also initializes the error mask and 
+ * prints a message indicating that the lift has started.
+ * 
+ * @note This function should be called to start the lift.
+ *******************************************************************/
 extern void LIFT_start(void);
 
 #endif // EBC_LIFT_HEADER

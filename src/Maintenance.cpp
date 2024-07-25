@@ -19,10 +19,11 @@
 #include "Controller.h"
 #include "DMC.h"
 #include "Debug.h"
-#include "GPIO.h"
 #include "EBC_IOLib.h"
+#include "GPIO.h"
 #include "Lift.h"
 #include "StateMachineLib.h"
+#include "SteeringWheel.h"
 #include "Storage.h"
 #include "WebServer.h"
 
@@ -36,6 +37,8 @@
  *******************************************************************/
 #define JSON_MAINTENANCE_ENABLED "maintenance_enabled"
 
+#define JSON_STEERWHEEL_CALIBRATION_START "steering_start_calibration"
+
 /*******************************************************************
  * Local variables
  *******************************************************************/
@@ -47,8 +50,6 @@ static int lift_homing_timer = 0;
 /*******************************************************************
  * Forwards
  *******************************************************************/
-static void STEERWHEEL_calibration_start(void);
-static void STEERWHEEL_calibration_stop(void);
 
 /********************************************************************
  * Internal JSON data
@@ -70,8 +71,8 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_ENABLED] = false;
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = false;
 
-  maintenance_data[JSON_AZIMUTH_LEFT] = 0;
-  maintenance_data[JSON_AZIMUTH_RIGHT] = 0;
+  maintenance_data[JSON_AZIMUTH_LOW] = 0;
+  maintenance_data[JSON_AZIMUTH_HIGH] = 0;
   maintenance_data[JSON_AZIMUTH_MANUAL] = 0;
 
   maintenance_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = 0;
@@ -79,7 +80,7 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_HOME] = false;
   maintenance_data[JSON_AZIMUTH_HOMING] = false;
 
-  maintenance_data[JSON_STEERWHEEL_START_CALIBRATION] = false;
+  maintenance_data[JSON_STEERWHEEL_CALIBRATION_START] = false;
   maintenance_data[JSON_STEERWHEEL_LEFT] = 0;
   maintenance_data[JSON_STEERWHEEL_RIGHT] = 0;
   maintenance_data[JSON_STEERWHEEL_MIDDLE] = 0;
@@ -104,13 +105,13 @@ static JsonDocument MAINTENANCE_json(void) {
   maintenance_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
 
-  maintenance_data[JSON_AZIMUTH_LEFT] = AZIMUTH_get_left();
-  maintenance_data[JSON_AZIMUTH_RIGHT] = AZIMUTH_get_right();
+  maintenance_data[JSON_AZIMUTH_LOW] = AZIMUTH_get_low();
+  maintenance_data[JSON_AZIMUTH_HIGH] = AZIMUTH_get_high();
   maintenance_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
 
   maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
 
-  maintenance_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = AZIMUTH_get_to_middle_timeout();
+  maintenance_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = AZIMUTH_get_timeout();
   maintenance_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
   // Steering
@@ -160,11 +161,11 @@ String MAINTENANCE_string(void) {
   text.concat(doc[JSON_AZIMUTH_HOME].as<bool>() ? "YES" : "NO");
 
   text.concat("\r\nAZIMUTH voltages: left: ");
-  text.concat(doc[JSON_STEERWHEEL_LEFT].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_LEFT].as<int>());
   text.concat(", right: ");
-  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<int>());
   text.concat(", actual: ");
-  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<float>());
+  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<int>());
 
   text.concat("\r\nAZIMUTH steering: maunal: ");
   text.concat(doc[JSON_AZIMUTH_MANUAL].as<int>());
@@ -174,7 +175,7 @@ String MAINTENANCE_string(void) {
   text.concat("\r\nAZIMUTH output enabled:  ");
   text.concat(doc[JSON_AZIMUTH_OUTPUT_ENABLED].as<bool>() ? "YES" : "NO");
 
-  text.concat("\r\nAZIMUTH delay-to-the-middle:  ");
+  text.concat("\r\nAZIMUTH timeout-to-the-middle:  ");
   text.concat(doc[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE].as<int>());
 
   text.concat("\r\n");
@@ -358,18 +359,16 @@ static void MAINTENANCE_buttons(void) {
     if (LIFT_UP_button()) {
       if (LIFT_UP_moving() || LIFT_DOWN_moving()) {
         MAINTENANCE_lift_motor_off();
-      }
-      else {
+      } else {
         MAINTENANCE_lift_motor_up();
       }
       return;
-    } 
-    
+    }
+
     if (LIFT_DOWN_button()) {
       if (LIFT_UP_moving() || LIFT_DOWN_moving()) {
         MAINTENANCE_lift_motor_off();
-      }
-      else {
+      } else {
         MAINTENANCE_lift_motor_down();
       }
       return;
@@ -467,14 +466,18 @@ int MAINTENANCE_command_handler(const char *data) {
   }
 
   /* Azimuth set LEFT counts */
-  if (doc.containsKey(JSON_AZIMUTH_LEFT)) {
-    AZIMUTH_set_left(doc[JSON_AZIMUTH_LEFT].as<int>());
+  if (doc.containsKey(JSON_AZIMUTH_LOW)) {
+    AZIMUTH_set_low(doc[JSON_AZIMUTH_LOW].as<int>());
+    maintenance_data[JSON_AZIMUTH_LOW] = AZIMUTH_get_low();
+    WEBSOCKET_send(JSON_AZIMUTH_LOW, maintenance_data);
     handeled++;
   }
 
   /* Azimuth set RIGHT counts */
-  if (doc.containsKey(JSON_AZIMUTH_RIGHT)) {
-    AZIMUTH_set_right(doc[JSON_AZIMUTH_RIGHT].as<int>());
+  if (doc.containsKey(JSON_AZIMUTH_HIGH)) {
+    AZIMUTH_set_high(doc[JSON_AZIMUTH_HIGH].as<int>());
+    maintenance_data[JSON_AZIMUTH_HIGH] = AZIMUTH_get_high();
+    WEBSOCKET_send(JSON_AZIMUTH_HIGH, maintenance_data);
     handeled++;
   }
 
@@ -488,12 +491,16 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Azimuth manual control (%) */
   if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
     AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
+    maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
+    WEBSOCKET_send(JSON_AZIMUTH_MANUAL, maintenance_data);
     handeled++;
   }
 
   /* Set azimuth to the middle timout */
   if (doc.containsKey(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE)) {
-    AZIMUTH_set_to_middle_timeout(doc[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE].as<int>());
+    AZIMUTH_set_timeout(doc[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE].as<int>());
+    maintenance_data[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE] = AZIMUTH_get_middle();
+    WEBSOCKET_send(JSON_AZIMUTH_TIMEOUT_TO_MIDDLE, maintenance_data);
     handeled++;
   }
 
@@ -501,27 +508,33 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Steering wheel set LEFT counts */
   if (doc.containsKey(JSON_STEERWHEEL_LEFT)) {
     STEERWHEEL_set_left(doc[JSON_STEERWHEEL_LEFT].as<int>());
+    maintenance_data[JSON_STEERWHEEL_LEFT] = STEERWHEEL_get_left();
+    WEBSOCKET_send(JSON_STEERWHEEL_LEFT, maintenance_data);
     handeled++;
   }
 
   /* Steering wheel set RIGHT counts */
   if (doc.containsKey(JSON_STEERWHEEL_RIGHT)) {
     STEERWHEEL_set_right(doc[JSON_STEERWHEEL_RIGHT].as<int>());
+    maintenance_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();
+    WEBSOCKET_send(JSON_STEERWHEEL_RIGHT, maintenance_data);
     handeled++;
   }
 
   /* Steering wheel set RIGHT counts */
   if (doc.containsKey(JSON_STEERWHEEL_MIDDLE)) {
     STEERWHEEL_set_middle(doc[JSON_STEERWHEEL_MIDDLE].as<int>());
+    maintenance_data[JSON_STEERWHEEL_MIDDLE] = STEERWHEEL_get_middle();
+    WEBSOCKET_send(JSON_STEERWHEEL_MIDDLE, maintenance_data);
     handeled++;
   }
 
   /* Steering wheel start calibration */
-  if (doc.containsKey(JSON_STEERWHEEL_START_CALIBRATION)) {
-    if (doc[JSON_STEERWHEEL_START_CALIBRATION].as<bool>() == true)
+  if (doc.containsKey(JSON_STEERWHEEL_CALIBRATION_START)) {
+    if (doc[JSON_STEERWHEEL_CALIBRATION_START].as<bool>() == true)
       STEERWHEEL_calibration_start();
     else
-      STEERWHEEL_calibration_stop();
+      STEERWHEEL_calibration_end();
     handeled++;
   }
 
@@ -576,11 +589,10 @@ static rest_api_t MAINTENANCE_api_handlers = {
 static void MAINTENACE_websocket_task(void *parameter) {
   (void)parameter;
 
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
+  // One time push of all maintenance data
+  WEBSOCKET_send_doc(MAINTENANCE_json());
 
   while (true) {
-    WEBSOCKET_update_doc(MAINTENANCE_json());
-
     /* After countdown lift disable status homing */
     if (lift_homing_timer >= 0) {
       lift_homing_timer--;
@@ -597,54 +609,9 @@ static void MAINTENACE_websocket_task(void *parameter) {
       }
     }
 
+    WEBSOCKET_update_doc(MAINTENANCE_json());
     vTaskDelay(500 / portTICK_PERIOD_MS);
   }
-}
-
-/********************************************************************
- * Steerwheel calibration
- *******************************************************************/
-static bool steerwheel_calibrate_stop;
-static TaskHandle_t steerwheel_calibrate_task = NULL;
-
-void STEERWHEEL_calibrate(void *parameter) {
-  (void)parameter;
-  int low = ADC_MAX, high = ADC_MIN, middle = 0;
-  
-  while (steerwheel_calibrate_task) {
-    int value = STEERWHEEL_get_actual();
-
-    low = max(min(low, value), ADC_MIN);
-    maintenance_data[JSON_STEERWHEEL_LEFT] = low;
-
-    high = min(max(high, value), ADC_MAX);
-    maintenance_data[JSON_STEERWHEEL_RIGHT] = high;
-    
-    middle = value;
-    maintenance_data[JSON_STEERWHEEL_MIDDLE] = middle;
-
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-  }
-  
-  /* Store values */
-  STEERWHEEL_set_left(high);
-  STEERWHEEL_set_right(low);	
-  STEERWHEEL_set_middle(middle);
-
-  /* End task */
-  vTaskDelete( NULL );
-}
-
-static void STEERWHEEL_calibration_start(void) {
-  if (!steerwheel_calibrate_task) {
-    maintenance_data[JSON_STEERWHEEL_START_CALIBRATION] = true;
-    xTaskCreate(STEERWHEEL_calibrate, "Steerwheel calibration", 4096, NULL, 5, &steerwheel_calibrate_task);
-  }
-}
-
-static void STEERWHEEL_calibration_stop(void) {
-  steerwheel_calibrate_task = NULL;
-  maintenance_data[JSON_STEERWHEEL_START_CALIBRATION] = false;
 }
 
 /********************************************************************
@@ -712,5 +679,6 @@ void MAINTENANCE_setup(void) {
 void MAINTENANCE_start(void) {
   MAINTENANCE_disable();
   MAINTENANCE_setup_tasks();
+
   Serial.println("MAINTENANCE started...");
 }

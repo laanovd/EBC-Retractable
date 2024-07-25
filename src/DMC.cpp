@@ -142,7 +142,21 @@ static void DMC_setup_variables(void) {
 }
 
 /*******************************************************************
- * DMC general
+ * Stops the DMC (Dynamic Motor Controller).
+ * This function disables the DMC and prints a message to the serial monitor.
+ *******************************************************************/
+void DMC_stop(void) {
+  DMC_disable();
+
+  Serial.println(F("DMC stopped."));
+}
+
+/*******************************************************************
+ * @brief Sets up the DMC (Dynamic Motor Controller).
+ * 
+ * This function initializes the variables, configures the GPIO pins, and disables the DMC.
+ * 
+ * @note This function should be called once during the setup phase of the program.
  *******************************************************************/
 void DMC_setup(void) {
   DMC_setup_variables();
@@ -152,6 +166,13 @@ void DMC_setup(void) {
   Serial.println(F("DMC setup completed..."));
 }
 
+/*******************************************************************
+ * @brief Starts the DMC module.
+ * 
+ * This function initializes the DMC module by setting up the command-line interface (CLI)
+ * and configuring the API handlers. It also prints a message to the serial monitor indicating
+ * that the DMC module has started.
+ *******************************************************************/
 void DMC_start(void) {
   DMC_setup_cli();
   setup_uri(&DMC_api_handlers);

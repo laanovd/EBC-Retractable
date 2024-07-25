@@ -19,6 +19,7 @@
 #include "Lift.h"
 #include "Maintenance.h"
 #include "Storage.h"
+#include "SteeringWheel.h"
 
 /*******************************************************************
  * Constants
@@ -127,7 +128,7 @@ static void fnStateHoming() {
   DMC_disable();
   AZIMUTH_disable();
   AZIMUTH_analog_disable();
-  TIMER_start(Homing_timer, AZIMUTH_get_to_middle_timeout());
+  TIMER_start(Homing_timer, AZIMUTH_get_timeout());
 }
 
 static bool fnHomingToNoPosition() {

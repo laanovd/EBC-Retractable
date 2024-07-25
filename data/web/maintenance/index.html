@@ -330,12 +330,12 @@
           class="grid grid-flow-row auto-rows-max grid-cols-2 md:grid-cols-3 gap-4"
         >
           <div class="flex flex-col">
-            <label for="azimuth_left">Left</label>
+            <label for="azimuth_low">Low</label>
             <div class="flex w-full">
               <input
                 type="number"
-                name="azimuth_left"
-                id="azimuth_left"
+                name="azimuth_low"
+                id="azimuth_low"
                 step="1"
                 class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
                 min="0"
@@ -348,12 +348,12 @@
             </div>
           </div>
           <div class="flex flex-col">
-            <label for="azimuth_right">Right</label>
+            <label for="azimuth_high">High</label>
             <div class="flex w-full">
               <input
                 type="number"
-                name="azimuth_right"
-                id="azimuth_right"
+                name="azimuth_high"
+                id="azimuth_high"
                 step="1"
                 class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
                 min="0"
@@ -449,7 +449,7 @@
                 id="steering_middle"
                 step="1"
                 class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
-                min="0"
+                min="400"
                 max="4095"
                 value="0"
               />
@@ -464,11 +464,11 @@
             <div class="flex w-full">
               <input
                 type="number"
-                name="steering_right"
-                id="steering_right"
+                name="stering_right"
+                id="stering_right"
                 step="1"
                 class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
-                min="0"
+                min="400"
                 max="4095"
                 value="0"
               />

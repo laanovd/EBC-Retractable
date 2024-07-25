@@ -22,7 +22,7 @@
 
 #define ADC_MIN 0
 #define ADC_MAX 4095
-#define DAC_MIN 0
+#define DAC_MIN 400
 #define DAC_MAX 4095
 
 /*******************************************************************

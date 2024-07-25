@@ -15,6 +15,7 @@
 #include "Azimuth.h"
 #include "lift.h"
 #include "Maintenance.h"
+#include "SteeringWheel.h"
 
 /*******************************************************************
  * CLI: Show all cli commands and descriptions
@@ -32,7 +33,8 @@ static void clicb_help(cmd *c) {
   CLI_println(F("[factory...] ~ Factory reset settings (yes)"));
   CLI_println(F("[dmc] ~ DMC information."));
   CLI_println(F("[lift] ~ Retractable information (timeout n)."));
-  CLI_println(F("[azimuth] ~ Azimuth information (left <n>, right <n>, delay <n>, move)."));
+  CLI_println(F("[azimuth] ~ Azimuth information (left <n>, right <n>, middle <n>, timeout <n>)."));
+  CLI_println(F("[steer] ~ Steering wheel information (left <n>, right <n>, middle <n>, deadband <n>)."));
 }
 
 /*******************************************************************
@@ -87,6 +89,17 @@ void loop()
   // Do main task things...
 }
 
+/*******************************************************************
+ * Stops all the components used in the main function.
+ * 
+ * This function calls the stop functions of DMC, LIFT, AZIMUTH, and STEERINGWHEEL.
+ *******************************************************************/
+void all_stop(void) {
+  DMC_stop();
+  LIFT_stop();
+  AZIMUTH_stop();
+  STEERINGWHEEL_stop();
+}
 
 /*******************************************************************
  * MAIN setup
@@ -100,6 +113,7 @@ static void MAIN_setup(void) {
   AZIMUTH_setup();
   LIFT_setup();
   DMC_setup();
+  STEERINGWHEEL_setup();
   CONTROLLER_setup();
   MAINTENANCE_setup();
 
@@ -114,6 +128,7 @@ static void MAIN_start(void) {
   AZIMUTH_start();
   LIFT_start();
   DMC_start();
+  STEERINGWHEEL_start();
   CONTROLLER_start();
   MAINTENANCE_start();
 

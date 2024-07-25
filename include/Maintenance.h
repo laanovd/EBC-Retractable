@@ -9,7 +9,6 @@
 
 #include <ArduinoJson.h>
 
-
 /********************************************************************
  * Enables maintenance mode if the emergency stop is not active.
  * 

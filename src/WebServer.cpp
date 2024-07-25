@@ -162,6 +162,8 @@ static void onOTAEnd(bool success) {
 /********************************************************************
  * Main task
  *********************************************************************/
+extern void all_stop(void);
+
 static void WEBSERVER_task(void *parameter) {
   (void)parameter;
 
@@ -172,6 +174,8 @@ static void WEBSERVER_task(void *parameter) {
       ota_restart_countdown--;
       if (ota_restart_countdown == 0) {
         Serial.println("\nRestarting system after OTA update...\n");
+        all_stop();  // Stop al modules
+        
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         ESP.restart();
       }
@@ -260,6 +264,24 @@ void WEBSOCKET_send_doc(JsonDocument doc) {
   // Send complete doc
   serializeJson(doc, msg);
   web_socket_server.broadcastTXT(msg);
+}
+
+/********************************************************************
+ * Sends a JSON key-value pair to the WebSocket connection.
+ *
+ * @param key The key of the JSON pair to push.
+ * @param doc The JSON document containing the key-value pairs.
+ *********************************************************************/
+void WEBSOCKET_send(String key, JsonDocument doc) {
+  String msg;
+
+  // Store values
+  for (JsonPair kv : doc.as<JsonObject>()) {
+    if (String(kv.key().c_str()) == key) {
+      WEBSOCKET_send_pair(kv);
+      break;
+    }
+  }
 }
 
 /********************************************************************

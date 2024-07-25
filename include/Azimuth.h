@@ -12,19 +12,15 @@
  *******************************************************************/
 #define JSON_AZIMUTH_ENABLED "azimuth_enabled"
 #define JSON_AZIMUTH_OUTPUT_ENABLED "azimuth_analog_out_enabled"
-#define JSON_AZIMUTH_LEFT "azimuth_left_counts"
-#define JSON_AZIMUTH_RIGHT "azimuth_right_counts"
+#define JSON_AZIMUTH_LOW "azimuth_low_counts"
+#define JSON_AZIMUTH_HIGH "azimuth_high_counts"
+#define JSON_AZIMUTH_MIDDLE "azimuth_middle_counts"
 #define JSON_AZIMUTH_ACTUAL "azimuth_actual_counts"
 #define JSON_AZIMUTH_MANUAL "azimuth_manual"
 #define JSON_AZIMUTH_TIMEOUT_TO_MIDDLE "azimuth_timeout_to_the_middle"
 #define JSON_AZIMUTH_HOME "azimuth_home"
 #define JSON_AZIMUTH_HOMING "azimuth_homing"
 
-#define JSON_STEERWHEEL_START_CALIBRATION "steering_start_calibration"
-#define JSON_STEERWHEEL_LEFT "steering_left_counts"
-#define JSON_STEERWHEEL_RIGHT "steering_right_counts"
-#define JSON_STEERWHEEL_MIDDLE "steering_middle_counts"
-#define JSON_STEERWHEEL_ACTUAL "steering_actual_counts"
 
 /*******************************************************************
  * Azimuth
@@ -33,17 +29,19 @@ extern void AZIMUTH_enable();
 extern void AZIMUTH_disable();
 extern bool AZIMUTH_enabled();
 
-extern int AZIMUTH_get_left(void);
-extern void AZIMUTH_set_left(int value);
-extern int AZIMUTH_get_right(void);
-extern void AZIMUTH_set_right(int value);
+extern int AZIMUTH_get_low(void);
+extern void AZIMUTH_set_low(int value);
+extern int AZIMUTH_get_high(void);
+extern void AZIMUTH_set_high(int value);
+extern int AZIMUTH_get_middle(void);
+extern void AZIMUTH_set_middle(int value);
 extern int AZIMUTH_get_actual(void);
 
 extern void AZIMUTH_set_steering(int value);
 extern void AZIMUTH_set_output_manual(int value);
 
-extern int AZIMUTH_get_to_middle_timeout(void);
-extern void AZIMUTH_set_to_middle_timeout(int value);
+extern int AZIMUTH_get_timeout(void);
+extern void AZIMUTH_set_timeout(int value);
 
 extern void AZIMUTH_set_manual(int value);
 extern int AZIMUTH_get_manual(void);
@@ -55,18 +53,28 @@ extern bool AZIMUTH_analog_enabled();
 extern void AZIMUTH_analog_enable();
 extern void AZIMUTH_analog_disable();
 
-extern void AZIMUTH_setup();
-extern void AZIMUTH_start();
+/*******************************************************************
+ * Stops the azimuth movement.
+ * 
+ * This function disables the azimuth control and analog output.
+*******************************************************************/
+extern void AZIMUTH_stop();
 
 /*******************************************************************
- * Steering wheel
- *******************************************************************/
-extern int STEERWHEEL_get_left(void);
-extern void STEERWHEEL_set_left(int value);
-extern int STEERWHEEL_get_right(void);
-extern void STEERWHEEL_set_right(int value);
-extern int STEERWHEEL_get_middle(void);
-extern void STEERWHEEL_set_middle(int value);
-extern int STEERWHEEL_get_actual(void);
+ * @brief Initializes the Azimuth module.
+ * 
+ * This function sets up the necessary configurations and resources 
+ * for the Azimuth module. It should be called before using any 
+ * other functions related to the Azimuth module.
+*******************************************************************/
+extern void AZIMUTH_setup();
+
+/*******************************************************************
+ * @brief Starts the azimuth process.
+ *
+ * This function initializes and starts the azimuth process.
+ * It should be called before any other azimuth-related functions are used.
+*******************************************************************/
+extern void AZIMUTH_start();
 
 #endif

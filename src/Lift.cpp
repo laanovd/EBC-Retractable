@@ -248,13 +248,13 @@ static void LIFT_button_update(void) {
 
   // Button up flag
   BUTTON_UP_state = digitalRead(LIFT_BUTTON_UP_PIN);
-  if (BUTTON_UP_memo && !BUTTON_UP_state && !BUTTON_DOWN_state)
+  if (!BUTTON_UP_memo && BUTTON_UP_state && !BUTTON_DOWN_state)
     BUTTON_UP_pushed = true;
   BUTTON_UP_memo = BUTTON_UP_state;
 
   // Button down flag
   BUTTON_DOWN_state = digitalRead(LIFT_BUTTON_DOWN_PIN);
-  if (BUTTON_DOWN_memo && !BUTTON_DOWN_state && !BUTTON_UP_state)
+  if (!BUTTON_DOWN_memo && BUTTON_DOWN_state && !BUTTON_UP_state)
     BUTTON_DOWN_pushed = true;
   BUTTON_DOWN_memo = BUTTON_DOWN_state;
 
@@ -459,7 +459,22 @@ static void LIFT_setup_variables(void) {
 }
 
 /*******************************************************************
- * Lift general
+ * Stops the lift by disabling the lift motor and turning off the 
+ * lift up and lift down signals.
+ * 
+ * Prints a message to the serial monitor indicating that the lift has stopped.
+ *******************************************************************/
+void LIFT_stop(void) {
+  LIFT_disable();
+  LIFT_UP_off();
+  LIFT_DOWN_off();
+
+  Serial.println(F("Lift stopped."));
+}
+
+/*******************************************************************
+ * @brief Initializes the lift setup by setting up variables and GPIO pins.
+ *        It also disables the lift and turns off the lift up and lift down signals.
  *******************************************************************/
 void LIFT_setup(void) {
   LIFT_setup_variables();
@@ -472,6 +487,15 @@ void LIFT_setup(void) {
   Serial.println(F("Lift setup completed..."));
 }
 
+/*******************************************************************
+ * Starts the lift functionality.
+ * 
+ * This function sets up tasks, command-line interface (CLI), and 
+ * API handlers for the lift. It also initializes the error mask 
+ * and prints a message indicating that the lift has started.
+ * 
+ * @note This function should be called to start the lift.
+ *******************************************************************/
 void LIFT_start(void) {
   LIFT_setup_tasks();
   LIFT_setup_cli();

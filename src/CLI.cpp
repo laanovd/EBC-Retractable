@@ -78,10 +78,14 @@ void CLI_println(String txt)
 /*******************************************************************
  * System reboot
  *******************************************************************/
+extern void all_stop(void);
+
 void system_restart(void)
 {
   CLI_println("System wil restart in 3 sec...");
   CLI_println("");
+
+  all_stop();  // Stop al modules
 
   vTaskDelay(3000 / portTICK_PERIOD_MS);
   ESP.restart();

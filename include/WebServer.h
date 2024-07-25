@@ -59,6 +59,14 @@ extern void WEBSOCKET_update_pair(JsonPair kv);
 extern void WEBSOCKET_update_doc(JsonDocument doc);
 
 /********************************************************************
+ * Sends a JSON key-value pair to the WebSocket connection.
+ *
+ * @param key The key of the JSON pair to push.
+ * @param doc The JSON document containing the key-value pairs.
+ *********************************************************************/
+extern void WEBSOCKET_send(String key, JsonDocument doc);
+
+/********************************************************************
  * Sends a JSON document over a WebSocket connection.
  * 
  * @param doc The JSON document to send.

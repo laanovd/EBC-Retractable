@@ -337,6 +337,8 @@ static void STORAGE_create(void) {
 /********************************************************************
  *  Factory reset
  *******************************************************************/
+extern void all_stop(void);
+
 void STORAGE_factory_reset(void) {
   CLI_println("Storage: factory reset...");
 
@@ -344,6 +346,8 @@ void STORAGE_factory_reset(void) {
   if (STORAGE_write(LittleFS, APP_CONFIG_FILE)) {
     CLI_println("ERROR storing settings...");
   }
+
+  all_stop();  // Stop al modules
 
   vTaskDelay(3000 / portTICK_PERIOD_MS);  // 3 sec.
   ESP.restart();

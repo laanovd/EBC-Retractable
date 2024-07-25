@@ -139,8 +139,8 @@ document.addEventListener(
     INIT_toggle("extend_enabled", "lift_motor_down");
     INIT_toggle("dmc_enabled", "dmc_enabled");
 
-    INIT_number_input("azimuth_left", "azimuth_left_counts");
-    INIT_number_input("azimuth_right", "azimuth_right_counts");
+    INIT_number_input("azimuth_low", "azimuth_low_counts");
+    INIT_number_input("azimuth_high", "azimuth_high_counts");
     INIT_number_input("azimuth_actual", "azimuth_actual_counts");
     INIT_number_input("azimuth_timeout", "azimuth_timeout_to_the_middle");
     INIT_toggle("azimuth_homing", "azimuth_homing");
@@ -158,7 +158,7 @@ document.addEventListener(
     INIT_indicator("azimuth_home", "azimuth_home");
 
     INIT_number_input("steering_left", "steering_left_counts");
-    INIT_number_input("steering_right", "steering_right_counts");
+    INIT_number_input("stering_right", "steering_right_counts");
     INIT_number_input("steering_middle", "steering_middle_counts");
     INIT_number_input("steering_actual", "steering_actual_counts");
 
