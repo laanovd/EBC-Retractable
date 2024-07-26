@@ -29,7 +29,21 @@
  *******************************************************************/
 #define JSON_STEERWHEEL_LEFT_DEFAULT 0.0
 #define JSON_STEERWHEEL_RIGHT_DEFAULT 5.0
+
 #define DELAY_TO_MIDDLE_DEFAULT 5
+
+#define AZIMUTH_CALIBRATION_STEP 5
+
+/*******************************************************************
+ * Type definitions
+ *******************************************************************/
+enum AzmuthCalibrateStates {
+  ACalibStart,
+  ACalibSeekHomeBegin,
+  ACalibSeekHomeEnd,
+  ACalibFinished,
+  ACalibAbort
+};
 
 /*******************************************************************
  * Global variables
