@@ -49,7 +49,7 @@
         </div>
 
         <div
-          class="fixed bg-black/75 inset-0 flex items-center justify-center z-20"
+          class="fixed bg-black/75 inset-0 flex items-center justify-center z-20 hidden"
           id="loading_overlay"
         >
           <svg
@@ -107,6 +107,12 @@
               <span>Maintenance Enable</span>
             </label>
           </div>
+          <a
+            class="rounded bg-slate-200 text-slate-500 p-2 px-4"
+            href="/"
+          >
+            Back
+        </a>
         </div>
 
         <hr />
@@ -395,7 +401,6 @@
                 min="0"
                 max="4095"
                 value="0"
-                disabled
               />
               <span class="rounded-r bg-slate-300 text-slate-400 px-2"
                 >counts</span
