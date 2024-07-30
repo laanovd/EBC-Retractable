@@ -98,6 +98,9 @@ function INIT_steering() {
 function save_calibration() {
     sendCommand(`{"save_steeringwheel_calibration":true}`);
 }
+function restore_calibration() {
+    sendCommand(`{"restore_steeringwheel_calibration":true}`);
+}
 
 // Maintenance button
 function INIT_maintenance_button() {
