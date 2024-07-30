@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
     <script src="./websocket.js"></script>
     <script src="./components.js"></script>
+    <link rel="stylesheet" href="./style.css">
     <title>RIM DRIVE TECHNOLOGY</title>
   </head>
 
@@ -418,9 +419,9 @@
           <div class="flex-1">
             <button
               class="rounded bg-slate-200 text-slate-500 p-2 px-4 mt_only"
-              onclick="set_steering_calibrating(true)"
+              onclick="save_calibration()"
             >
-              Start calibration
+              Save calibration
             </button>
           </div>
         </div>

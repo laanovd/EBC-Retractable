@@ -95,17 +95,8 @@ function INIT_steering() {
 }
 
 // Steering calibration
-const elm_id_steering_calibration = "steering_calibration";
-const json_key_steering_calibration = "steering_start_calibration";
-function set_steering_calibrating(set_calibrating) {
-  const elm = document.querySelector(`#${elm_id_steering_calibration}`);
-  if (set_calibrating) {
-    elm.classList.remove("hidden");
-    sendCommand(`{${json_key_steering_calibration}:true}`);
-  } else {
-    elm.classList.add("hidden");
-    sendCommand(`{${json_key_steering_calibration}:false}`);
-  }
+function save_calibration() {
+    sendCommand(`{"save_steeringwheel_calibration":true}`);
 }
 
 // Maintenance button
@@ -119,8 +110,8 @@ function INIT_maintenance_button() {
     else sendCommand(JSON.stringify({ maintenance_enabled: false }));
   });
   addMessageHandler((data) => {
-    if (data.hasOwnProperty(maintenance_enabled)) {
-      elm.checked = JSON.parse(data[maintenance_enabled]);
+    if (data.hasOwnProperty(json_key_maintenance)) {
+      elm.checked = JSON.parse(data[json_key_maintenance]);
       elm.disabled = false;
     }
   });
@@ -166,3 +157,7 @@ document.addEventListener(
   },
   false
 );
+
+window.addEventListener("beforeunload", function (e) {
+  sendCommand(JSON.stringify({ maintenance_enabled: false }));
+});
