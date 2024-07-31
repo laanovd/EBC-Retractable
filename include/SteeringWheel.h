@@ -27,10 +27,24 @@ extern int STEERWHEEL_get_right(void);
 extern void STEERWHEEL_set_right(int value);
 extern int STEERWHEEL_get_middle(void);
 extern void STEERWHEEL_set_middle(int value);
-extern int STEERWHEEL_get_actual(void);
 extern int STEERWHEEL_get_deadband(void);
 extern void STEERWHEEL_set_deadband(int value);
 
+/********************************************************************
+ * @brief Get the actual steering wheel position.
+ * 
+ * This function reads the current steering wheel position and returns it.
+ * 
+ * @return The actual steering wheel position.
+ *******************************************************************/
+extern int STEERWHEEL_get_actual(void);
+
+/********************************************************************
+ * Calculates the linear value of the steering wheel position.
+ * 
+ * @return The linear value of the steering wheel position.
+ *******************************************************************/
+extern int STEERWHEEL_get_linear(void);
 
 /********************************************************************
  * @brief Saves the calibration values for the steering wheel.

@@ -245,22 +245,6 @@ int AZIMUTH_get_actual(void) {
   return AZIMUTH_data[JSON_AZIMUTH_ACTUAL].as<int>();
 }
 
-void AZIMUTH_set_steering(int value) {
-  long left = AZIMUTH_get_low();
-  long right = AZIMUTH_get_high();
-
-  int output = mapl(value, 0, 4095, left, right);  // map to DAC_MIN...DAC_MAX
-  output = constrain(output, DAC_MIN, DAC_MAX);     // range from 0...4095
-
-  AZIMUTH_set_right_output(output);
-
-  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = output;
-
-#ifdef ENABLE_LEFT_OUTPUT
-  AZIMUTH_set_left_output(output);
-#endif
-}
-
 int AZIMUTH_get_manual(void) {
   return AZIMUTH_data[JSON_AZIMUTH_MANUAL].as<int>();
 }
@@ -283,6 +267,41 @@ void AZIMUTH_set_manual(int value) {
     AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
     AZIMUTH_set_steering(value);
   }
+}
+
+/********************************************************************
+ * Sets the steering value for the azimuth control.
+ *
+ * This function maps the input value to the range of
+ * the azimuth control's left and right limits,
+ * and then sets the output value accordingly.
+ * The input value is expected to be in the range of LINEAR_MIN,
+ * LINEAR_MIDDLE and LINEAR_MAX.
+ *
+ * The output value is constrained to the range of DAC_MIN to DAC_MAX.
+ *
+ * @param value The input value representing the desired steering position.
+ *******************************************************************/
+void AZIMUTH_set_steering(int value) {
+  long left = AZIMUTH_get_low();
+  long right = AZIMUTH_get_high();
+
+  long middle = left + ((right - left) / 2); // TODO: Add setting middle to GUI
+
+  if (value < LINEAR_MIDDLE) {
+    value = map(value, LINEAR_MIN, LINEAR_MIDDLE, left, middle);
+  } else {
+    value = map(value, LINEAR_MIDDLE, LINEAR_MAX, middle, right);
+  }
+  value = constrain(value, DAC_MIN, DAC_MAX);  // range from 0...4095
+
+  AZIMUTH_set_right_output(value);
+
+  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = value;
+
+#ifdef ENABLE_LEFT_OUTPUT
+  AZIMUTH_set_left_output(value);
+#endif
 }
 
 /********************************************************************
@@ -389,7 +408,7 @@ static void AZIMUTH_setup_tasks(void) {
 static void AZIMUTH_setup_gpio(void) {
   pinMode(AZIMUTH_ANALOG_ENABLE_PIN, OUTPUT);
   pinMode(AZIMUTH_HOME_PIN, INPUT);
-  pinMode(LED_TWAI_PIN, OUTPUT); // Used for AZIMUTH home signal
+  pinMode(LED_TWAI_PIN, OUTPUT);  // Used for AZIMUTH home signal
 }
 
 /*******************************************************************
@@ -419,9 +438,9 @@ static void AZIMUTH_setup_variables(void) {
 
 /*******************************************************************
  * Stops the azimuth movement.
- * 
+ *
  * This function disables the azimuth control and analog output.
-*******************************************************************/
+ *******************************************************************/
 void AZIMUTH_stop() {
   AZIMUTH_disable();
   AZIMUTH_analog_disable();
@@ -431,11 +450,11 @@ void AZIMUTH_stop() {
 
 /*******************************************************************
  * @brief Initializes the Azimuth module.
- * 
- * This function sets up the necessary configurations and resources 
- * for the Azimuth module. It should be called before using any 
+ *
+ * This function sets up the necessary configurations and resources
+ * for the Azimuth module. It should be called before using any
  * other functions related to the Azimuth module.
-*******************************************************************/
+ *******************************************************************/
 void AZIMUTH_setup() {
   AZIMUTH_setup_variables();
   AZIMUTH_setup_gpio();
@@ -449,7 +468,7 @@ void AZIMUTH_setup() {
  *
  * This function initializes and starts the azimuth process.
  * It should be called before any other azimuth-related functions are used.
-*******************************************************************/
+ *******************************************************************/
 void AZIMUTH_start() {
   AZIMUTH_setup_tasks();
   cli_setup();

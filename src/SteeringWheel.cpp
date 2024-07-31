@@ -46,8 +46,6 @@ static JsonDocument STEERINGWHEEL_json(void) {
   STEERWHEEL_data[JSON_STEERWHEEL_RIGHT] = STEERWHEEL_get_right();
   STEERWHEEL_data[JSON_STEERWHEEL_MIDDLE] = STEERWHEEL_get_middle();
 
-  STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL] = STEERWHEEL_get_actual();
-
   STEERWHEEL_data[JSON_STEERWHEEL_DEADBAND] = STEERWHEEL_get_deadband();
 
   return STEERWHEEL_data;
@@ -81,7 +79,7 @@ String STEERINGWHEEL_info(void) {
  * Steering wheel read analog input
  *******************************************************************/
 #define MAX_AVERAGE 10
-static int STEERWHEEL_read(void) {
+static void STEERWHEEL_update(void) {
   static int ndx = 0, value;
   static int array[MAX_AVERAGE] = {0};
   static long sum = 0;
@@ -92,9 +90,39 @@ static int STEERWHEEL_read(void) {
   array[ndx] = analogRead(STEER_WHEEL_ANALOG_CHANNEL);
   sum += array[ndx];
 
-  value = max(min((int)sum / MAX_AVERAGE, ADC_MAX), ADC_MIN);
+  value = constrain(sum / MAX_AVERAGE, ADC_MAX, ADC_MIN);
   STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL] = value;
+}
 
+/********************************************************************
+ * @brief Get the actual steering wheel position.
+ *
+ * This function reads the current steering wheel position and returns it.
+ *
+ * @return The actual steering wheel position.
+ *******************************************************************/
+int STEERWHEEL_get_actual(void) {
+  return STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL].as<int>();
+}
+
+/********************************************************************
+ * Calculates the linear value of the steering wheel position.
+ * 
+ * @return The linear value of the steering wheel position.
+ *******************************************************************/
+int STEERWHEEL_get_linear(void) {
+  long value = STEERWHEEL_get_actual();
+  long left = STEERWHEEL_get_left();
+  long middle = STEERWHEEL_get_middle();
+  long right = STEERWHEEL_get_right();
+
+  if (value < middle) {
+    value = (int)map(value, left, middle, LINEAR_MIN, LINEAR_MIDDLE - 1);
+  } else {
+    value = (int)map(value, middle, right, LINEAR_MIDDLE, LINEAR_MAX);
+  }
+
+  value = constrain(value, LINEAR_MIN, LINEAR_MAX);
   return value;
 }
 
@@ -145,7 +173,7 @@ void STEERWHEEL_set_middle(int value) {
 
 void STEERWHEEL_store_middle(int value) {
   if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
-    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value); 
+    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value);
   }
 }
 
@@ -162,10 +190,6 @@ void STEERWHEEL_set_deadband(int value) {
   }
 }
 
-int STEERWHEEL_get_actual(void) {
-  return STEERWHEEL_read();
-}
-
 /********************************************************************
  * @brief Saves the calibration values for the steering wheel.
  *
@@ -173,7 +197,6 @@ int STEERWHEEL_get_actual(void) {
  * and stores them using the `STORAGE_get_int` function.
  *******************************************************************/
 void STEERWHEEL_calibration_save(void) {
-
   int value = STEERWHEEL_get_left();
   STEERWHEEL_store_left(value);
 
@@ -277,7 +300,8 @@ static void STEERINGWHEEL_main_task(void *parameter) {
   (void)parameter;
 
   while (true) {
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    STEERWHEEL_update();
+    vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }
 
@@ -285,7 +309,7 @@ static void STEERINGWHEEL_main_task(void *parameter) {
  *  Initialize tasks
  *********************************************************************/
 static void STEERINGWHEEL_setup_tasks(void) {
-  // xTaskCreate(STEERINGWHEEL_main_task, "Steer wheel main", 2048, NULL, 10, NULL);
+  xTaskCreate(STEERINGWHEEL_main_task, "Steer wheel main", 2048, NULL, 10, NULL);
 }
 
 /*******************************************************************

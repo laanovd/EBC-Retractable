@@ -14,13 +14,14 @@
 
 #include "Azimuth.h"
 #include "CLI.h"
+#include "Config.h"
 #include "DMC.h"
-#include "GPIO.h"
 #include "EBC_IOLib.h"
+#include "GPIO.h"
 #include "Lift.h"
 #include "Maintenance.h"
-#include "Storage.h"
 #include "SteeringWheel.h"
+#include "Storage.h"
 
 /*******************************************************************
  * Constants
@@ -297,9 +298,9 @@ static void fnStateNoPosition() {
 
   /* If lift not down the block DMC and AZIMUTH */
   if (!LIFT_DOWN_sensor()) {
-      DMC_disable();
-      AZIMUTH_disable();
-      AZIMUTH_analog_disable();
+    DMC_disable();
+    AZIMUTH_disable();
+    AZIMUTH_analog_disable();
   }
 }
 
@@ -391,20 +392,21 @@ static bool fnAnyToMantenance() {
 }
 
 /*******************************************************************
- * Update steering
+ * Updates the steering value based on the position of the lift
+ * and the azimuth control.
+ *
+ * If the lift is in the down position and the azimuth control is
+ * enabled and in analog mode, the steering value is calculated
+ * based on the current position is calculated based on double
+ * linearisation (left > ADC_MIDDLE-1 and  ADC_MIDDLE > right).
  *******************************************************************/
 static void CONTROLLER_update_steering() {
   if (LIFT_DOWN_sensor()) {
     if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
 
-      int value = STEERWHEEL_get_actual();
-      int left = STEERWHEEL_get_left();
-      int right = STEERWHEEL_get_right();
-      
-      value = (int)map(value, left, right, ADC_MIN, ADC_MAX);
-      value = constrain(value, ADC_MIN, ADC_MAX);     // range from 0...4095
-
+      long value = STEERWHEEL_get_linear();
       AZIMUTH_set_steering(value);
+
     }
   }
 }
@@ -422,7 +424,7 @@ static void CONTROLLER_main_task(void *parameter) {
       CONTROLLER_update_steering();
     }
 
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
   }
 }
 

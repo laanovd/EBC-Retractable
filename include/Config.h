@@ -1,5 +1,24 @@
 /*******************************************************************
- *  Definitions and constants
+ *  EBC-e Retractable Control Unit (RCU) - Config.h
+ *
+ * @versions: 0.2.00 2024-07-31
+ * - initial version.
+ * 
+ * @versions: 0.3.00 2024-08-01
+ * - Linearisation of steering wheel to azimuth. 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  *******************************************************************/
 #ifndef CONFIG_HEADER_ID
@@ -9,7 +28,7 @@
  * Program name and version definitions
  *******************************************************************/
 #define ProgramName "EBC-Retractable"   // Program name
-#define ProgramVersion "v0.2"           // Program version
+#define ProgramVersion "v0.3"           // Program version
 #define ProgramTitle "EBC-RCU"          // Title Web interface
 #define WiFiSSIDPrefix "EBC-E"          // Wifi ssid name
 #define PCBVersion "RCU v0.3"           // Hardware version
@@ -125,8 +144,10 @@ typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bo
 #define DMC_ENABLE_PIN 4
 
 /*******************************************************************
- * Hardware Implementation definitions
+ * Application definitions
  *******************************************************************/
-#define DEBOUNCE_TIME 100
+#define LINEAR_MIN    0
+#define LINEAR_MIDDLE 2048
+#define LINEAR_MAX    4096
 
 #endif  // CONFIG_HEADER_ID
