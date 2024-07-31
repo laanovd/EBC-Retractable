@@ -22,7 +22,7 @@
  *******************************************************************/
 #define DEBUG_AZIMUTH
 
-#undef STEERWHEEL_CALIBRATION_SIMULATE
+#define STEERWHEEL_CALIBRATION_SIMULATE
 
 #undef ENABLE_LEFT_OUTPUT  // No left output use yet
 
@@ -37,9 +37,6 @@
  * Global variables
  *******************************************************************/
 static JsonDocument STEERWHEEL_data;
-
-static TaskHandle_t steerwheel_calibrate_task = NULL;
-static bool calibration_abort = false;
 
 /********************************************************************
  * Create initial JSON data
@@ -89,25 +86,15 @@ static int STEERWHEEL_read(void) {
   static int array[MAX_AVERAGE] = {0};
   static long sum = 0;
 
-  int left = STEERWHEEL_get_left();
-  int right = STEERWHEEL_get_right();
-
   ndx = (ndx + 1) % MAX_AVERAGE;
 
   sum -= array[ndx];
   array[ndx] = analogRead(STEER_WHEEL_ANALOG_CHANNEL);
   sum += array[ndx];
 
-  // Serial.printf("\r\nSteering wheel: %d", array[ndx]);
-
-  value = (int)sum / MAX_AVERAGE;
-
-  if (left != right) {
-    value = map(value, left, right, ADC_MIN, ADC_MAX);
-  }
-  value = max(min(value, ADC_MAX), ADC_MIN);
-
+  value = max(min((int)sum / MAX_AVERAGE, ADC_MAX), ADC_MIN);
   STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL] = value;
+
   return value;
 }
 
@@ -121,6 +108,11 @@ int STEERWHEEL_get_left(void) {
 void STEERWHEEL_set_left(int value) {
   if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
     STEERWHEEL_data[JSON_STEERWHEEL_LEFT] = value;
+  }
+}
+
+void STEERWHEEL_store_left(int value) {
+  if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
     STORAGE_set_int(JSON_STEERWHEEL_LEFT, value);
   }
 }
@@ -132,6 +124,11 @@ int STEERWHEEL_get_right(void) {
 void STEERWHEEL_set_right(int value) {
   if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
     STEERWHEEL_data[JSON_STEERWHEEL_RIGHT] = value;
+  }
+}
+
+void STEERWHEEL_store_right(int value) {
+  if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
     STORAGE_set_int(JSON_STEERWHEEL_RIGHT, value);
   }
 }
@@ -143,7 +140,12 @@ int STEERWHEEL_get_middle(void) {
 void STEERWHEEL_set_middle(int value) {
   if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
     STEERWHEEL_data[JSON_STEERWHEEL_MIDDLE] = value;
-    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value);
+  }
+}
+
+void STEERWHEEL_store_middle(int value) {
+  if ((value >= ADC_MIN) && (value <= ADC_MAX)) {
+    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value); 
   }
 }
 
@@ -161,89 +163,50 @@ void STEERWHEEL_set_deadband(int value) {
 }
 
 int STEERWHEEL_get_actual(void) {
-  if (!steerwheel_calibrate_task) 
-    return STEERWHEEL_read();
-
-  return STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL].as<int>();
+  return STEERWHEEL_read();
 }
 
 /********************************************************************
- * Steerwheel calibration
- *******************************************************************/
-void STEERWHEEL_calibrate(void *parameter) {
-  (void)parameter;
-  int low = ADC_MAX, high = ADC_MIN, middle = 0;
-  
-  while (steerwheel_calibrate_task) {
-#ifdef STEERWHEEL_CALIBRATION_SIMULATE
-    int value = rand() % (4095 + 1 - 400) + 400;
-#else
-    int value = STEERWHEEL_read();
-#endif
-
-    STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL] = value;
-
-    low = max(min(low, value), ADC_MIN);
-    STEERWHEEL_data[JSON_STEERWHEEL_LEFT] = low;
-
-    high = min(max(high, value), ADC_MAX);
-    STEERWHEEL_data[JSON_STEERWHEEL_RIGHT] = high;
-    
-    middle = value;
-    STEERWHEEL_data[JSON_STEERWHEEL_MIDDLE] = middle;
-
-    // Serial.printf("\r\nSteering wheel calibration: %04d, %04d, %04d.", low, high, middle);
-
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-  }
-  
-  /* Store values */
-  if (!calibration_abort) {
-    STEERWHEEL_set_left(high);
-    STEERWHEEL_set_right(low);	
-    STEERWHEEL_set_middle(middle);
-  }
-
-  /* End task */
-  vTaskDelete( NULL );
-}
-
-/********************************************************************
- * Starts the calibration process for the steering wheel.
- * 
- * If the calibration task is not already running, it creates 
- * a new task to perform the calibration.
- *******************************************************************/
-void STEERWHEEL_calibration_start(void) {
-  if (!steerwheel_calibrate_task) {
-    calibration_abort = false;
-    xTaskCreate(STEERWHEEL_calibrate, "Steerwheel calibration", 4096, NULL, 5, &steerwheel_calibrate_task);
-    Serial.println(F("Steering wheel calibration started..."));
-  }
-}
-
-/********************************************************************
- * @brief Ends the calibration process for the steering wheel.
+ * @brief Saves the calibration values for the steering wheel.
  *
- * This function sets the `calibration_abort` flag to false and 
- * clears the `steerwheel_calibrate_task` pointer. It is called to 
- * indicate the completion or termination of the calibration process.
+ * This function retrieves the calibration values from the `doc` JSON object
+ * and stores them using the `STORAGE_get_int` function.
  *******************************************************************/
-void STEERWHEEL_calibration_end(void) {
-  calibration_abort = false;
-  steerwheel_calibrate_task = NULL;
-  Serial.println(F("Steering wheel calibration stoped..."));
+void STEERWHEEL_calibration_save(void) {
+
+  int value = STEERWHEEL_get_left();
+  STEERWHEEL_store_left(value);
+
+  value = STEERWHEEL_get_right();
+  STEERWHEEL_store_right(value);
+
+  value = STEERWHEEL_get_middle();
+  STEERWHEEL_store_middle(value);
 }
 
 /********************************************************************
- * Aborts the calibration process for the steering wheel.
+ * @brief Restores the calibration values for the steering wheel.
+ *
+ * This function retrieves the calibration values for the left, right, and middle positions
+ * of the steering wheel from the storage and sets them using the corresponding setter functions.
+ *
+ * @note This function assumes that the calibration values have been previously stored in the storage.
+ *
+ * @see STEERWHEEL_set_left
+ * @see STEERWHEEL_set_right
+ * @see STEERWHEEL_set_middle
  *******************************************************************/
-void STEERWHEEL_calibration_abort(void) {
-  calibration_abort = true;
-  if (steerwheel_calibrate_task) {
-    steerwheel_calibrate_task = NULL;
-    Serial.println(F("Steering wheel calibration aborted..."));
-  }
+void STEERWHEEL_calibration_restore(void) {
+  int value;
+
+  STORAGE_get_int(JSON_STEERWHEEL_LEFT, value);
+  STEERWHEEL_set_left(value);
+
+  STORAGE_get_int(JSON_STEERWHEEL_RIGHT, value);
+  STEERWHEEL_set_right(value);
+
+  STORAGE_get_int(JSON_STEERWHEEL_MIDDLE, value);
+  STEERWHEEL_set_middle(value);
 }
 
 /********************************************************************
@@ -368,16 +331,14 @@ static void STEERINGWHEEL_setup_variables(void) {
  * Stops the steering wheel and aborts any ongoing calibration process.
  *******************************************************************/
 void STEERINGWHEEL_stop() {
-  STEERWHEEL_calibration_abort();
-
   Serial.println(F("Steering wheel stopped."));
 }
 
 /********************************************************************
  * @brief Sets up the steering wheel.
  *
- * This function initializes the necessary components and 
- * configurations for the steering wheel. It should be called once 
+ * This function initializes the necessary components and
+ * configurations for the steering wheel. It should be called once
  * during the setup phase of the program.
  *******************************************************************/
 void STEERINGWHEEL_setup() {
@@ -390,8 +351,8 @@ void STEERINGWHEEL_setup() {
 /********************************************************************
  * @brief Starts the steering wheel functionality.
  *
- * This function initializes and starts the steering wheel 
- * functionality. It should be called before using any other 
+ * This function initializes and starts the steering wheel
+ * functionality. It should be called before using any other
  * steering wheel related functions.
  *******************************************************************/
 void STEERINGWHEEL_start() {

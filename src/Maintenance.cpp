@@ -37,7 +37,8 @@
  *******************************************************************/
 #define JSON_MAINTENANCE_ENABLED "maintenance_enabled"
 
-#define JSON_STEERWHEEL_CALIBRATION_START "steering_start_calibration"
+#define JSON_STEERWHEEL_CALIBRATION_SAVE "save_steeringwheel_calibration"
+#define JSON_STEERWHEEL_CALIBRATION_RESTORE "restore_steeringwheel_calibration"
 
 /*******************************************************************
  * Local variables
@@ -80,7 +81,7 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_HOME] = false;
   maintenance_data[JSON_AZIMUTH_HOMING] = false;
 
-  maintenance_data[JSON_STEERWHEEL_CALIBRATION_START] = false;
+  maintenance_data[JSON_STEERWHEEL_CALIBRATION_SAVE] = false;
   maintenance_data[JSON_STEERWHEEL_LEFT] = 0;
   maintenance_data[JSON_STEERWHEEL_RIGHT] = 0;
   maintenance_data[JSON_STEERWHEEL_MIDDLE] = 0;
@@ -280,6 +281,8 @@ static void MAINTENANCE_analog_enable(void) {
 
 static void MAINTENANCE_azimuth_homing(void) {
   maintenance_data[JSON_AZIMUTH_HOMING] = true;
+  WEBSOCKET_send(JSON_AZIMUTH_HOMING, maintenance_data);
+
   AZIMUTH_start_homing();
   azimuth_homing_timer = 20;
 }
@@ -329,6 +332,8 @@ static void MAINTENANCE_lift_motor_off(void) {
 static void MAINTENANCE_lift_homing(void) {
   if (MAINTENANCE_enabled() && LIFT_enabled()) {
     maintenance_data[JSON_LIFT_HOMING] = true;
+    WEBSOCKET_send(JSON_LIFT_HOMING, maintenance_data);
+
     LIFT_start_homing();
     lift_homing_timer = 20;
   }
@@ -530,11 +535,15 @@ int MAINTENANCE_command_handler(const char *data) {
   }
 
   /* Steering wheel start calibration */
-  if (doc.containsKey(JSON_STEERWHEEL_CALIBRATION_START)) {
-    if (doc[JSON_STEERWHEEL_CALIBRATION_START].as<bool>() == true)
-      STEERWHEEL_calibration_start();
-    else
-      STEERWHEEL_calibration_end();
+  if (doc.containsKey(JSON_STEERWHEEL_CALIBRATION_SAVE)) {
+    if (doc[JSON_STEERWHEEL_CALIBRATION_SAVE].as<bool>() == true)
+      STEERWHEEL_calibration_save();
+    handeled++;
+  }
+
+  if (doc.containsKey(JSON_STEERWHEEL_CALIBRATION_RESTORE)) {
+    if (doc[JSON_STEERWHEEL_CALIBRATION_RESTORE].as<bool>() == true)
+      STEERWHEEL_calibration_restore();
     handeled++;
   }
 
@@ -595,17 +604,18 @@ static void MAINTENACE_websocket_task(void *parameter) {
   while (true) {
     /* After countdown lift disable status homing */
     if (lift_homing_timer >= 0) {
-      lift_homing_timer--;
-      if (LIFT_HOME_sensor() || lift_homing_timer == 0) {
+      if (--lift_homing_timer == 0) {
         maintenance_data[JSON_LIFT_HOMING] = false;
+        WEBSOCKET_send(JSON_LIFT_HOMING, maintenance_data);
+        lift_homing_timer = -1;
       }
     }
 
     /* After countdown azimuth disable status homing */
     if (azimuth_homing_timer >= 0) {
-      azimuth_homing_timer--;
-      if (azimuth_homing_timer == 0) {
+      if (--azimuth_homing_timer == 0) {
         maintenance_data[JSON_AZIMUTH_HOMING] = false;
+        WEBSOCKET_send(JSON_AZIMUTH_HOMING, maintenance_data);
       }
     }
 

@@ -33,7 +33,7 @@ struct network_t {
  *******************************************************************/
 const char* password_ap = "QweR019283";
 
-#define MAX_NETWORKS 6
+#define MAX_NETWORKS 7
 struct network_t known_networks[MAX_NETWORKS] = {
   // SSID                   PASSWORD
   {"PPPWE13Q45A",     "3d22G5AQZ#12"},  // 0: Netwerk RVeer
@@ -41,7 +41,8 @@ struct network_t known_networks[MAX_NETWORKS] = {
   {"ARV751909B7A8-5", "29F004FE4697"},  // 2: Netwerk Zetten 2
   {"H369A3D48D4",     "ZLJHLB8W52ZQ"},  // 3: Netwerk Weert
   {"Botel technic",   "12Stilsloep!"},  // 4: Netwerk Botel Habour
-  {"RDT_Guest",       "=RDT350!"}};     // 5: Netwerk Rim Drive Technology
+  {"RDT_Guest",       "=RDT350!"},      // 5: Netwerk Rim Drive Technology
+  {"ColorBC",         "avrT33kv"}};     // 6: Netwerk Rim Drive Technology
 
 /*******************************************************************
  * Check if WiFi connected
@@ -64,6 +65,13 @@ String WiFi_ssid(void) {
  *******************************************************************/
 String WiFi_mac(void) {
   return String(WiFi.macAddress());
+}
+
+/*******************************************************************
+ * Get IP address
+ *******************************************************************/
+String WiFi_ip(void) {
+  return WiFi.localIP().toString();
 }
 
 /********************************************************************
@@ -194,7 +202,7 @@ int wifi_scan(void) {
 static void wifi_setup_ap(void) {
   String ssid_ap = WiFi_ssid();
 
-  Serial.print("Setting up AP (Access Point)…");
+  Serial.println(F("Setting up AP (Access Point)…"));
 
   WiFi.mode(WIFI_AP);
 

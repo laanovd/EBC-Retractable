@@ -45,6 +45,8 @@ static JsonDocument WebSocket_JSON_data;
 
 static int ota_restart_countdown = 0;
 
+static int websocket_client_connected = 0;
+
 /********************************************************************
  * Create initial JSON data
  *******************************************************************/
@@ -169,7 +171,7 @@ static void WEBSERVER_task(void *parameter) {
 
   while (true) {
     web_socket_server.loop();
-
+    
     if (ota_restart_countdown > 0) {
       ota_restart_countdown--;
       if (ota_restart_countdown == 0) {
@@ -364,12 +366,17 @@ static rest_api_t WEBSERVER_api_handlers = {
 void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) {
   switch (type) {              // switch on the type of information sent
     case WStype_DISCONNECTED:  // if a client is disconnected, then type == WStype_DISCONNECTED
+#ifdef DEBUG_WEBSOCKET
+      Serial.println("Websocket client disconnected.");
+#endif
+      MAINTENANCE_disable();
       break;
 
     case WStype_CONNECTED:  // if a client is connected, then type == WStype_CONNECTED
 #ifdef DEBUG_WEBSOCKET
       Serial.println("Websocket client connected.");
 #endif
+      MAINTENANCE_disable();
       WEBSOCKET_on_connect();
       break;
 
@@ -451,6 +458,14 @@ static String WEBSERVER_load_html(fs::FS &fs, const char *path) {
   end = start + sizeof(WIFI_SSID_PLACEHOLDER) - 1;
   content = content.substring(0, start) + WiFi_ssid() + content.substring(end);
 
+  // IP address
+  #define WIFI_IP_ADDRESS_PLACEHOLDER "<span id=\"ip_address\">-</span>"
+  start = content.indexOf(WIFI_IP_ADDRESS_PLACEHOLDER);
+  if (start < 0)
+    return content;
+  end = start + sizeof(WIFI_IP_ADDRESS_PLACEHOLDER) - 1;
+  content = content.substring(0, start) + WiFi_ip() + content.substring(end);
+
   // Title
   start = content.indexOf("<title>") + sizeof("<title>") - 1;
   if (start < 0)
@@ -489,8 +504,18 @@ static void WEBSERVER_init(void) {
 
   web_server.on("/maintenance", HTTP_GET, [](AsyncWebServerRequest *request) {
     String html = "/web" + request->url();
+
+    String filetype;
+    if (html.endsWith(".css")) {
+      filetype = "text/css";
+    } else if (html.endsWith(".js")) {
+      filetype = "text/javascript";
+    } else {
+      filetype = "text/html";
+    }
+
     File file = LittleFS.open(html);
-    request->send(200, "text/html", file.readStringUntil(EOF));
+    request->send(200, filetype, file.readStringUntil(EOF));
   });
 
   web_server.begin();  // Start WebServer

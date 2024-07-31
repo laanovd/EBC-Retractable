@@ -16,6 +16,7 @@
 #include "CLI.h"
 #include "DMC.h"
 #include "GPIO.h"
+#include "EBC_IOLib.h"
 #include "Lift.h"
 #include "Maintenance.h"
 #include "Storage.h"
@@ -395,7 +396,14 @@ static bool fnAnyToMantenance() {
 static void CONTROLLER_update_steering() {
   if (LIFT_DOWN_sensor()) {
     if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
+
       int value = STEERWHEEL_get_actual();
+      int left = STEERWHEEL_get_left();
+      int right = STEERWHEEL_get_right();
+      
+      value = (int)map(value, left, right, ADC_MIN, ADC_MAX);
+      value = constrain(value, ADC_MIN, ADC_MAX);     // range from 0...4095
+
       AZIMUTH_set_steering(value);
     }
   }

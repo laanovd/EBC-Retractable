@@ -250,6 +250,8 @@ void AZIMUTH_set_steering(int value) {
   long right = AZIMUTH_get_high();
 
   int output = mapl(value, 0, 4095, left, right);  // map to DAC_MIN...DAC_MAX
+  output = constrain(output, DAC_MIN, DAC_MAX);     // range from 0...4095
+
   AZIMUTH_set_right_output(output);
 
   AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = output;

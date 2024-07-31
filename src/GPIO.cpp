@@ -85,10 +85,10 @@ void LED_HEARTBEAT_update(void) {
 /*******************************************************************
   LED error setup
  *******************************************************************/
-void LED_ERROR_update(void) {
-  int state = true ? LED_blink_takt() : LOW;  // TODO: link general error status
-  digitalWrite(LED_ERROR_PIN, state);
-}
+// void LED_ERROR_update(void) {
+//   int state = true ? LED_blink_takt() : LOW;  // TODO: link general error status
+//   digitalWrite(LED_ERROR_PIN, state);
+// }
 
 /*******************************************************************
   GPIO main task
@@ -98,7 +98,7 @@ static void GPIO_main(void *parameter) {
 
   while (true) {
     LED_HEARTBEAT_update();
-    LED_ERROR_update();
+    // LED_ERROR_update();
 
     ++led_blink_timer %= 4;
     vTaskDelay(250 / portTICK_PERIOD_MS);

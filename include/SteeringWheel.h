@@ -33,26 +33,28 @@ extern void STEERWHEEL_set_deadband(int value);
 
 
 /********************************************************************
- * Starts the calibration process for the steering wheel.
- * 
- * If the calibration task is not already running, it creates 
- * a new task to perform the calibration.
- *******************************************************************/
-extern void STEERWHEEL_calibration_start(void);
-
-/********************************************************************
- * @brief Ends the calibration process for the steering wheel.
+ * @brief Saves the calibration values for the steering wheel.
  *
- * This function sets the `calibration_abort` flag to false and 
- * clears the `steerwheel_calibrate_task` pointer. It is called to 
- * indicate the completion or termination of the calibration process.
+ * This function retrieves the calibration values from the `doc` JSON object
+ * and stores them using the `STORAGE_get_int` function.
  *******************************************************************/
-extern void STEERWHEEL_calibration_end(void);
+extern void STEERWHEEL_calibration_save(void);
 
 /********************************************************************
- * Aborts the calibration process for the steering wheel.
+ * @brief Restores the calibration values for the steering wheel.
+ * 
+ * This function retrieves the calibration values for the left, right, 
+ * and middle positions of the steering wheel from the storage and 
+ * sets them using the corresponding setter functions.
+ * 
+ * @note This function assumes that the calibration values have 
+ *       been previously stored in the storage.
+ * 
+ * @see STEERWHEEL_set_left
+ * @see STEERWHEEL_set_right
+ * @see STEERWHEEL_set_middle
  *******************************************************************/
-extern void STEERWHEEL_calibration_abort(void);
+extern void STEERWHEEL_calibration_restore(void);
 
 /********************************************************************
  * Stops the steering wheel and aborts any ongoing calibration process.
