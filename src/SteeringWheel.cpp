@@ -107,7 +107,7 @@ int STEERWHEEL_get_actual(void) {
 
 /********************************************************************
  * Calculates the linear value of the steering wheel position.
- * 
+ *
  * @return The linear value of the steering wheel position.
  *******************************************************************/
 int STEERWHEEL_get_linear(void) {
@@ -116,10 +116,13 @@ int STEERWHEEL_get_linear(void) {
   long middle = STEERWHEEL_get_middle();
   long right = STEERWHEEL_get_right();
 
-  if (value < middle) {
-    value = (int)map(value, left, middle, LINEAR_MIN, LINEAR_MIDDLE - 1);
-  } else {
-    value = (int)map(value, middle, right, LINEAR_MIDDLE, LINEAR_MAX);
+  if (((left < middle) && (middle < right)) ||
+      ((left > middle) && (middle > right))) {
+    if (value < middle) {
+      value = (int)map(value, left, middle, LINEAR_MIN, LINEAR_MIDDLE - 1);
+    } else {
+      value = (int)map(value, middle, right, LINEAR_MIDDLE, LINEAR_MAX);
+    }
   }
 
   value = constrain(value, LINEAR_MIN, LINEAR_MAX);

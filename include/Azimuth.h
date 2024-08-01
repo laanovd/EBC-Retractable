@@ -36,6 +36,7 @@ extern void AZIMUTH_set_high(int value);
 extern int AZIMUTH_get_middle(void);
 extern void AZIMUTH_set_middle(int value);
 extern int AZIMUTH_get_actual(void);
+extern void AZIMUTH_set_actual(int value);
 
 extern void AZIMUTH_set_steering(int value);
 extern void AZIMUTH_set_output_manual(int value);

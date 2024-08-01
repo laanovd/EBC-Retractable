@@ -442,6 +442,14 @@ static String WEBSERVER_load_html(fs::FS &fs, const char *path) {
   end = start + sizeof(PROGRAM_NAME_PLACEHOLDER) - 1;
   content = content.substring(0, start) + String(ProgramName) + content.substring(end);
 
+  // Program version
+  #define PROGRAM_VERSION_PLACEHOLDER "<span id=\"program_version\">-</span>"
+  start = content.indexOf(PROGRAM_VERSION_PLACEHOLDER);
+  if (start < 0)
+    return content;
+  end = start + sizeof(PROGRAM_VERSION_PLACEHOLDER) - 1;
+  content = content.substring(0, start) + String(ProgramVersion) + content.substring(end);
+
   // Chip id
   #define CHIP_ID_PLACEHOLDER "<span id=\"chip_id\">-</span>"
   start = content.indexOf(CHIP_ID_PLACEHOLDER);

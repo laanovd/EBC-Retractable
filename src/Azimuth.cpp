@@ -236,13 +236,24 @@ void AZIMUTH_set_middle(int value) {
   if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     AZIMUTH_data[JSON_AZIMUTH_MIDDLE] = value;
     STORAGE_set_int(JSON_AZIMUTH_MIDDLE, value);
-    AZIMUTH_set_steering(AZIMUTH_get_manual());  // Recalculate
+    AZIMUTH_set_steering(value);  // Recalculate
   }
 }
 
 int AZIMUTH_get_actual(void) {
-  // return AZIMUTH_get_right_output();
   return AZIMUTH_data[JSON_AZIMUTH_ACTUAL].as<int>();
+}
+
+void AZIMUTH_set_actual(int value) {
+  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = value;
+  AZIMUTH_set_steering(value);  // Recalculate
+}
+
+void AZIMUTH_set_manual(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
+    AZIMUTH_set_steering(value); // 
+  }
 }
 
 int AZIMUTH_get_manual(void) {
@@ -262,13 +273,6 @@ void AZIMUTH_set_timeout(int value) {
   }
 }
 
-void AZIMUTH_set_manual(int value) {
-  if ((value >= 0) && (value <= 4096)) {
-    AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
-    AZIMUTH_set_steering(value);
-  }
-}
-
 /********************************************************************
  * Sets the steering value for the azimuth control.
  *
@@ -284,20 +288,20 @@ void AZIMUTH_set_manual(int value) {
  *******************************************************************/
 void AZIMUTH_set_steering(int value) {
   long left = AZIMUTH_get_low();
+  long middle = AZIMUTH_get_middle();
   long right = AZIMUTH_get_high();
 
-  long middle = left + ((right - left) / 2); // TODO: Add setting middle to GUI
-
-  if (value < LINEAR_MIDDLE) {
-    value = map(value, LINEAR_MIN, LINEAR_MIDDLE, left, middle);
-  } else {
-    value = map(value, LINEAR_MIDDLE, LINEAR_MAX, middle, right);
+  if (((left < middle) && (middle < right)) ||
+      ((left > middle) && (middle > right))) {
+    if (value < LINEAR_MIDDLE) {
+      value = map(value, LINEAR_MIN, LINEAR_MIDDLE, left, middle);
+    } else {
+      value = map(value, LINEAR_MIDDLE, LINEAR_MAX, middle, right);
+    }
   }
+
   value = constrain(value, DAC_MIN, DAC_MAX);  // range from 0...4095
-
   AZIMUTH_set_right_output(value);
-
-  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = value;
 
 #ifdef ENABLE_LEFT_OUTPUT
   AZIMUTH_set_left_output(value);

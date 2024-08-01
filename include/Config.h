@@ -1,23 +1,14 @@
 /*******************************************************************
  *  EBC-e Retractable Control Unit (RCU) - Config.h
  *
- * @versions: 0.2.00 2024-07-31
+ * @versions: A0.2.00 2024-07-31
  * - initial version.
  * 
- * @versions: 0.3.00 2024-08-01
- * - Linearisation of steering wheel to azimuth. 
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * @versions: A0.3.00 2024-08-01
+ * - Add dounble linearisation of steering wheel / azimuth.
+ * - Add version to main web-page.
+ * - Add actual azumith edit field, and keep in sync with manual slider.
+ * - Turn of blinking error led.
  *
  *
  *******************************************************************/
@@ -28,7 +19,7 @@
  * Program name and version definitions
  *******************************************************************/
 #define ProgramName "EBC-Retractable"   // Program name
-#define ProgramVersion "v0.3"           // Program version
+#define ProgramVersion "A0.3"           // Program version
 #define ProgramTitle "EBC-RCU"          // Title Web interface
 #define WiFiSSIDPrefix "EBC-E"          // Wifi ssid name
 #define PCBVersion "RCU v0.3"           // Hardware version
