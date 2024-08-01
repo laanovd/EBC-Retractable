@@ -336,24 +336,42 @@
         <div
           class="grid grid-flow-row auto-rows-max grid-cols-2 md:grid-cols-3 gap-4"
         >
-          <div class="flex flex-col">
-            <label for="azimuth_low">Low</label>
-            <div class="flex w-full">
-              <input
-                type="number"
-                name="azimuth_low"
-                id="azimuth_low"
-                step="1"
-                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
-                min="0"
-                max="4095"
-                value="0"
-              />
-              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
-                >counts</span
-              >
-            </div>
+        <div class="flex flex-col">
+          <label for="azimuth_low">Low</label>
+          <div class="flex w-full">
+            <input
+              type="number"
+              name="azimuth_low"
+              id="azimuth_low"
+              step="1"
+              class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
+              min="0"
+              max="4095"
+              value="0"
+            />
+            <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+              >counts</span
+            >
           </div>
+        </div>
+        <div class="flex flex-col">
+          <label for="azimuth_low">middle</label>
+          <div class="flex w-full">
+            <input
+              type="number"
+              name="azimuth_middle"
+              id="azimuth_middle"
+              step="1"
+              class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
+              min="0"
+              max="4095"
+              value="0"
+            />
+            <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+              >counts</span
+            >
+          </div>
+        </div>
           <div class="flex flex-col">
             <label for="azimuth_high">High</label>
             <div class="flex w-full">

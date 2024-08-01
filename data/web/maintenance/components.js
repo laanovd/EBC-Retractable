@@ -134,6 +134,7 @@ document.addEventListener(
     INIT_toggle("dmc_enabled", "dmc_enabled");
 
     INIT_number_input("azimuth_low", "azimuth_low_counts");
+    INIT_number_input("azimuth_middle", "azimuth_middle_counts");
     INIT_number_input("azimuth_high", "azimuth_high_counts");
     INIT_number_input("azimuth_actual", "azimuth_actual_counts");
     INIT_number_input("azimuth_timeout", "azimuth_timeout_to_the_middle");
