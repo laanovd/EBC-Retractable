@@ -90,7 +90,7 @@ static void STEERWHEEL_update(void) {
   array[ndx] = analogRead(STEER_WHEEL_ANALOG_CHANNEL);
   sum += array[ndx];
 
-  value = constrain(sum / MAX_AVERAGE, ADC_MAX, ADC_MIN);
+  value = constrain(sum / MAX_AVERAGE, ADC_MIN, ADC_MAX);
   STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL] = value;
 }
 
@@ -319,8 +319,7 @@ static void STEERINGWHEEL_setup_tasks(void) {
  * GPIO setup
  *******************************************************************/
 static void STEERINGWHEEL_setup_gpio(void) {
-  // analogReadResolution(12);
-  pinMode(STEER_WHEEL_ANALOG_CHANNEL, INPUT);
+  analogReadResolution(12);
 }
 
 /*******************************************************************
