@@ -54,9 +54,6 @@ static JsonDocument AZIMUTH_data;
  * Create initial JSON data
  *******************************************************************/
 static JsonDocument AZIMUTH_json(void) {
-  float f;
-  int i;
-
   AZIMUTH_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
   AZIMUTH_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
@@ -325,7 +322,7 @@ static void clicb_handler(cmd *c) {
   if (strArg.equalsIgnoreCase("low")) {
     int val = cmd.getArg(1).getValue().toInt();
     if ((val < DAC_MIN) || (val > DAC_MAX)) {
-      CLI_println("Illegal value, range: 400 ... 4096 counts.");
+      CLI_println("Illegal value, range: 0 ... 4096 counts.");
       return;
     }
     STORAGE_set_int(JSON_AZIMUTH_LOW, val);
@@ -335,20 +332,20 @@ static void clicb_handler(cmd *c) {
   if (strArg.equalsIgnoreCase("high")) {
     int val = cmd.getArg(1).getValue().toInt();
     if ((val < DAC_MIN) || (val > DAC_MAX)) {
-      CLI_println("Illegal value, range: 4000 ... 4096 counts.");
+      CLI_println("Illegal value, range: 0 ... 4096 counts.");
       return;
     }
-    STORAGE_set_float(JSON_AZIMUTH_HIGH, val);
+    STORAGE_set_int(JSON_AZIMUTH_HIGH, val);
     CLI_println("Azimuth high limit has been set to " + String(val) + " counts.");
   }
 
   if (strArg.equalsIgnoreCase("middle")) {
     int val = cmd.getArg(1).getValue().toInt();
     if ((val < DAC_MIN) || (val > DAC_MAX)) {
-      CLI_println("Illegal value, range: 400 ... 4096 counts.");
+      CLI_println("Illegal value, range: 0 ... 4096 counts.");
       return;
     }
-    STORAGE_set_float(JSON_AZIMUTH_MIDDLE, val);
+    STORAGE_set_int(JSON_AZIMUTH_MIDDLE, val);
     CLI_println("Azimuth middle has been set to " + String(val) + " counts.");
   }
 
@@ -426,6 +423,13 @@ static void AZIMUTH_setup_variables(void) {
     STORAGE_set_int(JSON_AZIMUTH_LOW, value);
   }
   AZIMUTH_data[JSON_AZIMUTH_LOW] = value;
+
+  if (STORAGE_get_int(JSON_AZIMUTH_MIDDLE, value)) {
+    value = (DAC_MIN + DAC_MAX) / 2;
+    STORAGE_set_int(JSON_AZIMUTH_MIDDLE, value);
+  }
+  AZIMUTH_data[JSON_AZIMUTH_MIDDLE] = value;
+
 
   if (STORAGE_get_int(JSON_AZIMUTH_HIGH, value)) {
     value = DAC_MAX;
