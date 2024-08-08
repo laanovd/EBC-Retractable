@@ -138,7 +138,7 @@ String MAINTENANCE_string(void) {
   text.concat(doc[JSON_MAINTENANCE_ENABLED].as<bool>() ? "YES" : "NO");
 
   text.concat("\r\nEmergency stop: ");
-  text.concat(doc[JSON_MAINTENANCE_ENABLED].as<bool>() ? "OK" : "STOP");
+  text.concat(doc[JSON_EMERGENCY_STOP].as<bool>() ? "OK" : "STOP");
 
   text.concat("\r\nLift enabled: ");
   text.concat(doc[JSON_LIFT_ENABLED].as<bool>() ? "YES" : "NO");
@@ -343,6 +343,7 @@ static void MAINTENANCE_lift_homing(void) {
 
 static void MAINTENANCE_set_actual_and_manual(int value) {
   AZIMUTH_set_actual(value);
+  AZIMUTH_set_steering(value);
   maintenance_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
   WEBSOCKET_send(JSON_AZIMUTH_ACTUAL, maintenance_data);
   AZIMUTH_set_manual(value);
@@ -414,10 +415,10 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Maintenance mode activate */
   if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
     if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true) {
-      // CONTROLLER_request_maintenance();
-      MAINTENANCE_enable();  // Temporary
-    } else
+      CONTROLLER_request_maintenance();
+    } else {
       MAINTENANCE_disable();
+    }
     handeled++;
   }
 
@@ -467,8 +468,10 @@ int MAINTENANCE_command_handler(const char *data) {
   if (doc.containsKey(JSON_AZIMUTH_ENABLED)) {
     if (doc[JSON_AZIMUTH_ENABLED].as<bool>() == true)
       MAINTENANCE_azimuth_enable();
-    else
+    else {
       AZIMUTH_disable();
+      AZIMUTH_analog_disable();
+    }
     handeled++;
   }
 

@@ -406,7 +406,7 @@ static void CONTROLLER_update_steering() {
 
       long value = STEERWHEEL_get_linear();
       AZIMUTH_set_steering(value);
-
+      AZIMUTH_set_actual(value);
     }
   }
 }
@@ -422,6 +422,7 @@ static void CONTROLLER_main_task(void *parameter) {
 
     if (!MAINTENANCE_enabled()) {
       CONTROLLER_update_steering();
+      
     }
 
     vTaskDelay(200 / portTICK_PERIOD_MS);

@@ -60,16 +60,16 @@ String STEERINGWHEEL_info(void) {
   String text = "--- Steering wheel ---";
 
   text.concat("\r\nSteering wheel:  left: ");
-  text.concat(doc[JSON_STEERWHEEL_LEFT].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_LEFT].as<int>());
 
   text.concat(", right: ");
-  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<int>());
 
   text.concat(", middle: ");
-  text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<int>());
 
   text.concat("\r\nSteering wheel actual: ");
-  text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<int>());
 
   text.concat("\r\n");
   return text;
@@ -280,7 +280,7 @@ static void clicb_handler(cmd *c) {
   }
 
   if (strArg.equalsIgnoreCase("deadband")) {
-    float val = cmd.getArg(1).getValue().toInt();
+    int val = cmd.getArg(1).getValue().toInt();
     if ((val < ADC_MIN) || (val > ADC_MAX)) {
       CLI_println("Illegal value, range: 0 ... 4095 counts");
       return;
@@ -334,20 +334,20 @@ static void STEERINGWHEEL_setup_variables(void) {
   }
   STEERWHEEL_data[JSON_STEERWHEEL_LEFT] = value;
 
+  if (STORAGE_get_int(JSON_STEERWHEEL_MIDDLE, value)) {
+    value = (ADC_MIN + ADC_MAX) / 2;
+    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value);
+  }
+  STEERWHEEL_data[JSON_STEERWHEEL_MIDDLE] = value;
+
   if (STORAGE_get_int(JSON_STEERWHEEL_RIGHT, value)) {
     value = ADC_MIN;
     STORAGE_set_int(JSON_STEERWHEEL_RIGHT, value);
   }
   STEERWHEEL_data[JSON_STEERWHEEL_RIGHT] = value;
 
-  if (STORAGE_get_int(JSON_STEERWHEEL_MIDDLE, value)) {
-    value = 0;
-    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value);
-  }
-  STEERWHEEL_data[JSON_STEERWHEEL_MIDDLE] = value;
-
   if (STORAGE_get_int(JSON_STEERWHEEL_DEADBAND, value)) {
-    value = 0;
+    value = 2;
     STORAGE_set_int(JSON_STEERWHEEL_DEADBAND, value);
   }
   STEERWHEEL_data[JSON_STEERWHEEL_DEADBAND] = value;
