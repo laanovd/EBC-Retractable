@@ -83,14 +83,14 @@ String AZIMUTH_info(void) {
   text.concat("\r\nAzimuth low: ");
   text.concat(doc[JSON_AZIMUTH_LOW].as<int>());
 
-  text.concat(", high: ");
-  text.concat(doc[JSON_AZIMUTH_HIGH].as<int>());
-
   text.concat(", middle: ");
   text.concat(doc[JSON_AZIMUTH_MIDDLE].as<int>());
 
+  text.concat(", high: ");
+  text.concat(doc[JSON_AZIMUTH_HIGH].as<int>());
+
   text.concat("\r\nAzimuth actual: ");
-  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<bool>());
+  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<int>());
 
   text.concat("\r\nAzimuth delay: ");
   text.concat(doc[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE].as<int>());

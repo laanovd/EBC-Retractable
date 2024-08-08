@@ -62,14 +62,17 @@ String STEERINGWHEEL_info(void) {
   text.concat("\r\nSteering wheel:  left: ");
   text.concat(doc[JSON_STEERWHEEL_LEFT].as<int>());
 
-  text.concat(", right: ");
-  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<int>());
-
   text.concat(", middle: ");
   text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<int>());
 
+  text.concat(", right: ");
+  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<int>());
+
   text.concat("\r\nSteering wheel actual: ");
-  text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<int>());
+  text.concat(doc[JSON_STEERWHEEL_ACTUAL].as<int>());
+
+  text.concat("\r\nMiddle deadband: ");
+  text.concat(doc[JSON_STEERWHEEL_DEADBAND].as<int>());
 
   text.concat("\r\n");
   return text;

@@ -129,7 +129,7 @@ static void I2C_init(void) {
 
   PCF8574_address = 0;
   MCP4725_R_address = 0;
-  MCP4725_R_address = 0;
+  MCP4725_L_address = 0;
 
   if (I2C_setup(SDA0, SCL0)) {
     if (I2C_scan(list, sizeof(list)) == 2) {
