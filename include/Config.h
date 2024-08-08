@@ -19,7 +19,7 @@
  * Program name and version definitions
  *******************************************************************/
 #define ProgramName "EBC-Retractable"   // Program name
-#define ProgramVersion "A0.3"           // Program version
+#define ProgramVersion "A0.4"           // Program version
 #define ProgramTitle "EBC-RCU"          // Title Web interface
 #define WiFiSSIDPrefix "EBC-E"          // Wifi ssid name
 #define PCBVersion "RCU v0.3"           // Hardware version
