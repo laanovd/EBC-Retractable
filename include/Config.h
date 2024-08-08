@@ -10,6 +10,16 @@
  * - Add actual azumith edit field, and keep in sync with manual slider.
  * - Turn of blinking error led.
  *
+ * @versions: A0.4.00 2024-08-08
+ * - Change minimum ADC from 400 to 0.
+ * - Add I2C addresses to system information in CLI.
+ * - Fix enable/disable manintenance mode
+ * - Fix showing asimzuth actual value
+ * - Change Steerwheel actual text in Raw in maintenace screen.
+ * - Code cleanup
+ * 
+ * @versions: A0.5.00 2024-xx-xx
+ * - ...
  *
  *******************************************************************/
 #ifndef CONFIG_HEADER_ID
