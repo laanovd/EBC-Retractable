@@ -69,6 +69,13 @@ static void clicb_system(cmd *c) {
   text.concat(", Free memory(kB): ");
   text.concat((ESP.getFreeHeap() / 1024));
 
+  text.concat("\r\nDAC address (PCF8574): 0x");
+  text.concat(String(PCF8574_address, HEX));
+  text.concat("\r\nADC address (MCP4725) right: 0x");
+  text.concat(String(MCP4725_R_address, HEX));
+  text.concat(", left: 0x");
+  text.concat(String(MCP4725_L_address, HEX));
+  
   text.concat("\r\n");
   CLI_println(text);
 }

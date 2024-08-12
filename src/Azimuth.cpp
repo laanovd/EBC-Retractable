@@ -54,9 +54,6 @@ static JsonDocument AZIMUTH_data;
  * Create initial JSON data
  *******************************************************************/
 static JsonDocument AZIMUTH_json(void) {
-  float f;
-  int i;
-
   AZIMUTH_data[JSON_AZIMUTH_ENABLED] = AZIMUTH_enabled();
   AZIMUTH_data[JSON_AZIMUTH_HOME] = AZIMUTH_home();
 
@@ -86,14 +83,14 @@ String AZIMUTH_info(void) {
   text.concat("\r\nAzimuth low: ");
   text.concat(doc[JSON_AZIMUTH_LOW].as<int>());
 
-  text.concat(", high: ");
-  text.concat(doc[JSON_AZIMUTH_HIGH].as<int>());
-
   text.concat(", middle: ");
   text.concat(doc[JSON_AZIMUTH_MIDDLE].as<int>());
 
+  text.concat(", high: ");
+  text.concat(doc[JSON_AZIMUTH_HIGH].as<int>());
+
   text.concat("\r\nAzimuth actual: ");
-  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<bool>());
+  text.concat(doc[JSON_AZIMUTH_ACTUAL].as<int>());
 
   text.concat("\r\nAzimuth delay: ");
   text.concat(doc[JSON_AZIMUTH_TIMEOUT_TO_MIDDLE].as<int>());
@@ -236,13 +233,24 @@ void AZIMUTH_set_middle(int value) {
   if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     AZIMUTH_data[JSON_AZIMUTH_MIDDLE] = value;
     STORAGE_set_int(JSON_AZIMUTH_MIDDLE, value);
-    AZIMUTH_set_steering(AZIMUTH_get_manual());  // Recalculate
+    AZIMUTH_set_steering(value);  // Recalculate
   }
 }
 
 int AZIMUTH_get_actual(void) {
-  // return AZIMUTH_get_right_output();
   return AZIMUTH_data[JSON_AZIMUTH_ACTUAL].as<int>();
+}
+
+void AZIMUTH_set_actual(int value) {
+  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = value;
+  AZIMUTH_set_steering(value);  // Recalculate
+}
+
+void AZIMUTH_set_manual(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
+    AZIMUTH_set_steering(value); // 
+  }
 }
 
 int AZIMUTH_get_manual(void) {
@@ -262,13 +270,6 @@ void AZIMUTH_set_timeout(int value) {
   }
 }
 
-void AZIMUTH_set_manual(int value) {
-  if ((value >= 0) && (value <= 4096)) {
-    AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
-    AZIMUTH_set_steering(value);
-  }
-}
-
 /********************************************************************
  * Sets the steering value for the azimuth control.
  *
@@ -284,20 +285,20 @@ void AZIMUTH_set_manual(int value) {
  *******************************************************************/
 void AZIMUTH_set_steering(int value) {
   long left = AZIMUTH_get_low();
+  long middle = AZIMUTH_get_middle();
   long right = AZIMUTH_get_high();
 
-  long middle = left + ((right - left) / 2); // TODO: Add setting middle to GUI
-
-  if (value < LINEAR_MIDDLE) {
-    value = map(value, LINEAR_MIN, LINEAR_MIDDLE, left, middle);
-  } else {
-    value = map(value, LINEAR_MIDDLE, LINEAR_MAX, middle, right);
+  if (((left < middle) && (middle < right)) ||
+      ((left > middle) && (middle > right))) {
+    if (value < LINEAR_MIDDLE) {
+      value = map(value, LINEAR_MIN, LINEAR_MIDDLE, left, middle);
+    } else {
+      value = map(value, LINEAR_MIDDLE, LINEAR_MAX, middle, right);
+    }
   }
+
   value = constrain(value, DAC_MIN, DAC_MAX);  // range from 0...4095
-
   AZIMUTH_set_right_output(value);
-
-  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = value;
 
 #ifdef ENABLE_LEFT_OUTPUT
   AZIMUTH_set_left_output(value);
@@ -321,7 +322,7 @@ static void clicb_handler(cmd *c) {
   if (strArg.equalsIgnoreCase("low")) {
     int val = cmd.getArg(1).getValue().toInt();
     if ((val < DAC_MIN) || (val > DAC_MAX)) {
-      CLI_println("Illegal value, range: 400 ... 4096 counts.");
+      CLI_println("Illegal value, range: 0 ... 4096 counts.");
       return;
     }
     STORAGE_set_int(JSON_AZIMUTH_LOW, val);
@@ -331,20 +332,20 @@ static void clicb_handler(cmd *c) {
   if (strArg.equalsIgnoreCase("high")) {
     int val = cmd.getArg(1).getValue().toInt();
     if ((val < DAC_MIN) || (val > DAC_MAX)) {
-      CLI_println("Illegal value, range: 4000 ... 4096 counts.");
+      CLI_println("Illegal value, range: 0 ... 4096 counts.");
       return;
     }
-    STORAGE_set_float(JSON_AZIMUTH_HIGH, val);
+    STORAGE_set_int(JSON_AZIMUTH_HIGH, val);
     CLI_println("Azimuth high limit has been set to " + String(val) + " counts.");
   }
 
   if (strArg.equalsIgnoreCase("middle")) {
     int val = cmd.getArg(1).getValue().toInt();
     if ((val < DAC_MIN) || (val > DAC_MAX)) {
-      CLI_println("Illegal value, range: 400 ... 4096 counts.");
+      CLI_println("Illegal value, range: 0 ... 4096 counts.");
       return;
     }
-    STORAGE_set_float(JSON_AZIMUTH_MIDDLE, val);
+    STORAGE_set_int(JSON_AZIMUTH_MIDDLE, val);
     CLI_println("Azimuth middle has been set to " + String(val) + " counts.");
   }
 
@@ -422,6 +423,13 @@ static void AZIMUTH_setup_variables(void) {
     STORAGE_set_int(JSON_AZIMUTH_LOW, value);
   }
   AZIMUTH_data[JSON_AZIMUTH_LOW] = value;
+
+  if (STORAGE_get_int(JSON_AZIMUTH_MIDDLE, value)) {
+    value = (DAC_MIN + DAC_MAX) / 2;
+    STORAGE_set_int(JSON_AZIMUTH_MIDDLE, value);
+  }
+  AZIMUTH_data[JSON_AZIMUTH_MIDDLE] = value;
+
 
   if (STORAGE_get_int(JSON_AZIMUTH_HIGH, value)) {
     value = DAC_MAX;

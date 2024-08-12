@@ -60,16 +60,19 @@ String STEERINGWHEEL_info(void) {
   String text = "--- Steering wheel ---";
 
   text.concat("\r\nSteering wheel:  left: ");
-  text.concat(doc[JSON_STEERWHEEL_LEFT].as<float>());
-
-  text.concat(", right: ");
-  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_LEFT].as<int>());
 
   text.concat(", middle: ");
-  text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<int>());
+
+  text.concat(", right: ");
+  text.concat(doc[JSON_STEERWHEEL_RIGHT].as<int>());
 
   text.concat("\r\nSteering wheel actual: ");
-  text.concat(doc[JSON_STEERWHEEL_MIDDLE].as<float>());
+  text.concat(doc[JSON_STEERWHEEL_ACTUAL].as<int>());
+
+  text.concat("\r\nMiddle deadband: ");
+  text.concat(doc[JSON_STEERWHEEL_DEADBAND].as<int>());
 
   text.concat("\r\n");
   return text;
@@ -90,7 +93,7 @@ static void STEERWHEEL_update(void) {
   array[ndx] = analogRead(STEER_WHEEL_ANALOG_CHANNEL);
   sum += array[ndx];
 
-  value = constrain(sum / MAX_AVERAGE, ADC_MAX, ADC_MIN);
+  value = constrain(sum / MAX_AVERAGE, ADC_MIN, ADC_MAX);
   STEERWHEEL_data[JSON_STEERWHEEL_ACTUAL] = value;
 }
 
@@ -107,7 +110,7 @@ int STEERWHEEL_get_actual(void) {
 
 /********************************************************************
  * Calculates the linear value of the steering wheel position.
- * 
+ *
  * @return The linear value of the steering wheel position.
  *******************************************************************/
 int STEERWHEEL_get_linear(void) {
@@ -116,10 +119,13 @@ int STEERWHEEL_get_linear(void) {
   long middle = STEERWHEEL_get_middle();
   long right = STEERWHEEL_get_right();
 
-  if (value < middle) {
-    value = (int)map(value, left, middle, LINEAR_MIN, LINEAR_MIDDLE - 1);
-  } else {
-    value = (int)map(value, middle, right, LINEAR_MIDDLE, LINEAR_MAX);
+  if (((left < middle) && (middle < right)) ||
+      ((left > middle) && (middle > right))) {
+    if (value < middle) {
+      value = (int)map(value, left, middle, LINEAR_MIN, LINEAR_MIDDLE - 1);
+    } else {
+      value = (int)map(value, middle, right, LINEAR_MIDDLE, LINEAR_MAX);
+    }
   }
 
   value = constrain(value, LINEAR_MIN, LINEAR_MAX);
@@ -277,7 +283,7 @@ static void clicb_handler(cmd *c) {
   }
 
   if (strArg.equalsIgnoreCase("deadband")) {
-    float val = cmd.getArg(1).getValue().toInt();
+    int val = cmd.getArg(1).getValue().toInt();
     if ((val < ADC_MIN) || (val > ADC_MAX)) {
       CLI_println("Illegal value, range: 0 ... 4095 counts");
       return;
@@ -316,8 +322,7 @@ static void STEERINGWHEEL_setup_tasks(void) {
  * GPIO setup
  *******************************************************************/
 static void STEERINGWHEEL_setup_gpio(void) {
-  // analogReadResolution(12);
-  pinMode(STEER_WHEEL_ANALOG_CHANNEL, INPUT);
+  analogReadResolution(12);
 }
 
 /*******************************************************************
@@ -332,20 +337,20 @@ static void STEERINGWHEEL_setup_variables(void) {
   }
   STEERWHEEL_data[JSON_STEERWHEEL_LEFT] = value;
 
+  if (STORAGE_get_int(JSON_STEERWHEEL_MIDDLE, value)) {
+    value = (ADC_MIN + ADC_MAX) / 2;
+    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value);
+  }
+  STEERWHEEL_data[JSON_STEERWHEEL_MIDDLE] = value;
+
   if (STORAGE_get_int(JSON_STEERWHEEL_RIGHT, value)) {
     value = ADC_MIN;
     STORAGE_set_int(JSON_STEERWHEEL_RIGHT, value);
   }
   STEERWHEEL_data[JSON_STEERWHEEL_RIGHT] = value;
 
-  if (STORAGE_get_int(JSON_STEERWHEEL_MIDDLE, value)) {
-    value = 0;
-    STORAGE_set_int(JSON_STEERWHEEL_MIDDLE, value);
-  }
-  STEERWHEEL_data[JSON_STEERWHEEL_MIDDLE] = value;
-
   if (STORAGE_get_int(JSON_STEERWHEEL_DEADBAND, value)) {
-    value = 0;
+    value = 2;
     STORAGE_set_int(JSON_STEERWHEEL_DEADBAND, value);
   }
   STEERWHEEL_data[JSON_STEERWHEEL_DEADBAND] = value;

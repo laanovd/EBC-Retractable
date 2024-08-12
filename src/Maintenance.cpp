@@ -73,6 +73,7 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = false;
 
   maintenance_data[JSON_AZIMUTH_LOW] = 0;
+  maintenance_data[JSON_AZIMUTH_MIDDLE] = 0;
   maintenance_data[JSON_AZIMUTH_HIGH] = 0;
   maintenance_data[JSON_AZIMUTH_MANUAL] = 0;
 
@@ -107,6 +108,7 @@ static JsonDocument MAINTENANCE_json(void) {
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = AZIMUTH_analog_enabled();
 
   maintenance_data[JSON_AZIMUTH_LOW] = AZIMUTH_get_low();
+  maintenance_data[JSON_AZIMUTH_MIDDLE] = AZIMUTH_get_middle();
   maintenance_data[JSON_AZIMUTH_HIGH] = AZIMUTH_get_high();
   maintenance_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
 
@@ -136,7 +138,7 @@ String MAINTENANCE_string(void) {
   text.concat(doc[JSON_MAINTENANCE_ENABLED].as<bool>() ? "YES" : "NO");
 
   text.concat("\r\nEmergency stop: ");
-  text.concat(doc[JSON_MAINTENANCE_ENABLED].as<bool>() ? "OK" : "STOP");
+  text.concat(doc[JSON_EMERGENCY_STOP].as<bool>() ? "OK" : "STOP");
 
   text.concat("\r\nLift enabled: ");
   text.concat(doc[JSON_LIFT_ENABLED].as<bool>() ? "YES" : "NO");
@@ -339,6 +341,16 @@ static void MAINTENANCE_lift_homing(void) {
   }
 }
 
+static void MAINTENANCE_set_actual_and_manual(int value) {
+  AZIMUTH_set_actual(value);
+  AZIMUTH_set_steering(value);
+  maintenance_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
+  WEBSOCKET_send(JSON_AZIMUTH_ACTUAL, maintenance_data);
+  AZIMUTH_set_manual(value);
+  maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_actual();
+  WEBSOCKET_send(JSON_AZIMUTH_MANUAL, maintenance_data);
+}
+
 /********************************************************************
  * Updates the maintenance state of the lift.
  * If the lift is moving up and the up sensor is triggered, turns off the lift.
@@ -403,10 +415,10 @@ int MAINTENANCE_command_handler(const char *data) {
   /* Maintenance mode activate */
   if (doc.containsKey(JSON_MAINTENANCE_ENABLED)) {
     if (doc[JSON_MAINTENANCE_ENABLED].as<bool>() == true) {
-      // CONTROLLER_request_maintenance();
-      MAINTENANCE_enable();  // Temporary
-    } else
+      CONTROLLER_request_maintenance();
+    } else {
       MAINTENANCE_disable();
+    }
     handeled++;
   }
 
@@ -456,8 +468,10 @@ int MAINTENANCE_command_handler(const char *data) {
   if (doc.containsKey(JSON_AZIMUTH_ENABLED)) {
     if (doc[JSON_AZIMUTH_ENABLED].as<bool>() == true)
       MAINTENANCE_azimuth_enable();
-    else
+    else {
       AZIMUTH_disable();
+      AZIMUTH_analog_disable();
+    }
     handeled++;
   }
 
@@ -478,11 +492,25 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
+  /* Azimuth set MIDDLE counts */
+  if (doc.containsKey(JSON_AZIMUTH_MIDDLE)) {
+    AZIMUTH_set_middle(doc[JSON_AZIMUTH_MIDDLE].as<int>());
+    maintenance_data[JSON_AZIMUTH_MIDDLE] = AZIMUTH_get_middle();
+    WEBSOCKET_send(JSON_AZIMUTH_MIDDLE, maintenance_data);
+    handeled++;
+  }
+
   /* Azimuth set RIGHT counts */
   if (doc.containsKey(JSON_AZIMUTH_HIGH)) {
     AZIMUTH_set_high(doc[JSON_AZIMUTH_HIGH].as<int>());
     maintenance_data[JSON_AZIMUTH_HIGH] = AZIMUTH_get_high();
     WEBSOCKET_send(JSON_AZIMUTH_HIGH, maintenance_data);
+    handeled++;
+  }
+
+  /* Azimuth ACTUAL (counts) */
+  if (doc.containsKey(JSON_AZIMUTH_ACTUAL)) {
+    MAINTENANCE_set_actual_and_manual(doc[JSON_AZIMUTH_ACTUAL].as<int>());
     handeled++;
   }
 
@@ -493,11 +521,9 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
-  /* Azimuth manual control (%) */
+  /* Azimuth manual control (counts) */
   if (doc.containsKey(JSON_AZIMUTH_MANUAL)) {
-    AZIMUTH_set_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
-    maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_manual();
-    WEBSOCKET_send(JSON_AZIMUTH_MANUAL, maintenance_data);
+    MAINTENANCE_set_actual_and_manual(doc[JSON_AZIMUTH_MANUAL].as<int>());
     handeled++;
   }
 
