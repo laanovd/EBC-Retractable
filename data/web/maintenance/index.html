@@ -108,12 +108,9 @@
               <span>Maintenance Enable</span>
             </label>
           </div>
-          <a
-            class="rounded bg-slate-200 text-slate-500 p-2 px-4"
-            href="/"
-          >
+          <a class="rounded bg-slate-200 text-slate-500 p-2 px-4" href="/">
             Back
-        </a>
+          </a>
         </div>
 
         <hr />
@@ -336,42 +333,42 @@
         <div
           class="grid grid-flow-row auto-rows-max grid-cols-2 md:grid-cols-3 gap-4"
         >
-        <div class="flex flex-col">
-          <label for="azimuth_low">Low</label>
-          <div class="flex w-full">
-            <input
-              type="number"
-              name="azimuth_low"
-              id="azimuth_low"
-              step="1"
-              class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
-              min="0"
-              max="4095"
-              value="0"
-            />
-            <span class="rounded-r bg-slate-300 text-slate-400 px-2"
-              >counts</span
-            >
+          <div class="flex flex-col">
+            <label for="azimuth_low">Low</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="azimuth_low"
+                id="azimuth_low"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
+                min="0"
+                max="4095"
+                value="0"
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >counts</span
+              >
+            </div>
           </div>
-        </div>
-        <div class="flex flex-col">
-          <label for="azimuth_low">middle</label>
-          <div class="flex w-full">
-            <input
-              type="number"
-              name="azimuth_middle"
-              id="azimuth_middle"
-              step="1"
-              class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
-              min="0"
-              max="4095"
-              value="0"
-            />
-            <span class="rounded-r bg-slate-300 text-slate-400 px-2"
-              >counts</span
-            >
+          <div class="flex flex-col">
+            <label for="azimuth_low">middle</label>
+            <div class="flex w-full">
+              <input
+                type="number"
+                name="azimuth_middle"
+                id="azimuth_middle"
+                step="1"
+                class="w-20 border border-gray-200 rounded-l flex-1 mt_only"
+                min="0"
+                max="4095"
+                value="0"
+              />
+              <span class="rounded-r bg-slate-300 text-slate-400 px-2"
+                >counts</span
+              >
+            </div>
           </div>
-        </div>
           <div class="flex flex-col">
             <label for="azimuth_high">High</label>
             <div class="flex w-full">
@@ -426,28 +423,33 @@
               >
             </div>
           </div>
+          <div class="flex flex-col">
+            <label for="save_azimuth_calibration">Calibration</label>
+            <div class="flex flex-row rounded-md shadow-sm text-sm h-full" role="group">
+              <button
+                type="button"
+                name="save_azimuth_calibration"
+                id="save_azimuth_calibration"
+                class="rounded-s bg-slate-200 text-slate-500 mt_only flex-1 h-full border border-gray-300"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                name="restore_steeringwheel_calibration"
+                id="restore_steeringwheel_calibration"
+                class="rounded-r bg-slate-200 text-slate-500 mt_only flex-1 border border-gray-300 h-full"
+              >
+                Restore
+              </button>
+            </div>
+          </div>
         </div>
 
         <hr />
 
         <div class="flex">
           <h2 class="flex-1 text-lg font-bold">Steeringwheel</h2>
-        </div>
-        <div class="flex">
-          <div class="flex-1">
-            <button
-              class="rounded bg-slate-200 text-slate-500 p-2 px-4 mt_only"
-              onclick="save_calibration()"
-            >
-              Save calibration
-            </button>
-            <button
-              class="rounded bg-slate-200 text-slate-500 p-2 px-4 mt_only"
-              onclick="restore_calibration()"
-            >
-              Restore calibration
-            </button>
-          </div>
         </div>
 
         <div class="grid grid-flow-row grid-cols-2 md:grid-cols-3 gap-4">
@@ -524,6 +526,28 @@
               <span class="rounded-r bg-slate-300 text-slate-400 px-2"
                 >counts</span
               >
+            </div>
+          </div>
+          <div></div>
+          <div class="flex flex-col">
+            <label for="save_steeringwheel_calibration">Calibration</label>
+            <div class="flex flex-row rounded-md shadow-sm text-sm h-full" role="group">
+              <button
+                type="button"
+                name="save_steeringwheel_calibration"
+                id="save_steeringwheel_calibration"
+                class="rounded-s bg-slate-200 text-slate-500 mt_only flex-1 h-full border border-gray-300"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                name="restore_steeringwheel_calibration"
+                id="restore_steeringwheel_calibration"
+                class="rounded-r bg-slate-200 text-slate-500 mt_only flex-1 border border-gray-300 h-full"
+              >
+                Restore
+              </button>
             </div>
           </div>
         </div>

@@ -94,14 +94,6 @@ function INIT_steering() {
   });
 }
 
-// Steering calibration
-function save_calibration() {
-    sendCommand(`{"save_steeringwheel_calibration":true}`);
-}
-function restore_calibration() {
-    sendCommand(`{"restore_steeringwheel_calibration":true}`);
-}
-
 // Maintenance button
 function INIT_maintenance_button() {
   const elm = document.querySelector(`#maintenance_enabled`);
@@ -141,6 +133,10 @@ document.addEventListener(
     INIT_toggle("azimuth_homing", "azimuth_homing");
     INIT_toggle("azimuth_enabled", "azimuth_enabled");
     INIT_toggle("output_enabled", "azimuth_analog_out_enabled");
+    INIT_toggle("save_steeringwheel_calibration", "save_steeringwheel_calibration");
+    INIT_toggle("restore_steeringwheel_calibration", "restore_steeringwheel_calibration");
+    INIT_toggle("save_azimuth_calibration", "save_azimuth_calibration");
+    INIT_toggle("restore_azimuth_calibration", "restore_azimuth_calibration");
 
     INIT_indicator(
       "emergency_stop_indicator",
