@@ -35,6 +35,7 @@ function INIT_toggle(elm_id, json_key) {
   elm.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if(elm.classList.contains("mt_only") && !maintenance_enabled) return;
     elm.disabled = true;
     sendCommand(JSON.stringify({ [json_key]: e.target.checked ? true : false }));
     setTimeout(() => {

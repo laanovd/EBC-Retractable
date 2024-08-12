@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="./websocket.js"></script>
     <script src="./components.js"></script>
-    <link rel="stylesheet" href="./style.css" type="text/css"></link>
+    <!-- <link rel="stylesheet" href="./style.css" type="text/css"></link> -->
     <title>RIM DRIVE TECHNOLOGY</title>
   </head>
 
@@ -423,25 +423,41 @@
               >
             </div>
           </div>
+
           <div class="flex flex-col">
-            <label for="save_azimuth_calibration">Calibration</label>
-            <div class="flex flex-row rounded-md shadow-sm text-sm h-full" role="group">
-              <button
-                type="button"
-                name="save_azimuth_calibration"
-                id="save_azimuth_calibration"
-                class="rounded-s bg-slate-200 text-slate-500 mt_only flex-1 h-full border border-gray-300"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                name="restore_steeringwheel_calibration"
-                id="restore_steeringwheel_calibration"
-                class="rounded-r bg-slate-200 text-slate-500 mt_only flex-1 border border-gray-300 h-full"
-              >
-                Restore
-              </button>
+            <label for="save_steeringwheel_calibration">Calibration</label>
+            <div
+              class="flex flex-row rounded-md shadow-sm text-sm h-full"
+              role="group"
+            >
+              <div class="group flex-1 flex">
+                <input
+                  type="checkbox"
+                  name="save_azimuth_calibration"
+                  id="save_azimuth_calibration"
+                  class="hidden"
+                />
+                <label
+                  class="w-full rounded-s bg-slate-200 text-slate-500 mt_only border text-center border-slate-300 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                  for="save_azimuth_calibration"
+                >
+                  <span>Save</span>
+                </label>
+              </div>
+              <div class="group flex-1 flex">
+                <input
+                  type="checkbox"
+                  name="restore_azimuth_calibration"
+                  id="restore_azimuth_calibration"
+                  class="hidden"
+                />
+                <label
+                  class="w-full rounded-r bg-slate-200 text-slate-500 mt_only border text-center border-slate-300 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                  for="restore_azimuth_calibration"
+                >
+                  <span>Restore</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -531,23 +547,38 @@
           <div></div>
           <div class="flex flex-col">
             <label for="save_steeringwheel_calibration">Calibration</label>
-            <div class="flex flex-row rounded-md shadow-sm text-sm h-full" role="group">
-              <button
-                type="button"
-                name="save_steeringwheel_calibration"
-                id="save_steeringwheel_calibration"
-                class="rounded-s bg-slate-200 text-slate-500 mt_only flex-1 h-full border border-gray-300"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                name="restore_steeringwheel_calibration"
-                id="restore_steeringwheel_calibration"
-                class="rounded-r bg-slate-200 text-slate-500 mt_only flex-1 border border-gray-300 h-full"
-              >
-                Restore
-              </button>
+            <div
+              class="flex flex-row rounded-md shadow-sm text-sm h-full"
+              role="group"
+            >
+              <div class="group flex-1 flex">
+                <input
+                  type="checkbox"
+                  name="save_steeringwheel_calibration"
+                  id="save_steeringwheel_calibration"
+                  class="hidden"
+                />
+                <label
+                  class="w-full rounded-s bg-slate-200 text-slate-500 mt_only border text-center border-slate-300 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                  for="save_steeringwheel_calibration"
+                >
+                  <span>Save</span>
+                </label>
+              </div>
+              <div class="group flex-1 flex">
+                <input
+                  type="checkbox"
+                  name="restore_steeringwheel_calibration"
+                  id="restore_steeringwheel_calibration"
+                  class="hidden"
+                />
+                <label
+                  class="w-full rounded-r bg-slate-200 text-slate-500 mt_only border text-center border-slate-300 group-has-[:disabled]:group-has-[:checked]:bg-emerald-200 group-has-[:checked]:bg-emerald-500 group-has-[:disabled]:bg-slate-100 group-has-[:disabled]:text-slate-300 group-has-[:checked]:text-white group-has-[:checked]:group-has-[:disabled]:text-slate-400"
+                  for="restore_steeringwheel_calibration"
+                >
+                  <span>Restore</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>
