@@ -36,7 +36,7 @@ function INIT_toggle(elm_id, json_key) {
     e.preventDefault();
     e.stopPropagation();
     elm.disabled = true;
-    sendCommand(JSON.stringify({ [json_key]: e.target.checked }));
+    sendCommand(JSON.stringify({ [json_key]: e.target.checked ? true : false }));
     setTimeout(() => {
       elm.disabled = false;
     }, 5000);
