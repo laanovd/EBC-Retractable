@@ -121,8 +121,8 @@ static void MAIN_setup(void) {
   LIFT_setup();
   DMC_setup();
   STEERINGWHEEL_setup();
-  CONTROLLER_setup();
   MAINTENANCE_setup();
+  CONTROLLER_setup();
 
   Serial.println(F("Main setup completed."));
 }
@@ -136,8 +136,8 @@ static void MAIN_start(void) {
   LIFT_start();
   DMC_start();
   STEERINGWHEEL_start();
-  CONTROLLER_start();
   MAINTENANCE_start();
+  CONTROLLER_start();
 
   MAIN_CLI_handlers();
 

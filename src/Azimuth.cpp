@@ -30,9 +30,7 @@
 #define JSON_STEERWHEEL_LEFT_DEFAULT 0.0
 #define JSON_STEERWHEEL_RIGHT_DEFAULT 5.0
 
-#define DELAY_TO_MIDDLE_DEFAULT 5
-
-#define AZIMUTH_CALIBRATION_STEP 5
+#define DELAY_TO_MIDDLE_DEFAULT 120
 
 /*******************************************************************
  * Type definitions
@@ -158,25 +156,25 @@ void AZIMUTH_disable(void) {
 #endif
 }
 
-bool AZIMUTH_enabled() {
+bool AZIMUTH_enabled(void) {
   return PCF8574_read(PCF8574_address, AZIMUTH_ENABLE_PIN);
 }
 
-bool AZIMUTH_home() {
+bool AZIMUTH_home(void) {
   return digitalRead(AZIMUTH_HOME_PIN) == HIGH;
 }
 
-void AZIMUTH_start_homing() {
+void AZIMUTH_start_homing(void) {
   PCF8574_write(PCF8574_address, AZIMUTH_START_HOMING_PIN, IO_ON);
   vTaskDelay(500 / portTICK_PERIOD_MS);
   PCF8574_write(PCF8574_address, AZIMUTH_START_HOMING_PIN, IO_OFF);
 }
 
-bool AZIMUTH_analog_enabled() {
+bool AZIMUTH_analog_enabled(void) {
   return digitalRead(AZIMUTH_ANALOG_ENABLE_PIN) == HIGH;
 }
 
-void AZIMUTH_analog_enable() {
+void AZIMUTH_analog_enable(void) {
   digitalWrite(AZIMUTH_ANALOG_ENABLE_PIN, IO_ON);
 
 #ifdef DEBUG_AZIMUTH
@@ -184,7 +182,7 @@ void AZIMUTH_analog_enable() {
 #endif
 }
 
-void AZIMUTH_analog_disable() {
+void AZIMUTH_analog_disable(void) {
   digitalWrite(AZIMUTH_ANALOG_ENABLE_PIN, IO_OFF);
 
 #ifdef DEBUG_AZIMUTH
@@ -192,48 +190,62 @@ void AZIMUTH_analog_disable() {
 #endif
 }
 
+void AZIMUTH_go_to_middle(void) {
+  AZIMUTH_analog_enable();
+  AZIMUTH_set_steering(4096/2); // 50%
+}
+
 /*******************************************************************
  * Get/Set steering
  *******************************************************************/
 int AZIMUTH_get_low(void) {
-  int value;
-  STORAGE_get_int(JSON_AZIMUTH_LOW, value);
-  return value;
+  return AZIMUTH_data[JSON_AZIMUTH_LOW].as<int>();
 }
 
 void AZIMUTH_set_low(int value) {
   if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     AZIMUTH_data[JSON_AZIMUTH_LOW] = value;
-    STORAGE_set_int(JSON_AZIMUTH_LOW, value);
     AZIMUTH_set_steering(AZIMUTH_get_manual());  // Recalculate
   }
 }
 
+void AZIMUTH_store_low(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    STORAGE_set_int(JSON_AZIMUTH_LOW, value);
+  }
+}
+
 int AZIMUTH_get_high(void) {
-  int value;
-  STORAGE_get_int(JSON_AZIMUTH_HIGH, value);
-  return value;
+  return AZIMUTH_data[JSON_AZIMUTH_HIGH].as<int>();
 }
 
 void AZIMUTH_set_high(int value) {
   if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     AZIMUTH_data[JSON_AZIMUTH_HIGH] = value;
-    STORAGE_set_int(JSON_AZIMUTH_HIGH, value);
     AZIMUTH_set_steering(AZIMUTH_get_manual());  // Recalculate
   }
 }
 
+void AZIMUTH_store_high(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    STORAGE_set_int(JSON_AZIMUTH_HIGH, value);
+  }
+}
+
 int AZIMUTH_get_middle(void) {
-  int value;
-  STORAGE_get_int(JSON_AZIMUTH_MIDDLE, value);
-  return value;
+  return AZIMUTH_data[JSON_AZIMUTH_MIDDLE].as<int>();
 }
 
 void AZIMUTH_set_middle(int value) {
   if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     AZIMUTH_data[JSON_AZIMUTH_MIDDLE] = value;
-    STORAGE_set_int(JSON_AZIMUTH_MIDDLE, value);
     AZIMUTH_set_steering(value);  // Recalculate
+  }
+}
+
+void AZIMUTH_store_middle(int value) {
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    STORAGE_set_int(JSON_AZIMUTH_MIDDLE, value);
   }
 }
 
@@ -242,14 +254,14 @@ int AZIMUTH_get_actual(void) {
 }
 
 void AZIMUTH_set_actual(int value) {
-  AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = value;
-  AZIMUTH_set_steering(value);  // Recalculate
+  if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
+    AZIMUTH_data[JSON_AZIMUTH_ACTUAL] = value;
+  }
 }
 
 void AZIMUTH_set_manual(int value) {
   if ((value >= DAC_MIN) && (value <= DAC_MAX)) {
     AZIMUTH_data[JSON_AZIMUTH_MANUAL] = value;
-    AZIMUTH_set_steering(value); // 
   }
 }
 
@@ -271,6 +283,54 @@ void AZIMUTH_set_timeout(int value) {
 }
 
 /********************************************************************
+ * @brief Saves the calibration values for the azimuth.
+ *
+ * This function retrieves the calibration values from the `doc` JSON object
+ * and stores them using the `STORAGE_get_int` function.
+ *******************************************************************/
+void AZIMUTH_calibration_save(void) {
+  int value = AZIMUTH_get_low();
+  AZIMUTH_store_low(value);
+
+  value = AZIMUTH_get_middle();
+  AZIMUTH_store_middle(value);
+
+  // Store middle position in Eeprom
+  Serial.printf("Write middle to Eeprom: %d\n", value);
+  if (MCP4725_write_eeprom(MCP4725_R_address, value) == -1) {
+    Serial.println(F("Azimuth write middle to Eeprom failed."));
+  }
+
+  value = AZIMUTH_get_high();
+  AZIMUTH_store_high(value);
+}
+
+/********************************************************************
+ * @brief Restores the calibration values for the azimuth.
+ *
+ * This function retrieves the calibration values for the low, high, and middle positions
+ * of the azimuth from the storage and sets them using the corresponding setter functions.
+ *
+ * @note This function assumes that the calibration values have been previously stored in the storage.
+ *
+ * @see AZIMUTH_set_left
+ * @see AZIMUTH_set_right
+ * @see AZIMUTH_set_middle
+ *******************************************************************/
+void AZIMUTH_calibration_restore(void) {
+  int value;
+
+  STORAGE_get_int(JSON_AZIMUTH_LOW, value);
+  AZIMUTH_set_low(value);
+
+  STORAGE_get_int(JSON_AZIMUTH_HIGH, value);
+  AZIMUTH_set_high(value);
+
+  STORAGE_get_int(JSON_AZIMUTH_MIDDLE, value);
+  AZIMUTH_set_middle(value);
+}
+
+/********************************************************************
  * Sets the steering value for the azimuth control.
  *
  * This function maps the input value to the range of
@@ -283,6 +343,15 @@ void AZIMUTH_set_timeout(int value) {
  *
  * @param value The input value representing the desired steering position.
  *******************************************************************/
+void AZIMUTH_set_steering_direct(int value) {
+  value = constrain(value, DAC_MIN, DAC_MAX);  // range from 0...4095
+  AZIMUTH_set_right_output(value);
+
+#ifdef ENABLE_LEFT_OUTPUT
+  AZIMUTH_set_left_output(value);
+#endif
+}
+
 void AZIMUTH_set_steering(int value) {
   long left = AZIMUTH_get_low();
   long middle = AZIMUTH_get_middle();
@@ -297,12 +366,7 @@ void AZIMUTH_set_steering(int value) {
     }
   }
 
-  value = constrain(value, DAC_MIN, DAC_MAX);  // range from 0...4095
-  AZIMUTH_set_right_output(value);
-
-#ifdef ENABLE_LEFT_OUTPUT
-  AZIMUTH_set_left_output(value);
-#endif
+  AZIMUTH_set_steering_direct(value);
 }
 
 /********************************************************************
@@ -430,7 +494,6 @@ static void AZIMUTH_setup_variables(void) {
   }
   AZIMUTH_data[JSON_AZIMUTH_MIDDLE] = value;
 
-
   if (STORAGE_get_int(JSON_AZIMUTH_HIGH, value)) {
     value = DAC_MAX;
     STORAGE_set_int(JSON_AZIMUTH_HIGH, value);
@@ -449,7 +512,7 @@ static void AZIMUTH_setup_variables(void) {
  *
  * This function disables the azimuth control and analog output.
  *******************************************************************/
-void AZIMUTH_stop() {
+void AZIMUTH_stop(void) {
   AZIMUTH_disable();
   AZIMUTH_analog_disable();
 
@@ -463,7 +526,7 @@ void AZIMUTH_stop() {
  * for the Azimuth module. It should be called before using any
  * other functions related to the Azimuth module.
  *******************************************************************/
-void AZIMUTH_setup() {
+void AZIMUTH_setup(void) {
   AZIMUTH_setup_variables();
   AZIMUTH_setup_gpio();
   AZIMUTH_disable();
@@ -477,7 +540,7 @@ void AZIMUTH_setup() {
  * This function initializes and starts the azimuth process.
  * It should be called before any other azimuth-related functions are used.
  *******************************************************************/
-void AZIMUTH_start() {
+void AZIMUTH_start(void) {
   AZIMUTH_setup_tasks();
   cli_setup();
 
