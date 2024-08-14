@@ -18,14 +18,16 @@
  * - Change Steerwheel actual text in Raw in maintenace screen.
  * - Code cleanup
  * 
- * @versions: A0.5.00 2024-08-13
+ * @versions: A0.5.00 2024-08-12
  * - Remove LIFT_disable() on multiple places.
+ * - Save azimuth middle calibration value to MCP4725 Eeprom for right output
+ *
+ * @versions: A0.6.00 2024-08-13
  * - Add button actions to stop lift moving up/down.
  * - Add Save and restore calibration values for azimuth.
  * - Add azimuth go to middle functionality. (keep azimuth analog enabled)
- * - Save azimuth middle calibration value to MCP4725 Eeprom for right output
  * - Return to init-state after maintenance mode. (not to no-position)
- *
+ * 
  *******************************************************************/
 #ifndef CONFIG_HEADER_ID
 #define CONFIG_HEADER_ID
@@ -34,7 +36,7 @@
  * Program name and version definitions
  *******************************************************************/
 #define ProgramName "EBC-Retractable"   // Program name
-#define ProgramVersion "A0.5"           // Program version
+#define ProgramVersion "A0.6"           // Program version
 #define ProgramTitle "EBC-RCU"          // Title Web interface
 #define WiFiSSIDPrefix "EBC-E"          // Wifi ssid name
 #define PCBVersion "RCU v0.3"           // Hardware version
