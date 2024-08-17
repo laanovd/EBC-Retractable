@@ -112,7 +112,32 @@ int MCP4725_write(uint8_t address, uint16_t value) {
         }
       }
     }
-    return 0; // Ok
+  }
+
+  return -1;  // Write failed
+}
+
+/*******************************************************************
+ * Writes a 16-bit value to the EEPROM of the MCP4725 DAC.
+ * 
+ * @param address The I2C address of the MCP4725 DAC.
+ * @param value The 16-bit value to be written to the EEPROM.
+ * 
+ * @return Returns 0 if the write operation is successful, -1 if the write operation fails.
+ *******************************************************************/
+int MCP4725_write_eeprom(uint8_t address, uint16_t value) {
+
+  if (address != 0) {
+    value <<= 4;  // Shift 12 Bit Value to 16 Bit
+
+    I2C_1.beginTransmission(address);             // Set the MCP4725 address
+    if (I2C_1.write(MCP4725_CMD_WRITE_EEprom) == 1) { // Write command to analog output
+      if (I2C_1.write(highByte(value)) == 1) {    // Upper data bits (D11.D10.D9.D8.D7.D6.D5.D4)
+        if (I2C_1.write(lowByte(value)) == 1) {   // Lower data bits (D3.D2.D1.D0.x.x.x.x)
+          return int(I2C_1.endTransmission());    // End transmission
+        }
+      }
+    }
   }
 
   return -1;  // Write failed

@@ -22,7 +22,7 @@
  * Storage keys and defaults
  *******************************************************************/
 #define JSON_LIFT_MOVE_TIMEOUT "lift_move_timeout"
-#define DELFAULT_LIFT_MOVE_TIMEOUT 30
+#define DELFAULT_LIFT_MOVE_TIMEOUT 120
 
 #define JSON_RETRACTED_COUNT "retracted"
 #define JSON_EXTENDED_COUNT "extended"

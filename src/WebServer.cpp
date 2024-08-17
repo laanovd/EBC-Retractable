@@ -29,7 +29,8 @@
 #define WEBSERVER_PORT 80
 #define WEBSOCKET_PORT 81
 
-#define DEBUG_WEBSOCKET
+#undef DEBUG_WEBSOCKET
+#undef DEBUG_WEBSERVER
 
 /********************************************************************
  * Type definitions
@@ -171,13 +172,13 @@ static void WEBSERVER_task(void *parameter) {
 
   while (true) {
     web_socket_server.loop();
-    
+
     if (ota_restart_countdown > 0) {
       ota_restart_countdown--;
       if (ota_restart_countdown == 0) {
         Serial.println("\nRestarting system after OTA update...\n");
         all_stop();  // Stop al modules
-        
+
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         ESP.restart();
       }
@@ -381,8 +382,8 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
       break;
 
     case WStype_TEXT:  // if a client has sent data, then type == WStype_TEXT
-      Serial.print("Cmd handler: ");
 #ifdef DEBUG_WEBSOCKET
+      Serial.print("Cmd handler: ");
       for (int i = 0; i < length; i++) {
         Serial.print((char)payload[i]);
       }
@@ -415,73 +416,153 @@ static String load_file(fs::FS &fs, const char *path) {
   return content;
 }
 
-/*********************************************************************
- * @brief Initializes the index.html file for the web server.
+/********************************************************************
+ * Replaces a placeholder in an HTML page with a given value.
  *
- * This function reads the contents of the specified file path and modifies it
- * by replacing certain placeholders with actual values. The modified content
- * is then saved to the default HTML page file.
+ * @param page The HTML page as a string.
+ * @param placeholder The placeholder to be replaced.
+ * @param value The value to replace the placeholder with.
  *
- * @param fs The file system object to access the file.
- * @param path The path of the HTML file to read.
+ * @return The modified HTML page with the placeholder replaced.
  *********************************************************************/
-static String WEBSERVER_load_html(fs::FS &fs, const char *path) {
-  int start, end;
+static void html_replace_placeholder(String &page, String placeholder, String value) {
+  int start = page.indexOf(placeholder);
+  if (start >= 0) {
+    int end = start + placeholder.length();
+    page = page.substring(0, start) + value + page.substring(end);
+  }
+}
 
-  String content = load_file(fs, path);
-  if (content == "") {
-    Serial.println("- failed to read HTML page from file.");
-    return "";
+/********************************************************************
+ * @brief Replaces a placeholder in an HTML page with the program name.
+ *
+ * This function takes an HTML page as input and replaces a specific placeholder
+ * with the program name. The placeholder is defined as "<span id=\"program_name\">-</span>".
+ *
+ * @param page The HTML page to modify.
+ * @return The modified HTML page with the program name inserted.
+ *********************************************************************/
+static void html_set_program_name(String &page) {
+#define PROGRAM_NAME_PLACEHOLDER "<span id=\"program_name\">-</span>"
+  html_replace_placeholder(page, PROGRAM_NAME_PLACEHOLDER, ProgramName);
+}
+
+/********************************************************************
+ * @brief Replaces a placeholder in an HTML page with the program version.
+ *
+ * This function takes an HTML page as input and replaces a specific placeholder
+ * with the program version. The placeholder is defined as "<span id=\"program_version\">-</span>".
+ *
+ * @param page The HTML page to modify.
+ * @return The modified HTML page with the program version inserted.
+ *********************************************************************/
+static void html_set_program_version(String &page) {
+#define PROGRAM_VERSION_PLACEHOLDER "<span id=\"program_version\">-</span>"
+  html_replace_placeholder(page, PROGRAM_VERSION_PLACEHOLDER, ProgramVersion);
+}
+
+/********************************************************************
+ * @brief Replaces a placeholder in an HTML page with the chip ID.
+ *
+ * This function takes an HTML page as input and replaces a specific placeholder
+ * with the chip ID. The chip ID is obtained from the `ProgramVersion` variable.
+ *
+ * @param page The HTML page to modify.
+ * @return The modified HTML page with the chip ID inserted.
+ *********************************************************************/
+static void html_set_chip_id(String &page) {
+#define CHIP_ID_PLACEHOLDER "<span id=\"chip_id\">-</span>"
+  html_replace_placeholder(page, CHIP_ID_PLACEHOLDER, ChipIds());
+}
+
+/********************************************************************
+ * @brief Replaces a placeholder in an HTML page with the WiFi SSID.
+ *
+ * This function takes an HTML page as input and replaces a specific placeholder
+ * with the current WiFi SSID. The placeholder is defined as "<span id=\"wifi_ssid\">-</span>".
+ *
+ * @param page The HTML page to modify.
+ * @return The modified HTML page with the WiFi SSID inserted.
+ *********************************************************************/
+static void html_set_wifi_ssid(String &page) {
+#define WIFI_SSID_PLACEHOLDER "<span id=\"wifi_ssid\">-</span>"
+  html_replace_placeholder(page, WIFI_SSID_PLACEHOLDER, WiFi_ssid());
+}
+
+/********************************************************************
+ * @brief Replaces a placeholder in an HTML page with the current IP address.
+ *
+ * This function takes an HTML page as input and replaces a specific placeholder
+ * with the current IP address obtained from the WiFi module. The placeholder is
+ * defined as "<span id=\"ip_address\">-</span>". The modified HTML page is then
+ * returned as output.
+ *
+ * @param page The input HTML page.
+ * @return The modified HTML page with the IP address placeholder replaced.
+ *********************************************************************/
+static void html_set_ip_address(String &page) {
+#define WIFI_IP_ADDRESS_PLACEHOLDER "<span id=\"ip_address\">-</span>"
+  html_replace_placeholder(page, WIFI_IP_ADDRESS_PLACEHOLDER, WiFi_ip());
+}
+
+/********************************************************************
+ * @brief Replaces the placeholder in the given HTML page with the
+ * title generated from HTML_title().
+ *
+ * @param page The HTML page to modify.
+ * @return The modified HTML page with the updated title.
+ *********************************************************************/
+static void html_set_page_title(String &page) {
+#define PLACEHOLDER_PAGE_TITLE "<title>...</title>"
+  String title = "<title>" + HTML_title() + "</title>";
+  html_replace_placeholder(page, PLACEHOLDER_PAGE_TITLE, title);
+}
+
+/********************************************************************
+ * @brief Retrieves a file from the web server.
+ *
+ * This function is responsible for handling requests to retrieve files
+ * from the web server. It takes an `AsyncWebServerRequest` object as a parameter.
+ *
+ * The function constructs the file path based on the request URL and checks
+ * if the file exists. If the file does not exist, it sends a 404 response.
+ *
+ * If the file exists, it determines the file type based on the file extension
+ * and sends the file content as a response with the appropriate content type.
+ *
+ * @param request The request object representing the client's request.
+ *********************************************************************/
+static void WEBSERVER_get_file(AsyncWebServerRequest *request) {
+  String filename = "/web" + request->url();
+  if (filename.endsWith("/")) {
+    filename += "index.html";
+  }
+#ifdef DEBUG_WEBSERVER
+  Serial.printf("Webserver load page: [%s]\n", filename.c_str());
+#endif
+
+  String content = load_file(LittleFS, filename.c_str());
+  if (content.isEmpty()) {
+    request->send(404, "text/plain", "404-Not Found");
+    return;
   }
 
-  // Program name
-  #define PROGRAM_NAME_PLACEHOLDER "<span id=\"program_name\">-</span>"
-  start = content.indexOf(PROGRAM_NAME_PLACEHOLDER);
-  if (start < 0)
-    return content;
-  end = start + sizeof(PROGRAM_NAME_PLACEHOLDER) - 1;
-  content = content.substring(0, start) + String(ProgramName) + content.substring(end);
+  String filetype;
+  if (filename.endsWith(".css")) {
+    filetype = "text/css";
+  } else if (filename.endsWith(".js")) {
+    filetype = "text/javascript";
+  } else {
+    filetype = "text/html";
+    html_set_page_title(content);
+    html_set_program_name(content);
+    html_set_program_version(content);
+    html_set_chip_id(content);
+    html_set_wifi_ssid(content);
+    html_set_ip_address(content);
+  }
 
-  // Program version
-  #define PROGRAM_VERSION_PLACEHOLDER "<span id=\"program_version\">-</span>"
-  start = content.indexOf(PROGRAM_VERSION_PLACEHOLDER);
-  if (start < 0)
-    return content;
-  end = start + sizeof(PROGRAM_VERSION_PLACEHOLDER) - 1;
-  content = content.substring(0, start) + String(ProgramVersion) + content.substring(end);
-
-  // Chip id
-  #define CHIP_ID_PLACEHOLDER "<span id=\"chip_id\">-</span>"
-  start = content.indexOf(CHIP_ID_PLACEHOLDER);
-  if (start < 0)
-    return content;
-  end = start + sizeof(CHIP_ID_PLACEHOLDER) - 1;
-  content = content.substring(0, start) +  ChipIds() + content.substring(end);
-
-  // WiFi id
-  #define WIFI_SSID_PLACEHOLDER "<span id=\"wifi_ssid\">-</span>"
-  start = content.indexOf(WIFI_SSID_PLACEHOLDER);
-  if (start < 0)
-    return content;
-  end = start + sizeof(WIFI_SSID_PLACEHOLDER) - 1;
-  content = content.substring(0, start) + WiFi_ssid() + content.substring(end);
-
-  // IP address
-  #define WIFI_IP_ADDRESS_PLACEHOLDER "<span id=\"ip_address\">-</span>"
-  start = content.indexOf(WIFI_IP_ADDRESS_PLACEHOLDER);
-  if (start < 0)
-    return content;
-  end = start + sizeof(WIFI_IP_ADDRESS_PLACEHOLDER) - 1;
-  content = content.substring(0, start) + WiFi_ip() + content.substring(end);
-
-  // Title
-  start = content.indexOf("<title>") + sizeof("<title>") - 1;
-  if (start < 0)
-    return content;
-  end = content.indexOf("</title>");
-  content = content.substring(0, start) + String(ProgramTitle) + content.substring(end);
-
-  return content;
+  request->send(200, filetype, content);
 }
 
 /********************************************************************
@@ -505,25 +586,19 @@ static void WEBSERVER_init(void) {
   WebSerial.begin(&web_server);
   WebSerial.msgCallback(CLI_webserial_task);
 
+  // WebServer main page
   web_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String html = WEBSERVER_load_html(LittleFS, DEFAULT_HTML_PAGE);
-    request->send(200, "text/html", html);
+    WEBSERVER_get_file(request);
   });
 
+  // WebServer maintenance mode
   web_server.on("/maintenance", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String html = "/web" + request->url();
+    WEBSERVER_get_file(request);
+  });
 
-    String filetype;
-    if (html.endsWith(".css")) {
-      filetype = "text/css";
-    } else if (html.endsWith(".js")) {
-      filetype = "text/javascript";
-    } else {
-      filetype = "text/html";
-    }
-
-    File file = LittleFS.open(html);
-    request->send(200, filetype, file.readStringUntil(EOF));
+  // WebServer system mode
+  web_server.on("/system", HTTP_GET, [](AsyncWebServerRequest *request) {
+    WEBSERVER_get_file(request);
   });
 
   web_server.begin();  // Start WebServer

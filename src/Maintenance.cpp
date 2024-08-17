@@ -30,7 +30,7 @@
 /*******************************************************************
  * Definitions
  *******************************************************************/
-#define DEBUG_MAINTENANCE
+#undef DEBUG_MAINTENANCE
 
 /*******************************************************************
  * JSON and Websocket keys
@@ -39,6 +39,8 @@
 
 #define JSON_STEERWHEEL_CALIBRATION_SAVE "save_steeringwheel_calibration"
 #define JSON_STEERWHEEL_CALIBRATION_RESTORE "restore_steeringwheel_calibration"
+#define JSON_AZIMUTH_CALIBRATION_SAVE "save_azimuth_calibration"
+#define JSON_AZIMUTH_CALIBRATION_RESTORE "restore_azimuth_calibration"
 
 /*******************************************************************
  * Local variables
@@ -47,6 +49,8 @@ static JsonDocument maintenance_data;
 
 static int azimuth_homing_timer = 0;
 static int lift_homing_timer = 0;
+static int steerwheel_calibration_timer = 0;
+static int azimuth_calibration_timer = 0;
 
 /*******************************************************************
  * Forwards
@@ -71,6 +75,8 @@ static void MAINTENANCE_json_init(void) {
 
   maintenance_data[JSON_AZIMUTH_ENABLED] = false;
   maintenance_data[JSON_AZIMUTH_OUTPUT_ENABLED] = false;
+  maintenance_data[JSON_AZIMUTH_CALIBRATION_SAVE] = false;
+  maintenance_data[JSON_AZIMUTH_CALIBRATION_RESTORE] = false;
 
   maintenance_data[JSON_AZIMUTH_LOW] = 0;
   maintenance_data[JSON_AZIMUTH_MIDDLE] = 0;
@@ -83,6 +89,7 @@ static void MAINTENANCE_json_init(void) {
   maintenance_data[JSON_AZIMUTH_HOMING] = false;
 
   maintenance_data[JSON_STEERWHEEL_CALIBRATION_SAVE] = false;
+  maintenance_data[JSON_STEERWHEEL_CALIBRATION_RESTORE] = false;
   maintenance_data[JSON_STEERWHEEL_LEFT] = 0;
   maintenance_data[JSON_STEERWHEEL_RIGHT] = 0;
   maintenance_data[JSON_STEERWHEEL_MIDDLE] = 0;
@@ -186,51 +193,6 @@ String MAINTENANCE_string(void) {
 }
 
 /********************************************************************
- * Getters and setters
- *******************************************************************/
-/********************************************************************
- * Enables maintenance mode if the emergency stop is not active.
- *
- * This function enables maintenance mode if the emergency stop is not active.
- * The maintenance mode allows performing maintenance tasks on the system.
- *
- * @note If the emergency stop is active, the maintenance mode will not be enabled.
- *******************************************************************/
-void MAINTENANCE_enable(void) {
-  if (!EMERGENCY_STOP_active()) {
-    maintenance_data[JSON_MAINTENANCE_ENABLED] = true;
-
-    DMC_disable();
-    LIFT_disable();
-    AZIMUTH_disable();
-    AZIMUTH_analog_disable();
-
-#ifdef DEBUG_MAINTENANCE
-    Serial.println(F("MAINTENACE mode enabled."));
-#endif
-  }
-}
-
-/********************************************************************
- * Disables the maintenance mode.
- *
- * This function disables maintenance mode and disables
- * the DMC, LIFT, and AZIMUTH subsystems.
- *******************************************************************/
-void MAINTENANCE_disable(void) {
-  maintenance_data[JSON_MAINTENANCE_ENABLED] = false;
-
-  DMC_disable();
-  LIFT_disable();
-  AZIMUTH_disable();
-  AZIMUTH_analog_disable();
-
-#ifdef DEBUG_MAINTENANCE
-  Serial.println(F("MAINTENACE mode disabled."));
-#endif
-}
-
-/********************************************************************
  * Check if maintenance mode is enabled.
  *
  * @return true if maintenance mode is enabled, false otherwise.
@@ -297,7 +259,7 @@ static void MAINTENANCE_azimuth_homing(void) {
 static void MAINTENANCE_azimuth_update(void) {
   if (AZIMUTH_enabled() && AZIMUTH_analog_enabled()) {
     int value = AZIMUTH_get_manual();
-    AZIMUTH_set_steering(value);
+    AZIMUTH_set_steering_direct(value);
   }
 }
 
@@ -342,13 +304,19 @@ static void MAINTENANCE_lift_homing(void) {
 }
 
 static void MAINTENANCE_set_actual_and_manual(int value) {
+  value = constrain(value, DAC_MIN, DAC_MAX);  // range from 0...4095
+
+  // Update actual azimuth value
   AZIMUTH_set_actual(value);
-  AZIMUTH_set_steering(value);
   maintenance_data[JSON_AZIMUTH_ACTUAL] = AZIMUTH_get_actual();
   WEBSOCKET_send(JSON_AZIMUTH_ACTUAL, maintenance_data);
+
+  // Update manual azimuth value
   AZIMUTH_set_manual(value);
   maintenance_data[JSON_AZIMUTH_MANUAL] = AZIMUTH_get_actual();
   WEBSOCKET_send(JSON_AZIMUTH_MANUAL, maintenance_data);
+
+  AZIMUTH_set_steering_direct(value);
 }
 
 /********************************************************************
@@ -391,6 +359,55 @@ static void MAINTENANCE_buttons(void) {
       return;
     }
   }
+}
+
+/********************************************************************
+ * Enables maintenance mode if the emergency stop is not active.
+ *
+ * This function enables maintenance mode if the emergency stop is not active.
+ * The maintenance mode allows performing maintenance tasks on the system.
+ *
+ * @note If the emergency stop is active, the maintenance mode will not be enabled.
+ *******************************************************************/
+void MAINTENANCE_enable(void) {
+  if (!EMERGENCY_STOP_active()) {
+    maintenance_data[JSON_MAINTENANCE_ENABLED] = true;
+
+    DMC_disable();
+    // AZIMUTH_disable();
+    
+    // Keep azimuth in position
+    int value = AZIMUTH_get_actual();
+    MAINTENANCE_set_actual_and_manual(value);
+    AZIMUTH_analog_enable();
+
+    LIFT_stop(); // Prevent lift from going to home position
+
+#ifdef DEBUG_MAINTENANCE
+    Serial.println(F("MAINTENACE mode enabled."));
+#endif
+  }
+}
+
+/********************************************************************
+ * Disables the maintenance mode.
+ *
+ * This function disables maintenance mode and disables
+ * the DMC, LIFT, and AZIMUTH subsystems.
+ *******************************************************************/
+void MAINTENANCE_disable(void) {
+  maintenance_data[JSON_MAINTENANCE_ENABLED] = false;
+
+  DMC_disable();
+
+  LIFT_stop(); // Prevent lift from going to home position
+
+  // AZIMUTH_disable();
+  AZIMUTH_analog_enable(); // Keep azimuth in position
+
+#ifdef DEBUG_MAINTENANCE
+  Serial.println(F("MAINTENACE mode disabled."));
+#endif
 }
 
 /********************************************************************
@@ -470,7 +487,6 @@ int MAINTENANCE_command_handler(const char *data) {
       MAINTENANCE_azimuth_enable();
     else {
       AZIMUTH_disable();
-      AZIMUTH_analog_disable();
     }
     handeled++;
   }
@@ -535,6 +551,24 @@ int MAINTENANCE_command_handler(const char *data) {
     handeled++;
   }
 
+  if (doc.containsKey(JSON_AZIMUTH_CALIBRATION_SAVE)) {
+    if (doc[JSON_AZIMUTH_CALIBRATION_SAVE].as<bool>() == true) {
+      maintenance_data[JSON_AZIMUTH_CALIBRATION_SAVE] = true;
+      AZIMUTH_calibration_save();
+      azimuth_calibration_timer = 5;
+    }
+    handeled++;
+  }
+
+  if (doc.containsKey(JSON_AZIMUTH_CALIBRATION_RESTORE)) {
+    if (doc[JSON_AZIMUTH_CALIBRATION_RESTORE].as<bool>() == true) {
+      maintenance_data[JSON_AZIMUTH_CALIBRATION_RESTORE] = true;
+      AZIMUTH_calibration_restore();
+      azimuth_calibration_timer = 5;
+    }
+    handeled++;
+  }
+
   /* ----------------------------------------------------*/
   /* Steering wheel set LEFT counts */
   if (doc.containsKey(JSON_STEERWHEEL_LEFT)) {
@@ -562,14 +596,19 @@ int MAINTENANCE_command_handler(const char *data) {
 
   /* Steering wheel start calibration */
   if (doc.containsKey(JSON_STEERWHEEL_CALIBRATION_SAVE)) {
-    if (doc[JSON_STEERWHEEL_CALIBRATION_SAVE].as<bool>() == true)
+    if (doc[JSON_STEERWHEEL_CALIBRATION_SAVE].as<bool>() == true) {
+      maintenance_data[JSON_STEERWHEEL_CALIBRATION_SAVE] = true;
       STEERWHEEL_calibration_save();
+      steerwheel_calibration_timer = 5;
+    }
     handeled++;
   }
 
   if (doc.containsKey(JSON_STEERWHEEL_CALIBRATION_RESTORE)) {
     if (doc[JSON_STEERWHEEL_CALIBRATION_RESTORE].as<bool>() == true)
+      maintenance_data[JSON_STEERWHEEL_CALIBRATION_RESTORE] = true;
       STEERWHEEL_calibration_restore();
+      steerwheel_calibration_timer = 5;
     handeled++;
   }
 
@@ -645,8 +684,24 @@ static void MAINTENACE_websocket_task(void *parameter) {
       }
     }
 
+    /* After countdown steerwheel calibration  */
+    if (steerwheel_calibration_timer >= 0) {
+      if (--steerwheel_calibration_timer == 0) {
+        maintenance_data[JSON_STEERWHEEL_CALIBRATION_SAVE] = false;
+        maintenance_data[JSON_STEERWHEEL_CALIBRATION_RESTORE] = false;
+      }
+    }
+
+    /* After countdown azimuth calibration  */
+    if (azimuth_calibration_timer >= 0) {
+      if (--azimuth_calibration_timer == 0) {
+        maintenance_data[JSON_AZIMUTH_CALIBRATION_SAVE] = false;
+        maintenance_data[JSON_AZIMUTH_CALIBRATION_RESTORE] = false;
+      }
+    }
+
     WEBSOCKET_update_doc(MAINTENANCE_json());
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(250 / portTICK_PERIOD_MS);
   }
 }
 

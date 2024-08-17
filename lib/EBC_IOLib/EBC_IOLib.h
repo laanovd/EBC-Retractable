@@ -116,4 +116,14 @@ extern int MCP4725_read_status(uint8_t address);
  *******************************************************************/
 extern int MCP4725_write(uint8_t address, uint16_t value);
 
+/*******************************************************************
+ * Writes a 16-bit value to the EEPROM of the MCP4725 DAC.
+ * 
+ * @param address The I2C address of the MCP4725 DAC.
+ * @param value The 16-bit value to be written to the EEPROM.
+ * 
+ * @return Returns 0 if the write operation is successful, -1 if the write operation fails.
+ *******************************************************************/
+extern int MCP4725_write_eeprom(uint8_t address, uint16_t value);
+
 #endif  // EBC_PCF8574_HEADER

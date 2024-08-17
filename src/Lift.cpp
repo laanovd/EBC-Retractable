@@ -21,7 +21,7 @@
 /*******************************************************************
  * Definitions
  *******************************************************************/
-#define DEBUG_LIFT
+#undef DEBUG_LIFT
 
 #define BUTTON_BOTH_DELAY 30;
 
@@ -113,14 +113,14 @@ void LIFT_enable(void) {
   PCF8574_write(PCF8574_address, LIFT_ENABLE_PIN, IO_ON);
 
 #ifdef DEBUG_LIFT
-  Serial.println("LIFT enable");
+  Serial.println(F("LIFT enable"));
 #endif
 }
 void LIFT_disable(void) {
   PCF8574_write(PCF8574_address, LIFT_ENABLE_PIN, IO_OFF);
 
 #ifdef DEBUG_LIFT
-  Serial.println("LIFT disable");
+  Serial.println(F("LIFT disable"));
 #endif
 }
 
@@ -135,7 +135,7 @@ void LIFT_UP_on(void) {
   PCF8574_write(PCF8574_address, LIFT_MOTOR_UP_PIN, IO_ON);
 
 #ifdef DEBUG_LIFT
-  Serial.println("Lift motor up ON");
+  Serial.println(F("Lift motor up ON"));
 #endif
 }
 
@@ -143,7 +143,7 @@ void LIFT_UP_off(void) {
   PCF8574_write(PCF8574_address, LIFT_MOTOR_UP_PIN, IO_OFF);
 
 #ifdef DEBUG_LIFT
-  Serial.println("Lift motor up OFF");
+  Serial.println(F("Lift motor up OFF"));
 #endif
 }
 
@@ -159,7 +159,7 @@ void LIFT_DOWN_on(void) {
   PCF8574_write(PCF8574_address, LIFT_MOTOR_DOWN_PIN, IO_ON);
 
 #ifdef DEBUG_LIFT
-  Serial.println("Lift motor down ON");
+  Serial.println(F("Lift motor down ON"));
 #endif
 }
 
@@ -167,7 +167,7 @@ void LIFT_DOWN_off(void) {
   PCF8574_write(PCF8574_address, LIFT_MOTOR_DOWN_PIN, IO_OFF);
 
 #ifdef DEBUG_LIFT
-  Serial.println("Lift motor down OFF");
+  Serial.println(F("Lift motor down OFF"));
 #endif
 }
 
@@ -214,7 +214,7 @@ bool LIFT_UP_button(void) {
   if (BUTTON_UP_pushed) {
     BUTTON_UP_pushed = false;
 #ifdef DEBUG_LIFT
-    Serial.println("LIFT UP button pushed");
+    Serial.println(F("LIFT UP button pushed"));
 #endif
     return true;
   }
@@ -225,7 +225,7 @@ bool LIFT_DOWN_button(void) {
   if (BUTTON_DOWN_pushed) {
     BUTTON_DOWN_pushed = false;
 #ifdef DEBUG_LIFT
-    Serial.println("LIFT DOWN button pushed");
+    Serial.println(F("LIFT DOWN button pushed"));
 #endif
     return true;
   }
@@ -246,14 +246,16 @@ static void LIFT_button_update(void) {
   static bool BUTTON_DOWN_state, BUTTON_DOWN_memo = false;
   static int delay = BUTTON_BOTH_DELAY;
 
-  // Button up flag
+  // Read buttons
   BUTTON_UP_state = digitalRead(LIFT_BUTTON_UP_PIN);
+  BUTTON_DOWN_state = digitalRead(LIFT_BUTTON_DOWN_PIN);
+
+  // Button up flag
   if (!BUTTON_UP_memo && BUTTON_UP_state && !BUTTON_DOWN_state)
     BUTTON_UP_pushed = true;
   BUTTON_UP_memo = BUTTON_UP_state;
 
   // Button down flag
-  BUTTON_DOWN_state = digitalRead(LIFT_BUTTON_DOWN_PIN);
   if (!BUTTON_DOWN_memo && BUTTON_DOWN_state && !BUTTON_UP_state)
     BUTTON_DOWN_pushed = true;
   BUTTON_DOWN_memo = BUTTON_DOWN_state;
@@ -465,11 +467,14 @@ static void LIFT_setup_variables(void) {
  * Prints a message to the serial monitor indicating that the lift has stopped.
  *******************************************************************/
 void LIFT_stop(void) {
-  LIFT_disable();
+  LIFT_enable(); // Prevent lift from going to home position
+  
   LIFT_UP_off();
   LIFT_DOWN_off();
 
+#ifdef DEBUG_LIFT
   Serial.println(F("Lift stopped."));
+#endif
 }
 
 /*******************************************************************
@@ -480,7 +485,7 @@ void LIFT_setup(void) {
   LIFT_setup_variables();
   LIFT_setup_gpio();
 
-  LIFT_disable();
+  LIFT_stop(); // Prevent lift from going to home position
   LIFT_UP_off();
   LIFT_DOWN_off();
 
