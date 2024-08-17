@@ -10,7 +10,7 @@
 /*******************************************************************
   Definitions
  *******************************************************************/
-#define DEBUG_GPIO
+#undef DEBUG_GPIO
 
 #define SDA0 21  // I2C Bus SDA
 #define SCL0 22  // I2C Bus SCL

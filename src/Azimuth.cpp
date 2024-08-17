@@ -20,7 +20,7 @@
 /*******************************************************************
  * Definitions
  *******************************************************************/
-#define DEBUG_AZIMUTH
+#undef DEBUG_AZIMUTH
 
 #undef ENABLE_LEFT_OUTPUT  // No left output use yet
 

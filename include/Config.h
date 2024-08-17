@@ -28,6 +28,12 @@
  * - Add azimuth go to middle functionality. (keep azimuth analog enabled)
  * - Return to init-state after maintenance mode. (not to no-position)
  * 
+ * @versions: A0.7.00 2024-08-17
+ * - Add Chip ID to HTML page title
+ * - Changed RCU to RECU in titles/version
+ * - Fix loading css stylesheet in maintenance mode
+ * - Disable most of debug serial printf's
+ *
  *******************************************************************/
 #ifndef CONFIG_HEADER_ID
 #define CONFIG_HEADER_ID
@@ -36,11 +42,11 @@
  * Program name and version definitions
  *******************************************************************/
 #define ProgramName "EBC-Retractable"   // Program name
-#define ProgramVersion "A0.6"           // Program version
-#define ProgramTitle "EBC-RCU"          // Title Web interface
+#define ProgramVersion "A0.7"           // Program version
+#define ProgramTitle "EBC-RECU"         // Title Web interface
 #define WiFiSSIDPrefix "EBC-E"          // Wifi ssid name
-#define PCBVersion "RCU v0.3"           // Hardware version
-#define HTMLTitlePrefix "RCU"           // HTML page title prefix
+#define PCBVersion "RECU v0.3"          // Hardware version
+#define HTMLTitlePrefix "RECU"          // HTML page title prefix
 
 /*******************************************************************
  * Global debug flags

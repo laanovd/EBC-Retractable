@@ -21,7 +21,7 @@
 /*******************************************************************
  * Definitions
  *******************************************************************/
-#define DEBUG_LIFT
+#undef DEBUG_LIFT
 
 #define BUTTON_BOTH_DELAY 30;
 
@@ -472,7 +472,9 @@ void LIFT_stop(void) {
   LIFT_UP_off();
   LIFT_DOWN_off();
 
+#ifdef DEBUG_LIFT
   Serial.println(F("Lift stopped."));
+#endif
 }
 
 /*******************************************************************

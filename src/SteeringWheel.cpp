@@ -20,7 +20,7 @@
 /*******************************************************************
  * Definitions
  *******************************************************************/
-#define DEBUG_AZIMUTH
+#undef DEBUG_STEERWHEEL
 
 #define STEERWHEEL_CALIBRATION_SIMULATE
 
