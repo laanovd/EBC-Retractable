@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./websocket.js"></script>
+    <script src="./components.js"></script>
+    <link rel="stylesheet" href="./style.css" type="text/css" />
+    <title>RIM DRIVE TECHNOLOGY</title>
+  </head>
+
+  <body class="flex items-center justify-center bg-slate-50">
+    <div class="max-w-screen-md w-full rounded-xl md:shadow-xl shadow-black/25">
+      <header class="text-center">
+        <div class="text-4xl py-4">
+          <span class="text-blue-500">RIM DRIVE</span>
+          <span>TECHNOLOGY</span>
+        </div>
+      </header>
+
+      <main class="p-4 flex flex-col gap-8">
+        <div class="flex flex-row gap-4">
+          <div class="flex-1 flex flex-col">
+            <span class="font-bold mb-4">Digital inputs</span>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="input1"
+                id="input1"
+                disabled
+                class="input"
+              />
+              <label for="input1">Up position (Input 1)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="input2"
+                id="input2"
+                disabled
+                class="input"
+              />
+              <label for="input2">Down position (Input 2)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="input3"
+                id="input3"
+                disabled
+                class="input"
+              />
+              <label for="input3">Zero position (Input 3)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="input4"
+                id="input4"
+                disabled
+                class="input"
+              />
+              <label for="input4">Pushbutton up (Input 4)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="input5"
+                id="input5"
+                disabled
+                class="input"
+              />
+              <label for="input5">Pushbutton down (Input 5)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="input6"
+                id="input6"
+                disabled
+                class="input"
+              />
+              <label for="input6">Emergency stop (Input 6)</label>
+            </div>
+          </div>
+          <div class="flex-1 flex flex-col">
+            <span class="font-bold mb-4">Digital outputs</span>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output1"
+                id="output1"
+                class="output"
+              />
+              <label for="output1">Lift enable (Output 1)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output2"
+                id="output2"
+                class="output"
+              />
+              <label for="output2">Azimuth enable (Output 2)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output3"
+                id="output3"
+                class="output"
+              />
+              <label for="output3">Lift home (Output 3)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output4"
+                id="output4"
+                class="output"
+              />
+              <label for="output4">Azimuth home (Output 4)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output5"
+                id="output5"
+                class="output"
+              />
+              <label for="output5">Key DMC (Output 5)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output6"
+                id="output6"
+                class="output"
+              />
+              <label for="output6">Lift up (Output 6)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output7"
+                id="output7"
+                class="output"
+              />
+              <label for="output7">Lift down(Output 7)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output8"
+                id="output8"
+                class="output"
+              />
+              <label for="output8">Unused (Output 8)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output9"
+                id="output9"
+                class="output"
+              />
+              <label for="output9">LED up (Output 9)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output10"
+                id="output10"
+                class="output"
+              />
+              <label for="output10">LED down (Output 10)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <input
+                type="checkbox"
+                name="output11"
+                id="output11"
+                class="output"
+              />
+              <label for="output11">Analog enable (Output 11)</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-row gap-4">
+          <div class="flex-1 flex flex-col gap-2">
+            <span class="font-bold mb-4">Analog inputs</span>
+            <div class="flex flex-row gap-2">
+              <div class="flex flex-row">
+                <input
+                  type="number"
+                  name="analogin1"
+                  id="analogin1"
+                  class="analogin rounded-l bg-slate-200 border border-slate-300 text-slate-500 w-20 px-1"
+                  disabled
+                  value="555"
+                />
+                <span class="bg-slate-300 text-white px-2 rounded-r"
+                  >Counts</span
+                >
+              </div>
+              <label for="analogin1">Steering (Analog input 1)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <div class="flex flex-row">
+                <input
+                  type="number"
+                  name="analogin2"
+                  id="analogin2"
+                  class="analogin rounded-l bg-slate-200 border border-slate-300 text-slate-500 w-20 px-1"
+                  disabled
+                  value="555"
+                />
+                <span class="bg-slate-300 text-white px-2 rounded-r"
+                  >Counts</span
+                >
+              </div>
+              <label for="analogin2">Throttle (Analog input 2)</label>
+            </div>
+          </div>
+
+          <div class="flex-1 flex flex-col gap-2">
+            <span class="font-bold mb-4">Analog outputs</span>
+            <div class="flex flex-row gap-2">
+              <div class="flex flex-row">
+                <input
+                  type="number"
+                  name="analogout1"
+                  id="analogout1"
+                  class="analogout rounded-l border border-slate-300 text-slate-800 w-20 px-1"
+                  value="555"
+                />
+                <span class="bg-slate-300 text-white px-2 rounded-r"
+                  >Counts</span
+                >
+              </div>
+              <label for="analogout1">Steering (Analog output 1)</label>
+            </div>
+            <div class="flex flex-row gap-2">
+              <div class="flex flex-row">
+                <input
+                  type="number"
+                  name="analogout2"
+                  id="analogout2"
+                  class="analogout rounded-l border border-slate-300 text-slate-800 w-20 px-1"
+                  value="555"
+                />
+                <span class="bg-slate-300 text-white px-2 rounded-r"
+                  >Counts</span
+                >
+              </div>
+              <label for="analogout2">Throttle (Analog output 2)</label>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <span class="font-bold">Analog inputs</span>
+          <div class="grid grid-cols-2 grid-flow-row-dense mt-4">
+            <div class="flex flex-row gap-2">
+              <span>PBC:</span>
+              <span class="font-bold" id="pcb_info">...</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>Program:</span>
+              <span class="font-bold" id="program_info">...</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>Processor:</span>
+              <span class="font-bold" id="processor_info">ESP ebc</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>Version:</span>
+              <span class="font-bold" id="version_info">...</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>FLASH:</span>
+              <span class="font-bold" id="flash_info">...</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>File system:</span>
+              <span class="font-bold" id="filesystem_info">...</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>RAM:</span>
+              <span class="font-bold" id="ram_info">...</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>CPU load:</span>
+              <span class="font-bold" id="cpu_info">...</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>WiFi:</span>
+              <span class="font-bold" id="wifi_info">...</span>
+            </div>
+            <div class="flex flex-row gap-2">
+              <span>Gateway:</span>
+              <span class="font-bold" id="pcb_info">...</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
