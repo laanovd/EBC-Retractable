@@ -59,9 +59,26 @@ extern int STORAGE_get_float(const char* key, float &value);
 extern void STORAGE_factory_reset(void);
 
 /********************************************************************
- *  Setup persistent settings
- *  Setup before WiFi and Debug!
-*********************************************************************/
-extern void STORAGE_setup(void); 
+ * Initializes the storage system.
+ * 
+ * This function initializes the storage system by mounting the LittleFS file system.
+ * If the mount operation fails, it prints an error message and returns.
+ * 
+ * It then attempts to read the storage data from the specified file.
+ * If the read operation fails, it creates a new storage data and writes it to the file.
+ * 
+ * Finally, it prints a success message indicating that the storage has been initialized.
+ *******************************************************************/
+extern void STORAGE_init(void);
+
+/********************************************************************
+ * @brief Starts the storage functionality.
+ *
+ * This function initializes the storage module and sets up the necessary command line interface (CLI) handlers.
+ * After calling this function, the storage functionality is ready to be used.
+ * 
+ * @note Make sure to call this function before using any storage-related operations.
+ *******************************************************************/
+extern void STORAGE_start(void);
 
 #endif // STORAGE_HEADER_ID

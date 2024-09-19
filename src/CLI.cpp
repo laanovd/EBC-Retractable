@@ -10,12 +10,10 @@
 #include <WebSerial.h>
 
 #include "Config.h"
-#include "GPIO.h"
-#include "Controller.h"
-#include "Azimuth.h"
 #include "Storage.h"
 #include "WiFiCom.h"
 #include "esp_chip_info.h"
+
 /*******************************************************************
  * Global variables
  *******************************************************************/
@@ -26,23 +24,14 @@ static cli_output_t cli_output = CLI_SERIAL;
 /*******************************************************************
  * Output mode for commandline interface
  *******************************************************************/
-void cli_set_output(cli_output_t value)
-{
+void cli_set_output(cli_output_t value) {
   cli_output = value;
 }
 
 /*******************************************************************
- * Calibration commandline handler
- *******************************************************************/
-static bool calibrating = false;
-void set_calibrating(bool value) { calibrating = value; }
-bool is_calibrating() { return calibrating; }
-
-/*******************************************************************
  * Bytes to String
  *******************************************************************/
-static String bytes2string(const uint8_t *data, size_t len)
-{
+static String bytes2string(const uint8_t *data, size_t len) {
   String text = "";
 
   for (int i = 0; i < len; i++)
@@ -54,10 +43,8 @@ static String bytes2string(const uint8_t *data, size_t len)
 /*******************************************************************
  * Output ComandlIne interface data
  *******************************************************************/
-void CLI_print(String txt)
-{
-  if (cli_output == CLI_WEBSERIAL)
-  {
+void CLI_print(String txt) {
+  if (cli_output == CLI_WEBSERIAL) {
     WebSerial.print(txt);
     return;
   }
@@ -66,8 +53,7 @@ void CLI_print(String txt)
   Serial.print(txt);
 }
 
-void CLI_println(String txt)
-{
+void CLI_println(String txt) {
   if (cli_output == CLI_SERIAL)
     txt += "\n";
   txt += "\r";
@@ -80,8 +66,7 @@ void CLI_println(String txt)
  *******************************************************************/
 extern void all_stop(void);
 
-void system_restart(void)
-{
+void system_restart(void) {
   CLI_println("System wil restart in 3 sec...");
   CLI_println("");
 
@@ -94,8 +79,7 @@ void system_restart(void)
 /********************************************************************
  * Create initial JSON data
  *******************************************************************/
-static JsonDocument CLI_data(void)
-{
+static JsonDocument CLI_data(void) {
   JsonDocument doc;
 
   doc["program-name"] = ProgramName;
@@ -117,8 +101,7 @@ static JsonDocument CLI_data(void)
  *  WebSerial Command line interface
  *
  *******************************************************************/
-void CLI_webserial_task(uint8_t *data, size_t len)
-{
+void CLI_webserial_task(uint8_t *data, size_t len) {
   String input = bytes2string(data, len);
 
   cli_set_output(CLI_WEBSERIAL);
@@ -126,13 +109,11 @@ void CLI_webserial_task(uint8_t *data, size_t len)
   // Parse the user input into the CLI
   cli.parse(input);
 
-  if (cli.errored())
-  {
+  if (cli.errored()) {
     CommandError cmdError = cli.getError();
     CLI_println(String("ERROR: " + cmdError.toString() + "\r\n"));
 
-    if (cmdError.hasCommand())
-    {
+    if (cmdError.hasCommand()) {
       CLI_println(String("Did you mean: '" + cmdError.getCommand().toString() + "'?"));
     }
   }
@@ -142,50 +123,44 @@ void CLI_webserial_task(uint8_t *data, size_t len)
  *  Serial Command line interval
  *
  *******************************************************************/
-static void CLI_serial_task(void *parameter)
-{
+static void CLI_serial_task(void *parameter) {
   static String input = "";
   static uint8_t inChar = 0;
   (void)parameter;
 
-  while (true)
-  {
+  while (true) {
     vTaskDelay(200 / portTICK_PERIOD_MS);
 
-    while (Serial.available())
-    {
+    while (Serial.available()) {
       inChar = Serial.read();
-      switch (inChar)
-      {
-      case '\n':
-        cli_set_output(CLI_SERIAL);
-        Serial.println();
+      switch (inChar) {
+        case '\n':
+          cli_set_output(CLI_SERIAL);
+          Serial.println();
 
-        // Parse the user input into the CLI
-        cli.parse(input);
+          // Parse the user input into the CLI
+          cli.parse(input);
 
-        if (cli.errored())
-        {
-          CommandError cmdError = cli.getError();
-          CLI_println(String("ERROR: " + cmdError.toString() + "\r\n"));
+          if (cli.errored()) {
+            CommandError cmdError = cli.getError();
+            CLI_println(String("ERROR: " + cmdError.toString() + "\r\n"));
 
-          if (cmdError.hasCommand())
-          {
-            CLI_println(String("Did you mean: '" + cmdError.getCommand().toString() + "'?"));
+            if (cmdError.hasCommand()) {
+              CLI_println(String("Did you mean: '" + cmdError.getCommand().toString() + "'?"));
+            }
           }
-        }
 
-        Serial.print("\n\rcli > ");
-        input = "";
-        break;
+          Serial.print("\n\rcli > ");
+          input = "";
+          break;
 
-      case '\r': // Ignore
-        break;
+        case '\r':  // Ignore
+          break;
 
-      default:
-        input += char(inChar);
-        Serial.print(char(inChar));
-        break;
+        default:
+          input += char(inChar);
+          Serial.print(char(inChar));
+          break;
       }
     }
   }
@@ -194,8 +169,7 @@ static void CLI_serial_task(void *parameter)
 /*******************************************************************
  * CLI: Reboot the system
  *******************************************************************/
-static void clicb_reboot(cmd *c)
-{
+static void clicb_reboot(cmd *c) {
   (void)c;
   system_restart();
 }
@@ -204,14 +178,12 @@ static void clicb_reboot(cmd *c)
  * Command line interface error callback
  *
  *******************************************************************/
-void errorCallback(cmd_error *e)
-{
-  CommandError cmdError(e); // Create wrapper object
+void errorCallback(cmd_error *e) {
+  CommandError cmdError(e);  // Create wrapper object
 
   CLI_print("\n\rERROR: " + cmdError.toString());
 
-  if (cmdError.hasCommand())
-  {
+  if (cmdError.hasCommand()) {
     CLI_print("\n\rDid you mean \"" + cmdError.getCommand().toString() + "\"?");
   }
 }
@@ -220,32 +192,42 @@ void errorCallback(cmd_error *e)
  *  Initialize tasks
  *
  *******************************************************************/
-static void CLI_setup_tasks(void)
-{
-  xTaskCreate(CLI_serial_task, "Serial commandline interface task", 4096, NULL, 15, NULL); // Needs large stack
+static void CLI_setup_tasks(void) {
+  xTaskCreate(CLI_serial_task, "Serial commandline interface task", 4096, NULL, 15, NULL);  // Needs large stack
 }
 
 /*******************************************************************
  *  Initialize the command line handlers
  *
  *******************************************************************/
-static void CLI_handlers(void)
-{
+static void CLI_handlers(void) {
   static Command cli_cmd_help, cli_cmd_system_info, cli_cmd_reboot;
 
-  cli.setOnError(errorCallback); // Set error Callback
+  cli.setOnError(errorCallback);  // Set error Callback
 
   cli.addCommand("restart", clicb_reboot);
 }
 
 /*******************************************************************
- *  Initialize the command line interface
+ * @brief Initializes the CLI module.
  *
+ * This function sets up the tasks and handlers for the CLI module.
+ * After calling this function, the CLI handlers are ready to process commands.
+ *
+ * @note This function should be called before using any CLI functionality.
  *******************************************************************/
-void CLI_setup(void)
-{
+void CLI_init(void) {
   CLI_setup_tasks();
   CLI_handlers();
 
-  Serial.println(F("CLI handlers setup completed..."));
+  Serial.println(F("Command Line Handler initialized..."));
+}
+
+/*******************************************************************
+ * @brief Starts the CLI handlers.
+ *
+ * This function prints a message to the serial monitor indicating that the CLI handlers have started.
+ *******************************************************************/
+void CLI_start(void) {
+  Serial.println(F("Command Line Handler started..."));
 }

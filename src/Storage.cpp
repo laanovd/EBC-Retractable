@@ -411,11 +411,20 @@ static rest_api_t STORAGE_api_handlers = {
 };
 
 /********************************************************************
- * Storage init
+ * Initializes the storage system.
+ * 
+ * This function initializes the storage system by mounting the LittleFS file system.
+ * If the mount operation fails, it prints an error message and returns.
+ * 
+ * It then attempts to read the storage data from the specified file.
+ * If the read operation fails, it creates a new storage data and writes it to the file.
+ * 
+ * Finally, it prints a success message indicating that the storage has been initialized.
  *******************************************************************/
-static void STORAGE_init(void) {
+void STORAGE_init(void) {
   if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
     Serial.println(F("LittleFS Mount Failed."));
+    Serial.println(F("Storage initialisation failed..."));
     return;
   }
 
@@ -428,14 +437,20 @@ static void STORAGE_init(void) {
       Serial.println(F("ERROR storing settings..."));
     }
   }
+
+  Serial.println(F("Storage initialised."));
 }
 
 /********************************************************************
- *  Setup persistent settings
+ * @brief Starts the storage functionality.
+ *
+ * This function initializes the storage module and sets up the necessary command line interface (CLI) handlers.
+ * After calling this function, the storage functionality is ready to be used.
+ * 
+ * @note Make sure to call this function before using any storage-related operations.
  *******************************************************************/
-void STORAGE_setup(void) {
-  STORAGE_init();
+void STORAGE_start(void) {
   STORAGE_cli_handlers();
 
-  Serial.println(F("Storage setup completed."));
+  Serial.println(F("Storage started."));
 }

@@ -112,7 +112,7 @@ void all_stop(void) {
  * MAIN setup
  *******************************************************************/
 static void MAIN_setup(void) {
-  STORAGE_start();
+  STORAGE_init();
   CLI_init();
   WiFi_setup();
   WEBSERVER_setup();
@@ -131,6 +131,8 @@ static void MAIN_setup(void) {
  * MAIN start
  *******************************************************************/
 static void MAIN_start(void) {
+  STORAGE_start();
+  CLI_start();
   GPIO_start();
   AZIMUTH_start();
   LIFT_start();

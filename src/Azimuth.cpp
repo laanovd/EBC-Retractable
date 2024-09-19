@@ -424,11 +424,6 @@ static void clicb_handler(cmd *c) {
     return;
   }
 
-  if (strArg.equalsIgnoreCase("move") && is_calibrating()) {
-    // AZIMUTH_set_position(val);
-    return;
-  }
-
   CLI_println("Invalid command: AZIMUTH (left <n>, right <n>, middle <n> timeout <n>).");
 }
 

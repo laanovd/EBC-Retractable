@@ -46,15 +46,23 @@ extern void CLI_println(String txt);
  *******************************************************************/
 extern void system_restart(void);
 
-/********************************************************************
- *  Initialize the command line interface
+/*******************************************************************
+ * @brief Initializes the CLI module.
+ * 
+ * This function sets up the tasks and handlers for the CLI module.
+ * After calling this function, the CLI handlers are ready to process commands.
+ * 
+ * @note This function should be called before using any CLI functionality.
  *******************************************************************/
-extern void CLI_setup(void);
+extern void CLI_init(void);
 
-/********************************************************************
- *  Set calibration mode
+/*******************************************************************
+ * @brief Starts the CLI handlers.
+ * 
+ * This function prints a message to the serial monitor indicating 
+ * that the CLI handlers have started.
  *******************************************************************/
-extern void set_calibrating(bool value);
-extern bool is_calibrating();
+extern void CLI_start(void);
+
 
 #endif // CLI_HEADER
