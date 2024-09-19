@@ -17,7 +17,6 @@
 #include "CLI.h"
 #include "Config.h"
 #include "Debug.h"
-#include "Maintenance.h"
 #include "Storage.h"
 #include "WiFiCom.h"
 
@@ -370,14 +369,12 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
 #ifdef DEBUG_WEBSOCKET
       Serial.println("Websocket client disconnected.");
 #endif
-      MAINTENANCE_disable();
       break;
 
     case WStype_CONNECTED:  // if a client is connected, then type == WStype_CONNECTED
 #ifdef DEBUG_WEBSOCKET
       Serial.println("Websocket client connected.");
 #endif
-      MAINTENANCE_disable();
       WEBSOCKET_on_connect();
       break;
 
@@ -389,11 +386,7 @@ void WebSocketsEvents(byte num, WStype_t type, uint8_t *payload, size_t length) 
       }
       Serial.println("");
 #endif
-
-      if (MAINTENANCE_command_handler((const char *)payload) < 0) {
-        Serial.print(F("MAINTENANCE command handler failed!"));
-        return;
-      }
+      // Add handler here
       break;
   }
 }
@@ -490,22 +483,6 @@ static void html_set_wifi_ssid(String &page) {
 }
 
 /********************************************************************
- * @brief Replaces a placeholder in an HTML page with the current IP address.
- *
- * This function takes an HTML page as input and replaces a specific placeholder
- * with the current IP address obtained from the WiFi module. The placeholder is
- * defined as "<span id=\"ip_address\">-</span>". The modified HTML page is then
- * returned as output.
- *
- * @param page The input HTML page.
- * @return The modified HTML page with the IP address placeholder replaced.
- *********************************************************************/
-static void html_set_ip_address(String &page) {
-#define WIFI_IP_ADDRESS_PLACEHOLDER "<span id=\"ip_address\">-</span>"
-  html_replace_placeholder(page, WIFI_IP_ADDRESS_PLACEHOLDER, WiFi_ip());
-}
-
-/********************************************************************
  * @brief Replaces the placeholder in the given HTML page with the
  * title generated from HTML_title().
  *
@@ -559,7 +536,6 @@ static void WEBSERVER_get_file(AsyncWebServerRequest *request) {
     html_set_program_version(content);
     html_set_chip_id(content);
     html_set_wifi_ssid(content);
-    html_set_ip_address(content);
   }
 
   request->send(200, filetype, content);
@@ -568,7 +544,7 @@ static void WEBSERVER_get_file(AsyncWebServerRequest *request) {
 /********************************************************************
  *  Initialize the debug webserver
  *********************************************************************/
-static void WEBSERVER_init(void) {
+static void WEBSERVER_html_setup(void) {
   String title = HTML_title();
 
   ElegantOTA.setID(ProgramName);            // Set Hardware ID
@@ -588,16 +564,6 @@ static void WEBSERVER_init(void) {
 
   // WebServer main page
   web_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    WEBSERVER_get_file(request);
-  });
-
-  // WebServer maintenance mode
-  web_server.on("/maintenance", HTTP_GET, [](AsyncWebServerRequest *request) {
-    WEBSERVER_get_file(request);
-  });
-
-  // WebServer system mode
-  web_server.on("/system", HTTP_GET, [](AsyncWebServerRequest *request) {
     WEBSERVER_get_file(request);
   });
 
@@ -645,15 +611,30 @@ static void WEBSERVER_setup_tasks(void) {
 }
 
 /********************************************************************
- *  Setup webserver
+ * @brief Initializes the web server.
+ *
+ * This function sets up the necessary components for the web server
+ * to function properly. After initialization, it prints a message to
+ * the serial monitor indicating that the web server has been initialized.
  *********************************************************************/
-void WEBSERVER_setup(void) {
-  WEBSERVER_init();
+void WEBSERVER_init(void) {
+  WEBSERVER_html_setup();
 
+  Serial.println(F("WebServer initialized..."));
+}
+
+/********************************************************************
+ * @brief Starts the web server.
+ *
+ * This function sets up the necessary tasks, CLI handlers, and
+ * API handlers for the web server. It also prints a message to
+ * the serial monitor indicating that the web server has started.
+ *********************************************************************/
+void WEBSERVER_start(void) {
   WEBSERVER_setup_tasks();
 
   WEBSERVER_cli_handlers();
   setup_uri(&WEBSERVER_api_handlers);
 
-  Serial.println(F("WebServer setup completed..."));
+  Serial.println(F("WebServer started..."));
 }

@@ -35,7 +35,7 @@
  * - Disable most of debug serial printf's
  *
  * @versions: A0.8.00 2024-08-xx
- * - ...
+ * - Synchronize files with EPS32-base project
  * 
  *******************************************************************/
 #ifndef CONFIG_HEADER_ID

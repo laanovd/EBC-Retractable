@@ -1,8 +1,8 @@
 /*******************************************************************
  *    TWAICom.h
- *    
+ *
  *    TWAI CAN communication channel
- * 
+ *
  *******************************************************************/
 #ifndef TWAI_HEADER_ID
 #define TWAI_HEADER_ID
@@ -26,7 +26,7 @@
 #define JSON_TWAI_TX_ERRORS "tx-errors"
 #define JSON_TWAI_TX_FAILED "tx-failed"
 #define JSON_TWAI_TX_QUEUED "tx-queued"
-#define JSON_TWAI_ARB_LOST  "arbitrage-lost"
+#define JSON_TWAI_ARB_LOST "arbitrage-lost"
 #define JSON_TWAI_BUS_ERROR "bus-errors"
 
 /********************************************************************
@@ -38,6 +38,13 @@
 #endif
 #ifndef CAN_500KB
 #define CAN_500KB 2
+#endif
+
+/*******************************************************************
+ * CAN receive handler
+ *******************************************************************/
+#ifndef CANReceiveHandler
+typedef void (*CANReceiveHandler)(uint32_t id, uint8_t *buffer, uint8_t size, bool rtr, bool ext);
 #endif
 
 /********************************************************************
@@ -59,7 +66,7 @@ extern bool TWAI_rx_frame(void);
 /*******************************************************************
  *  Send a frame through CAN channel
  *******************************************************************/
-extern int TWAI_send(uint32_t id, const uint8_t *buffer, uint8_t length, bool rtr=false, bool extd=false);
+extern int TWAI_send(uint32_t id, const uint8_t *buffer, uint8_t length, bool rtr = false, bool extd = false);
 
 /*******************************************************************
  * Set receive handler
@@ -67,8 +74,25 @@ extern int TWAI_send(uint32_t id, const uint8_t *buffer, uint8_t length, bool rt
 extern void TWAI_rx_handler(CANReceiveHandler handler);
 
 /*******************************************************************
- *  Setup TWAICom
+ * @brief Initializes the TWAI (Two-Wire Automotive Interface) module.
+ *
+ * This function sets up the TWAI queues and initializes the TWAI driver
+ * based on the specified mode. If the initialization fails, an error
+ * message is printed and the function returns.
+ *
+ * @param mode The mode to initialize the TWAI driver in.
+ *
+ * @return None.
  *******************************************************************/
-extern void TWAI_setup(int mode);
+extern void TWAI_init(int mode);
 
-#endif // TWAI_HEADER_ID
+/*******************************************************************
+ * @brief Starts the TWAI module.
+ *
+ * This function initializes the TWAI module by setting up tasks,
+ * CLI handlers, and API handlers. It also prints a message
+ * indicating that the TWAI module has started.
+ *******************************************************************/
+extern void TWAI_start(void);
+
+#endif  // TWAI_HEADER_ID

@@ -44,8 +44,23 @@ extern String WiFi_ip(void);
 extern String WiFi_string(void);
 
 /*******************************************************************
- * Externals
+ * @brief Initializes the WiFi module.
+ * 
+ * This function sets up the necessary variables for WiFi operation 
+ * and prints a message to the serial monitor indicating that WiFi 
+ * has been initialized.
  *******************************************************************/
-extern void WiFi_setup(void);
+extern void WiFi_init(void);
+
+/*******************************************************************
+ * @brief Starts the WiFi connection.
+ * 
+ * This function sets up the WiFi connection by calling the necessary 
+ * setup functions, registering the command line interface (CLI) handlers, 
+ * and setting up the URI for the WiFi API handlers. After the setup 
+ * is complete, it prints a message to the serial monitor indicating 
+ * that the WiFi has started.
+ *******************************************************************/
+extern void WiFi_start(void);
 
 #endif // WIFI_HEADER_ID

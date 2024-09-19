@@ -221,7 +221,7 @@ static void wifi_setup_ap(void) {
  * WiFi startup
  *
  *******************************************************************/
-static void WiFi_init(void) {
+static void WiFi_setup(void) {
   String ssid = WiFi_ssid();
 
   WiFi.disconnect();  // First disconnect when it was connected
@@ -286,14 +286,31 @@ static void WiFi_cli_handlers(void) {
 }
 
 /*******************************************************************
- * WiFi setup
+ * @brief Initializes the WiFi module.
+ * 
+ * This function sets up the necessary variables for WiFi operation 
+ * and prints a message to the serial monitor indicating that WiFi 
+ * has been initialized.
  *******************************************************************/
-void WiFi_setup(void) {
+void WiFi_init(void) {
   WiFi_setup_variables();
-  WiFi_init();
+  WiFi_setup();
 
+  Serial.println(F("WiFi initialized..."));
+}
+
+/*******************************************************************
+ * @brief Starts the WiFi connection.
+ * 
+ * This function sets up the WiFi connection by calling the necessary 
+ * setup functions, registering the command line interface (CLI) handlers, 
+ * and setting up the URI for the WiFi API handlers. After the setup 
+ * is complete, it prints a message to the serial monitor indicating 
+ * that the WiFi has started.
+ *******************************************************************/
+void WiFi_start(void) {
   WiFi_cli_handlers();
   setup_uri(&WIFI_api_handlers);
 
-  Serial.println(F("WiFi setup completed..."));
+  Serial.println(F("WiFi started..."));
 }

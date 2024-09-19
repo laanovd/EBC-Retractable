@@ -74,8 +74,21 @@ extern void WEBSOCKET_send(String key, JsonDocument doc);
 extern void WEBSOCKET_send_doc(JsonDocument doc);
 
 /********************************************************************
- * Setup webserver
+ * @brief Initializes the web server.
+ * 
+ * This function sets up the necessary components for the web server 
+ * to function properly. After initialization, it prints a message to 
+ * the serial monitor indicating that the web server has been initialized.
  *********************************************************************/
-extern void WEBSERVER_setup(void);
+extern void WEBSERVER_init(void);
+
+/********************************************************************
+ * @brief Starts the web server.
+ * 
+ * This function sets up the necessary tasks, CLI handlers, and 
+ * API handlers for the web server. It also prints a message to 
+ * the serial monitor indicating that the web server has started.
+ *********************************************************************/
+extern void WEBSERVER_start(void);
 
 #endif // HEADER_WEB_H

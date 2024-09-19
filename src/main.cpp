@@ -112,11 +112,15 @@ void all_stop(void) {
  * MAIN setup
  *******************************************************************/
 static void MAIN_setup(void) {
-  STORAGE_init();
+  /* System */
+  STORAGE_init(); /* First read settings */
+  WiFi_init();
   CLI_init();
-  WiFi_setup();
-  WEBSERVER_setup();
+  DEBUG_init();
+  WEBSERVER_init();
   GPIO_setup();
+
+  /* Application */
   AZIMUTH_setup();
   LIFT_setup();
   DMC_setup();
@@ -131,9 +135,15 @@ static void MAIN_setup(void) {
  * MAIN start
  *******************************************************************/
 static void MAIN_start(void) {
-  STORAGE_start();
+  /* System */
+  STORAGE_start(); 
+  WiFi_start();
   CLI_start();
+  DEBUG_start();  
+  WEBSERVER_start();
   GPIO_start();
+
+  /* Application */
   AZIMUTH_start();
   LIFT_start();
   DMC_start();

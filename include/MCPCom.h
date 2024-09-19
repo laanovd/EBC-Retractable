@@ -1,8 +1,8 @@
 /*******************************************************************
- *    MCP.ino
- *    
+ *    MCPCom.h
+ *
  *    Handling MCP communication, and call frame handlers
- * 
+ *
  *******************************************************************/
 #ifndef MCP_HEADER_ID
 #define MCP_HEADER_ID
@@ -24,12 +24,12 @@
 #define JSON_MCP_TX_ERRORS "tx-errors"
 #define JSON_MCP_TX_FAILED "tx-failed"
 #define JSON_MCP_TX_QUEUED "tx-queued"
-#define JSON_MCP_ARB_LOST  "arbitrage-lost"
+#define JSON_MCP_ARB_LOST "arbitrage-lost"
 #define JSON_MCP_BUS_ERROR "bus-errors"
 
-/********************************************************************
+/*********************************************************************
  * Constants
- *******************************************************************/
+ ********************************************************************/
 /* CAN communication baudrate */
 #ifndef CAN_250KB
 #define CAN_250KB 1
@@ -39,28 +39,50 @@
 #endif
 
 /*******************************************************************
+ * CAN receive handler
+ *******************************************************************/
+#ifndef CANReceiveHandler
+typedef void (*CANReceiveHandler)(uint32_t id, uint8_t* buffer, uint8_t size, bool rtr, bool ext);
+#endif
+
+/*******************************************************************
  * MCP frames received
  *******************************************************************/
-extern bool MCP1_rx_frames(void);
+extern bool MCP_rx_frames(void);
 
 /*******************************************************************
  * MCP frames transmitted
  *******************************************************************/
-extern bool MCP1_tx_frames(void);
+extern bool MCP_tx_frames(void);
 
 /*******************************************************************
  * MCP send frame
  *******************************************************************/
-extern int MCP1_send(uint32_t id, uint8_t* buffer, uint8_t length, bool rtr=false, bool ext=false);
+extern int MCP_send(uint32_t id, uint8_t* buffer, uint8_t length, bool rtr = false, bool ext = false);
 
 /*******************************************************************
- * Set receive handler 
+ * Set receive handler
  *******************************************************************/
-extern void MCP1_rx_handler(CANReceiveHandler handler);
+extern void MCP_rx_handler(CANReceiveHandler handler);
 
 /*******************************************************************
- * Externals
+ * @brief Initializes the MCP module.
+ *
+ * This function sets up the queues and SPI for the MCP module. It then initializes the MCP driver
+ * based on the specified mode. If the initialization fails, an error message is printed and the function
+ * returns. Otherwise, a success message is printed.
+ *
+ * @param mode The mode for MCP initialization.
  *******************************************************************/
-extern void MCP1_setup(int mode);
+extern void MCP_init(int mode);
 
-#endif // MCP_HEADER_ID
+/*******************************************************************
+ * @brief Starts the MCP module.
+ *
+ * This function initializes the MCP module by setting up tasks,
+ * CLI handlers, and API handlers. It also prints a message to the
+ * serial monitor indicating that the MCP has started.
+ *******************************************************************/
+extern void MCP_start(void);
+
+#endif  // MCP_HEADER_ID

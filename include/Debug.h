@@ -39,8 +39,27 @@ extern void DEBUG_bus(String text);
 extern void DEBUG_can(String label, const int length, const int id, const int rtr, const uint8_t buffer[]);
 
 /********************************************************************
- *  Setup debugging
- *******************************************************************/
-extern void DEBUG_setup(void);
+ * @brief Switches off debug output.
+ *
+ * This function disables the debug frames, debug data, and debug bus.
+ *********************************************************************/
+extern void DEBUG_stop(void);
+
+/********************************************************************
+ * @brief Initializes the debug functionality.
+ * 
+ * This function sets up the debug queue, tasks, and command line 
+ * interface handlers. It also marks the debug setup as completed 
+ * and prints a message to indicate that the setup is done.
+ *********************************************************************/
+extern void DEBUG_init(void);
+
+/********************************************************************
+ * @brief Starts the debug mode.
+ * 
+ * This function prints a debug message indicating that the debug 
+ * mode has started.
+ *********************************************************************/
+extern void DEBUG_start(void);
 
 #endif // DEBUG_HEADER_ID

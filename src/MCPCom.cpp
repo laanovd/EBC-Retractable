@@ -36,8 +36,8 @@ typedef struct mcp_frame_t {
 /*******************************************************************
  *  Variables
  *******************************************************************/
-static QueueHandle_t MCP1_TX_QUEUE;
-static QueueHandle_t MCP1_RX_QUEUE;
+static QueueHandle_t MCP_TX_QUEUE;
+static QueueHandle_t MCP_RX_QUEUE;
 
 static uint32_t _mcp1_baudrate = 500000;
 
@@ -46,17 +46,17 @@ static uint32_t _mcp1_transmited_error = 0;
 static uint32_t _mcp1_received = 0;
 static uint32_t _mcp1_received_error = 0;
 
-static CANReceiveHandler MCP1_receive_handler = nullptr;
+static CANReceiveHandler MCP_receive_handler = nullptr;
 
 /*******************************************************************
  *  Globals
  *******************************************************************/
 mcp2515_can CAN1(SPI0_CS);  // Set CAN-1 CS to pin 15
 
-/********************************************************************
+/*********************************************************************
  * Create initial JSON data
- *******************************************************************/
-static JsonDocument MCP1_json(void) {
+ ********************************************************************/
+static JsonDocument MCP_json(void) {
   JsonDocument doc;
 
   doc[JSON_MCP_DEVICE] = "mcp2515";
@@ -72,11 +72,11 @@ static JsonDocument MCP1_json(void) {
   return doc;
 }
 
-/********************************************************************
+/*********************************************************************
  * Create WiFi string
- *******************************************************************/
-String MCP1_string(void) {
-  JsonDocument doc = MCP1_json();
+ ********************************************************************/
+String MCP_string(void) {
+  JsonDocument doc = MCP_json();
 
   String text = "--- MCP ---";
   text.concat("\r\nTWAI baudrate: ");
@@ -99,7 +99,7 @@ String MCP1_string(void) {
 /*******************************************************************
  *  MCP frames transmitted
  *******************************************************************/
-bool MCP1_tx_frames(void) {
+bool MCP_tx_frames(void) {
   static int memo = 0;
   if (memo < _mcp1_transmited) {
     memo = _mcp1_transmited;
@@ -111,7 +111,7 @@ bool MCP1_tx_frames(void) {
 /*******************************************************************
  *  MCP frames received
  *******************************************************************/
-bool MCP1_rx_frames(void) {
+bool MCP_rx_frames(void) {
   static int memo = 0;
   if (memo < _mcp1_received) {
     memo = _mcp1_received;
@@ -164,7 +164,7 @@ bool MCP1_rx_frames(void) {
 #define CAN_RX0OVR (1 << 6)  // RX0OVR: Receive Buffer 0 Overflow Flag bit
 #define CAN_RX1OVR (1 << 7)  // RX1OVR: Receive Buffer 1 Overflow Flag bit
 
-static void MCP1_check_errors(void) {
+static void MCP_check_errors(void) {
   String msg;
   uint8_t error;
 
@@ -196,14 +196,14 @@ static void MCP1_check_errors(void) {
 /*******************************************************************
  * Set receive handler
  *******************************************************************/
-void MCP1_rx_handler(CANReceiveHandler handler) {
-  MCP1_receive_handler = handler;
+void MCP_rx_handler(CANReceiveHandler handler) {
+  MCP_receive_handler = handler;
 }
 
 /*******************************************************************
  *  Send a frame through MCP CAN channel
  *******************************************************************/
-int MCP1_send(uint32_t id, uint8_t* buffer, uint8_t length, bool rtr, bool ext) {
+int MCP_send(uint32_t id, uint8_t* buffer, uint8_t length, bool rtr, bool ext) {
   mcp_frame_t frame;
 
   frame.id = id & 0x0FFFFFFF;
@@ -216,10 +216,10 @@ int MCP1_send(uint32_t id, uint8_t* buffer, uint8_t length, bool rtr, bool ext) 
   }
 
 #ifdef DEBUG_FRAMES
-  Serial.printf("MCP-TX: Queue frame with id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
+  Serial.printf("MCP[tx]: Queue frame with id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
 #endif
 
-  if (xQueueSend(MCP1_TX_QUEUE, &frame, 0) != pdPASS) {
+  if (xQueueSend(MCP_TX_QUEUE, &frame, 0) != pdPASS) {
     Serial.println(F("MCP error queueing frame..."));
     vTaskDelay(500 / portTICK_PERIOD_MS);
   }
@@ -230,7 +230,7 @@ int MCP1_send(uint32_t id, uint8_t* buffer, uint8_t length, bool rtr, bool ext) 
  *  Setup Serial Paralel interface (SPI)
  *
  *******************************************************************/
-static void MCP1_setup_SPI(void) {
+static void MCP_setup_SPI(void) {
   digitalWrite(RST_MCP, LOW);           // RESET MCP2515
   vTaskDelay(1 / portTICK_PERIOD_MS);   // 1 mSec
   digitalWrite(RST_MCP, HIGH);          // RESET opgeheven MCP2515
@@ -243,7 +243,7 @@ static void MCP1_setup_SPI(void) {
 /*******************************************************************
  * Setup MCP driver
  *******************************************************************/
-static esp_err_t MCP1_setup_driver(int mode) {
+static esp_err_t MCP_setup_driver(int mode) {
   int result;
 
   switch (mode) {
@@ -276,19 +276,19 @@ static esp_err_t MCP1_setup_driver(int mode) {
  *  Setup the MCP transmitting frame
  *
  *******************************************************************/
-void MCP1_transmit_task(void* parameter) {
+void MCP_transmit_task(void* parameter) {
   mcp_frame_t frame;
   (void)parameter;
 
-  while (true) {
-    if (xQueueReceive(MCP1_TX_QUEUE, &frame, 0) == pdPASS) {
+  while (1) {
+    if (xQueueReceive(MCP_TX_QUEUE, &frame, 0) == pdPASS) {
 #ifdef DEBUG_FRAMES
-      Serial.printf("MCP-TX: Send frame with id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
+      Serial.printf("MCP[tx]: id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
 #endif
-      DEBUG_can("MCP-TX: ", frame.length, frame.id, frame.rtr ? 1 : 0, frame.buffer);
+      DEBUG_can("MCP[tx]: ", frame.length, frame.id, frame.rtr ? 1 : 0, frame.buffer);
 
       if (CAN1.sendMsgBuf((unsigned long)frame.id, frame.ext ? 1 : 0, frame.rtr ? 1 : 0, frame.length, frame.buffer) != CAN_OK) {
-        MCP1_check_errors();
+        MCP_check_errors();
       }
       else {
         _mcp1_transmited++;
@@ -306,7 +306,7 @@ void MCP1_transmit_task(void* parameter) {
  *  Setup the MCP receiving frame
  *
  *******************************************************************/
-void MCP1_receive_task(void* parameter) {
+void MCP_receive_task(void* parameter) {
   mcp_frame_t frame;
   (void)parameter;
 
@@ -319,10 +319,10 @@ void MCP1_receive_task(void* parameter) {
       frame.rtr = CAN1.isRemoteRequest() ? 1 : 0;
 
 #ifdef DEBUG_FRAMES
-      Serial.printf("MCP-RX: Recieve frame with id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
+      Serial.printf("MCP[rx]: id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
 #endif
 
-      if (xQueueSend(MCP1_RX_QUEUE, &frame, 0) != pdPASS) {
+      if (xQueueSend(MCP_RX_QUEUE, &frame, 0) != pdPASS) {
         Serial.println(F("MCP error queueing received frame..."));
         vTaskDelay(500 / portTICK_PERIOD_MS);
         continue;
@@ -335,57 +335,58 @@ void MCP1_receive_task(void* parameter) {
 /*******************************************************************
  *  MCP main task
  *******************************************************************/
-void MCP1_main_task(void* parameter) {
+void MCP_main_task(void* parameter) {
   mcp_frame_t frame;
   (void)parameter;
 
-  while (true) {
-    if (xQueueReceive(MCP1_RX_QUEUE, &frame, 0) == pdPASS) {
+  while (1) {
+    if (xQueueReceive(MCP_RX_QUEUE, &frame, 0) == pdPASS) {
       _mcp1_received++;
 
     #ifdef DEBUG_FRAMES
-      Serial.printf("MCP-RX: Process frame with id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
+      Serial.printf("MCP[rx]: Process frame with id=0x%08X, length:%d, ext=%d, rtr=%d.\n\r", (int)frame.id, (int)frame.length, (int)frame.ext, (int)frame.rtr);
     #endif
 
-      if (MCP1_receive_handler)
-        MCP1_receive_handler(frame.id, frame.buffer, frame.length, frame.rtr ? true : false, frame.ext ? true : false);
+      if (MCP_receive_handler)
+        MCP_receive_handler(frame.id, frame.buffer, frame.length, frame.rtr ? true : false, frame.ext ? true : false);
     }
 
     vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }
 
-/********************************************************************
+/*********************************************************************
  * REST API: read handler
  *********************************************************************/
-void MCP1_rest_read(AsyncWebServerRequest* request) {
+void MCP_rest_read(AsyncWebServerRequest* request) {
   String str;
-  serializeJson(MCP1_json(), str);
+  serializeJson(MCP_json(), str);
   request->send(200, "application/json", str.c_str());
 }
 
-static rest_api_t MCP1_api_handlers = {
+static rest_api_t MCP_api_handlers = {
     /* uri */ "/api/v1/mcp",
     /* comment */ "MCP module",
     /* instances */ 1,
     /* fn_create */ nullptr,
-    /* fn_read */ MCP1_rest_read,
+    /* fn_read */ MCP_rest_read,
     /* fn_update */ nullptr,
     /* fn_delete */ nullptr,
 };
 
-/********************************************************************
+/*********************************************************************
  *  CLI: List storage content
- *******************************************************************/
+ ********************************************************************/
 static void clicb_list_mcp1(cmd* c) {
   (void)c;
-  CLI_println(MCP1_string());
+  CLI_println(MCP_string());
 }
 
-/********************************************************************
- * Command Line handler(s)
- *********************************************************************/
-void MCP1_cli_handlers(void) {
+/*********************************************************************
+ *  Setup storage command handlers
+ *
+ ********************************************************************/
+static void MCP_cli_handlers(void) {
   cli.addCommand("mcp", clicb_list_mcp1);
 }
 
@@ -393,38 +394,55 @@ void MCP1_cli_handlers(void) {
  *  Setup MCP tasks
  *
  *******************************************************************/
-void MCP1_setup_queues() {
-  MCP1_TX_QUEUE = xQueueCreate(10, sizeof(mcp_frame_t)); // Transmit queue
-  MCP1_RX_QUEUE = xQueueCreate(10, sizeof(mcp_frame_t)); // Receive queue
+static void MCP_setup_queues() {
+  MCP_TX_QUEUE = xQueueCreate(10, sizeof(mcp_frame_t)); // Transmit queue
+  MCP_RX_QUEUE = xQueueCreate(10, sizeof(mcp_frame_t)); // Receive queue
 }
 
 /*******************************************************************
  *  Setup MCP tasks
  *
  *******************************************************************/
-void MCP1_setup_tasks() {
-  xTaskCreate(MCP1_main_task, "MCP main task", 4096, NULL, 3, NULL);
-  xTaskCreate(MCP1_receive_task, "MCP receive task", 4096, NULL, 5, NULL);
-  xTaskCreate(MCP1_transmit_task, "MCP transmit task", 2048, NULL, 5, NULL);
+static void MCP_setup_tasks() {
+  xTaskCreate(MCP_main_task, "MCP main task", 4096, NULL, 3, NULL);
+  xTaskCreate(MCP_receive_task, "MCP receive task", 4096, NULL, 5, NULL);
+  xTaskCreate(MCP_transmit_task, "MCP transmit task", 2048, NULL, 5, NULL);
 }
 
 /*******************************************************************
- *  Setup MCP tasks
- *
+ * @brief Initializes the MCP module.
+ * 
+ * This function sets up the queues and SPI for the MCP module. It then initializes the MCP driver
+ * based on the specified mode. If the initialization fails, an error message is printed and the function
+ * returns. Otherwise, a success message is printed.
+ * 
+ * @param mode The mode for MCP initialization.
  *******************************************************************/
-void MCP1_setup(int mode) {
-  MCP1_setup_queues();
-  MCP1_setup_SPI();
+void MCP_init(int mode) {
+  MCP_setup_queues();
+  MCP_setup_SPI();
 
-  if (MCP1_setup_driver(mode) != ESP_OK) {
-    Serial.println(F("MCP setup aborted."));
+  if (MCP_setup_driver(mode) != ESP_OK) {
+    Serial.println(F("MCP setup driver failed..."));
+    Serial.println(F("MCP initialisation aborted..."));
     return;
   }
 
-  MCP1_setup_tasks();
+  Serial.println(F("MCP initialized..."));
+}
 
-  MCP1_cli_handlers();
-  setup_uri(&MCP1_api_handlers);
+/*******************************************************************
+ * @brief Starts the MCP module.
+ * 
+ * This function initializes the MCP module by setting up tasks, 
+ * CLI handlers, and API handlers. It also prints a message to the 
+ * serial monitor indicating that the MCP has started.
+ *******************************************************************/
+void MCP_start(void) {
+  MCP_setup_tasks();
 
-  Serial.println(F("MCP setup completed..."));
+  MCP_cli_handlers();
+  setup_uri(&MCP_api_handlers);
+
+  Serial.println(F("MCP started..."));
 }

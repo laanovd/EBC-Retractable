@@ -232,15 +232,39 @@ static void CLI_handlers(void) {
 }
 
 /********************************************************************
- *  Setup debugging tools
+ * @brief Switches off debug output.
  *
+ * This function disables the debug frames, debug data, and debug bus.
  *********************************************************************/
-void DEBUG_setup(void) {
+void DEBUG_stop(void) {
+  debug_frames_active = false;
+  debug_data_active = false;
+  debug_bus_active = false;
+}
+
+/********************************************************************
+ * @brief Initializes the debug functionality.
+ * 
+ * This function sets up the debug queue, tasks, and command line 
+ * interface handlers. It also marks the debug setup as completed 
+ * and prints a message to indicate that the setup is done.
+ *********************************************************************/
+void DEBUG_init(void) {
   DEBUG_setup_queue();
   DEBUG_setup_tasks();
 
   CLI_handlers();
 
   debug_setup_completed = true;  // Setup completed.
-  Serial.println(F("Debug setup completed..."));
+  Serial.println(F("Debug initialized..."));
+}
+
+/********************************************************************
+ * @brief Starts the debug mode.
+ * 
+ * This function prints a debug message indicating that the debug 
+ * mode has started.
+ *********************************************************************/
+void DEBUG_start(void) {
+  Serial.println(F("Debug started..."));
 }
