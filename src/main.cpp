@@ -112,8 +112,8 @@ void all_stop(void) {
  * MAIN setup
  *******************************************************************/
 static void MAIN_setup(void) {
-  STORAGE_setup();
-  CLI_setup();
+  STORAGE_start();
+  CLI_init();
   WiFi_setup();
   WEBSERVER_setup();
   GPIO_setup();

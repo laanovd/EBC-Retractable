@@ -34,6 +34,9 @@
  * - Fix loading css stylesheet in maintenance mode
  * - Disable most of debug serial printf's
  *
+ * @versions: A0.8.00 2024-08-xx
+ * - ...
+ * 
  *******************************************************************/
 #ifndef CONFIG_HEADER_ID
 #define CONFIG_HEADER_ID
@@ -42,7 +45,7 @@
  * Program name and version definitions
  *******************************************************************/
 #define ProgramName "EBC-Retractable"   // Program name
-#define ProgramVersion "A0.7"           // Program version
+#define ProgramVersion "A0.8"           // Program version
 #define ProgramTitle "EBC-RECU"         // Title Web interface
 #define WiFiSSIDPrefix "EBC-E"          // Wifi ssid name
 #define PCBVersion "RECU v0.3"          // Hardware version
